@@ -1,64 +1,57 @@
-# riskfin-portal
+# essentials
 
-This template should help get you started developing with Vue 3 in Vite.
+## Project setup
 
-## Recommended IDE Setup
+```
+# yarn
+yarn
 
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur) + [TypeScript Vue Plugin (Volar)](https://marketplace.visualstudio.com/items?itemName=Vue.vscode-typescript-vue-plugin).
-
-## Customize configuration
-
-See [Vite Configuration Reference](https://vitejs.dev/config/).
-
-## Project Setup
-
-```sh
+# npm
 npm install
+
+# pnpm
+pnpm install
 ```
 
-### Compile and Hot-Reload for Development
+### Compiles and hot-reloads for development
 
-```sh
+```
+# yarn
+yarn dev
+
+# npm
 npm run dev
+
+# pnpm
+pnpm dev
 ```
 
-### Compile and Minify for Production
+### Compiles and minifies for production
 
-```sh
-npm run build
 ```
+# yarn
+yarn build
 
-### Run Unit Tests with [Vitest](https://vitest.dev/)
-
-```sh
-npm run test:unit
-```
-
-### Run End-to-End Tests with [Nightwatch](https://nightwatchjs.org/)
-
-```sh
-# When using CI, the project must be built first.
+# npm
 npm run build
 
-# Runs the end-to-end tests
-npm run test:e2e
-# Runs the tests only on Chrome
-npm run test:e2e -- --env chrome
-# Runs the tests of a specific file
-npm run test:e2e -- tests/e2e/example.js
-# Runs the tests in debug mode
-npm run test:e2e -- --debug
-```
-    
-### Run Headed Component Tests with [Nightwatch Component Testing](https://nightwatchjs.org/guide/component-testing/introduction.html)
-  
-```sh
-npm run test:unit
-npm run test:unit -- --headless # for headless testing
+# pnpm
+pnpm build
 ```
 
-### Lint with [ESLint](https://eslint.org/)
+### Lints and fixes files
 
-```sh
+```
+# yarn
+yarn lint
+
+# npm
 npm run lint
+
+# pnpm
+pnpm lint
 ```
+
+### Customize configuration
+
+See [Configuration Reference](https://vitejs.dev/config/).
