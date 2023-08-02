@@ -92,6 +92,13 @@ const upgradeBanner = computed(() => {
       />
       <VerticalNavLink
         :item="{
+          title: 'Notifications',
+          icon: 'bx-bell',
+          to: '/notifications',
+        }"
+      />
+      <VerticalNavLink
+        :item="{
           title: 'Login',
           icon: 'bx-log-in',
           to: '/login',
@@ -163,13 +170,7 @@ const upgradeBanner = computed(() => {
         rel="noopener noreferrer"
         style="margin-left: 7px;"
       >
-        <img
-          :src="upgradeBanner"
-          alt="upgrade-banner"
-          transition="scale-transition"
-          class="upgrade-banner mx-auto"
-          style="max-width: 230px;"
-        >
+        
       </a>
     </template>
 

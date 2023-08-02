@@ -3,15 +3,18 @@ import { createRouter, createWebHistory } from 'vue-router'
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
-    { path: '/', redirect: '/login' },
+    { path: '/', redirect: '/dashboard' },
     {
       path: '/',
       component: () => import('../layouts/default.vue'),
       children: [
         {
           path: 'dashboard',
-          name: 'dashboard',
           component: () => import('../pages/dashboard.vue'),
+        },
+        {
+          path: 'notifications',
+          component: () => import('../pages/notifications.vue'),
         },
         {
           path: 'account-settings',

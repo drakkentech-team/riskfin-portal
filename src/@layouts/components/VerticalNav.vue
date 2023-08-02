@@ -60,11 +60,16 @@ const handleNavScroll = evt => {
         >
           <div
             class="d-flex"
-            v-html="logo"
-          />
+          >
+          <img
+                src="/riskfin-logo.png"
+                alt="description"
+                style="height: 50px;"
+              >
+            </div>
 
           <h1 class="leading-normal">
-            sneat
+            riskfin
           </h1>
         </RouterLink>
       </slot>
