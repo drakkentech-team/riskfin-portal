@@ -13,7 +13,7 @@ const form = reactive({
 })
 
 const isPasswordVisible = ref(false)
-const errorMessage = ref('')  // Add this line
+const errorMessage = ref('') 
 
 const handleLogin = async () => {
   form.isLoading = true
