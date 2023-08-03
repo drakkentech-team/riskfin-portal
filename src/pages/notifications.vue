@@ -1,7 +1,7 @@
 <script setup>
-import axios from 'axios'
-import { reactive, ref } from 'vue'
-import { useTheme } from 'vuetify'
+import axios from 'axios';
+import { reactive, ref } from 'vue';
+import { useTheme } from 'vuetify';
 
 const { global } = useTheme()
 const showAlert = ref(false)
@@ -21,9 +21,12 @@ const handleSaveNotification = async () => {
       user_id: form.user_id,
     })
     
-    if (response && response.status === 500) {
-      dialog = false
-      showAlert.value = true;
+    
+    if (response && response.status === 200) {
+      showAlert.value = true
+      setTimeout(() => {
+        showAlert.value = false;
+      }, 5000);
     } 
   } 
   catch (error) {
@@ -56,14 +59,7 @@ const handleSaveNotification = async () => {
         </VCardItem>
       </VCol>
     </VRow>
-    <VRow>
-      <v-alert
-        type="success"
-        title="Alert title"
-        text="Lorem ipsum dolor sit amet consectetur adipisicing elit. Commodi, ratione debitis quis est labore voluptatibus! Eaque cupiditate minima, at placeat totam, magni doloremque veniam neque porro libero rerum unde voluptatem!"
-        v-model="showAlert"
-      ></v-alert>  
-    </VRow>
+    
 
     <v-row justify="center">
     <v-dialog
@@ -113,6 +109,14 @@ const handleSaveNotification = async () => {
                 ></v-select>
               </v-col>
             </v-row>
+            <v-row justify="center">
+              <v-alert
+                type="success"
+                title="Success"
+                text="Your notification has been successfully sent!"
+                v-model="showAlert"
+              ></v-alert>  
+            </v-row>
           </v-container>
           <small>*indicates required field</small>
         </v-card-text>
@@ -130,7 +134,7 @@ const handleSaveNotification = async () => {
             variant="text"
             @click="handleSaveNotification"
           >
-            Save
+            Send
           </v-btn>
         </v-card-actions>
       </v-card>
