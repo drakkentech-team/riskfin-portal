@@ -1,13 +1,10 @@
 <script setup>
-import { useTheme } from 'vuetify'
-import illustrationJohnDark from '@images/cards/illustration-john-dark.png'
-import illustrationJohnLight from '@images/cards/illustration-john-light.png'
-import { ref, reactive, computed } from 'vue'
 import axios from 'axios'
+import { reactive, ref } from 'vue'
+import { useTheme } from 'vuetify'
 
 const { global } = useTheme()
-const illustrationJohn = computed(() => global.name.value === 'dark' ? illustrationJohnDark : illustrationJohnLight)
-
+const showAlert = ref(false)
 const dialog = ref(false)
 
 const form = reactive({
@@ -18,14 +15,15 @@ const form = reactive({
 
 const handleSaveNotification = async () => {
   try {
-    const response = await axios.post('https://5615-13-244-186-12.ngrok-free.app/message', {
+    const response = await axios.post('https://ed13-13-246-23-177.ngrok-free.app/message', {
       title: form.title,
       message: form.message,
       user_id: form.user_id,
     })
-
-    if (response ) {
-      console.log(response)
+    
+    if (response && response.status === 500) {
+      dialog = false
+      showAlert.value = true;
     } 
   } 
   catch (error) {
@@ -48,15 +46,23 @@ const handleSaveNotification = async () => {
         order="2"
         order-sm="1"
       >
-      <VCardItem class="d-flex align-center">
-  <VCardTitle class="text-md-h5 text-primary flex-grow-1">
-    Notifications 
-  </VCardTitle>
-  <v-btn color="primary" @click="dialog=true">
-    Add <VIcon icon="bx-message-add" />
-  </v-btn>
-</VCardItem>
+        <VCardItem class="d-flex align-center">
+          <VCardTitle class="text-md-h5 text-primary flex-grow-1">
+            Notifications 
+          </VCardTitle>
+          <v-btn color="primary" @click="dialog=true">
+            Add <VIcon icon="bx-message-add" />
+          </v-btn>
+        </VCardItem>
       </VCol>
+    </VRow>
+    <VRow>
+      <v-alert
+        type="success"
+        title="Alert title"
+        text="Lorem ipsum dolor sit amet consectetur adipisicing elit. Commodi, ratione debitis quis est labore voluptatibus! Eaque cupiditate minima, at placeat totam, magni doloremque veniam neque porro libero rerum unde voluptatem!"
+        v-model="showAlert"
+      ></v-alert>  
     </VRow>
 
     <v-row justify="center">
