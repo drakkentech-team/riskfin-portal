@@ -60,6 +60,25 @@ const router = createRouter({
         },
       ],
     },
+    {
+      path: '/riskfin-direct',
+      component: () => import('../pages/riskfin-direct/home.vue'),
+      children: [
+        {
+          path: 'register',
+          name: "register",
+          component: () => import('../pages/riskfin-direct/register.vue'),
+        },
+        {
+          path: 'register',
+          component: () => import('../pages/register.vue'),
+        },
+        {
+          path: '/:pathMatch(.*)*',
+          component: () => import('../pages/[...all].vue'),
+        },
+      ],
+    },
   ],
 })
 
