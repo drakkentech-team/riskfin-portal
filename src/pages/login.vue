@@ -45,11 +45,8 @@ const handleLogin = async () => {
 
 <template>
   <div class="auth-wrapper d-flex align-center justify-center pa-4">
-    <VCard
-      class="auth-card pa-4 pt-7"
-      max-width="448"
-    >
-      <VCardItem class="justify-center">
+    <v-card class="auth-card pa-4 pt-7" max-width="448">
+      <v-card-item class="justify-center">
         <template #prepend>
           <div class="d-flex">
             <div class="d-flex text-primary">
@@ -61,38 +58,34 @@ const handleLogin = async () => {
             </div>
           </div>
         </template>
-
-        <VCardTitle class="text-2xl font-weight-bold">
+        <v-card-title class="text-2xl font-weight-bold">
           Riskfin
-        </VCardTitle>
-      </VCardItem>
-
-      <VCardText class="pt-2">
+        </v-card-title>
+      </v-card-item>
+      <v-card-text class="pt-2">
         <h5 class="text-h5 mb-1">
           Welcome to Riskfin Portal!
         </h5>
         <p class="mb-0">
           Please sign-in to your account
         </p>
-      </VCardText>
-
-      <VCardText>
-        <VForm @submit.prevent="$router.push('/')">
-          <VRow>
+      </v-card-text>
+      <v-card-text>
+        <v-form @submit.prevent="$router.push('/')">
+          <v-row>
             <!-- email -->
-            <VCol cols="12">
-              <VTextField
+            <v-col cols="12">
+              <v-text-field
                 v-model="form.email"
                 autofocus
                 placeholder="johndoe@email.com"
                 label="Email"
                 type="email"
               />
-            </VCol>
-
+            </v-col>
             <!-- password -->
-            <VCol cols="12">
-              <VTextField
+            <v-col cols="12">
+              <v-text-field
                 v-model="form.password"
                 label="Password"
                 placeholder="············"
@@ -100,10 +93,9 @@ const handleLogin = async () => {
                 :append-inner-icon="isPasswordVisible ? 'bx-hide' : 'bx-show'"
                 @click:append-inner="isPasswordVisible = !isPasswordVisible"
               />
-
               <!-- remember me checkbox -->
               <div class="d-flex align-center justify-space-between flex-wrap mt-1 mb-4">
-                <VCheckbox
+                <v-checkbox
                   v-model="form.remember"
                   label="Remember me"
                 />
@@ -117,7 +109,7 @@ const handleLogin = async () => {
               </div>
 
               <!-- login button -->
-              <VBtn
+              <v-btn
                 block
                 type="submit"
                 @click="handleLogin"
@@ -130,12 +122,12 @@ const handleLogin = async () => {
                   width="2"
                 />
                 <span v-else>Log in</span>
-              </VBtn>
-            </VCol>
-          </VRow>
-        </VForm>
-      </VCardText>
-    </VCard>
+              </v-btn>
+            </v-col>
+          </v-row>
+        </v-form>
+      </v-card-text>
+    </v-card>
   </div>
 </template>
 

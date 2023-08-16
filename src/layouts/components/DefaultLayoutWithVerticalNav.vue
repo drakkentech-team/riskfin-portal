@@ -50,20 +50,20 @@ const upgradeBanner = computed(() => {
     </template>
 
     <template #vertical-nav-content>
-      <VerticalNavLink
+      <!-- <VerticalNavLink
         :item="{
           title: 'Dashboard',
           icon: 'bx-home',
           to: '/dashboard',
         }"
-      />
-      <VerticalNavLink
+      /> -->
+      <!--<VerticalNavLink
         :item="{
           title: 'Account Settings',
           icon: 'mdi-account-cog-outline',
           to: '/account-settings',
         }"
-      />
+      />-->
 
       <!-- 👉 Pages -->
       <VerticalNavSectionTitle
@@ -78,30 +78,30 @@ const upgradeBanner = computed(() => {
           to: '/notifications',
         }"
       />
-      <VerticalNavLink
+      <!--<VerticalNavLink
         :item="{
           title: 'Login',
           icon: 'bx-log-in',
           to: '/login',
         }"
-      />
-      <VerticalNavLink
+      />-->
+      <!--<VerticalNavLink
         :item="{
           title: 'Register',
           icon: 'bx-user-plus',
           to: '/register',
         }"
-      />
-      <VerticalNavLink
+      />-->
+      <!--<VerticalNavLink
         :item="{
           title: 'Error',
           icon: 'bx-info-circle',
           to: '/no-existence',
         }"
-      />
+      />-->
 
       <!-- 👉 User Interface -->
-      <VerticalNavSectionTitle
+      <!--<VerticalNavSectionTitle
         :item="{
           heading: 'User Interface',
         }"
@@ -140,7 +140,7 @@ const upgradeBanner = computed(() => {
           icon: 'mdi-form-select',
           to: '/form-layouts',
         }"
-      />
+      />-->
     </template>
 
     <template #after-vertical-nav-items>
