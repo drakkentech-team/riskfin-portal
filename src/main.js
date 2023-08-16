@@ -9,6 +9,7 @@ import '@layouts/styles/index.scss'
 import '@styles/styles.scss'
 import { createPinia } from 'pinia'
 import { createApp } from 'vue'
+import '@mdi/font/css/materialdesignicons.css';
 
 loadFonts()
 
