@@ -78,6 +78,20 @@ const upgradeBanner = computed(() => {
           to: '/notifications',
         }"
       />
+      <VerticalNavLink
+        :item="{
+          title: 'Products',
+          icon: 'healthicons:money-bag-outline',
+          to: '',
+        }"
+      />
+      <VerticalNavLink
+        :item="{
+          title: 'User Management',
+          icon: 'mdi-account-cog-outline',
+          to: '',
+        }"
+      />  
       <!--<VerticalNavLink
         :item="{
           title: 'Login',
