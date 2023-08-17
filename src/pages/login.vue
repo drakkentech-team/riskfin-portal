@@ -22,22 +22,27 @@ const handleLogin = async () => {
       email: form.email,
       password: form.password,
     })
-
     if (response && response.status === 200) {
-      await router.push({ name: 'notifications' })
+      router.push({ path: '/notifications' });
+      // await router.push({ name: 'notifications' })
     } 
   } 
   catch (error) {
     if (error.response && error.response.status === 404) {
       errorMessage.value = 'This user does not exist'
+      return
     }
     else if (error.response && error.response.status === 401) {
       errorMessage.value = 'Your password is incorrect'
+      return
     }
   } finally {
     form.isLoading = false
   }
 }
+const submitForm = () => {
+  console.log('Form:', form)
+};
 </script>
 
 
@@ -71,7 +76,7 @@ const handleLogin = async () => {
         </p>
       </v-card-text>
       <v-card-text>
-        <v-form @submit.prevent="$router.push('/')">
+        <v-form @submit.prevent="submitForm">
           <v-row>
             <!-- email -->
             <v-col cols="12">
