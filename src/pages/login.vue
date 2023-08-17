@@ -24,7 +24,7 @@ const handleLogin = async () => {
     })
 
     if (response && response.status === 200) {
-      await router.push({ name: 'dashboard' })
+      await router.push({ name: 'notifications' })
     } 
   } 
   catch (error) {
@@ -95,7 +95,7 @@ const handleLogin = async () => {
               />
               <!-- remember me checkbox -->
               <div class="d-flex align-center justify-space-between flex-wrap mt-1 mb-4">
-                <v-checkbox
+                <!--<v-checkbox
                   v-model="form.remember"
                   label="Remember me"
                 />
@@ -105,7 +105,7 @@ const handleLogin = async () => {
                   to="javascript:void(0)"
                 >
                   Forgot Password?
-                </RouterLink>
+                </RouterLink>-->
               </div>
 
               <!-- login button -->
@@ -123,6 +123,9 @@ const handleLogin = async () => {
                 />
                 <span v-else>Log in</span>
               </v-btn>
+              <v-card-text v-if="errorMessage">
+                <p class="text-error">{{ errorMessage }}</p>
+              </v-card-text>
             </v-col>
           </v-row>
         </v-form>
