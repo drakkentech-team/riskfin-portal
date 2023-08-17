@@ -18,7 +18,7 @@ const errorMessage = ref('')
 const handleLogin = async () => {
   form.isLoading = true
   try {
-    const response = await axios.post('https://5615-13-244-186-12.ngrok-free.app/web_login', {
+    const response = await axios.post('http://localhost:9000/web_login', {
       email: form.email,
       password: form.password,
     })
