@@ -16,18 +16,22 @@ const isPasswordVisible = ref(false)
 const errorMessage = ref('') 
 
 const handleLogin = async () => {
+  errorMessage.value = '';
   form.isLoading = true
   try {
-    const response = await axios.post('http://localhost:9000/web_login', {
+    const response = await axios.post('http://127.0.0.1:9000/web_login', {
       email: form.email,
       password: form.password,
     })
+
+    console.log('Response status:', response.status); // Add this line
+
     if (response && response.status === 200) {
-      router.push({ path: '/notifications' });
-      // await router.push({ name: 'notifications' })
+      await router.push({ path: '/notifications' })
     } 
   } 
   catch (error) {
+    console.error('Error in login:', error); // Add this line
     if (error.response && error.response.status === 404) {
       errorMessage.value = 'This user does not exist'
       return
@@ -35,6 +39,9 @@ const handleLogin = async () => {
     else if (error.response && error.response.status === 401) {
       errorMessage.value = 'Your password is incorrect'
       return
+    }
+    else if (error.request && error.request.status === 0) {
+      errorMessage.value = 'Could not connect to server. Please contact your server administrator.'
     }
   } finally {
     form.isLoading = false
@@ -76,7 +83,7 @@ const submitForm = () => {
         </p>
       </v-card-text>
       <v-card-text>
-        <v-form @submit.prevent="submitForm">
+        <v-form @submit.prevent="handleLogin">
           <v-row>
             <!-- email -->
             <v-col cols="12">
@@ -86,6 +93,7 @@ const submitForm = () => {
                 placeholder="johndoe@email.com"
                 label="Email"
                 type="email"
+                @focus="errorMessage = ''"
               />
             </v-col>
             <!-- password -->
@@ -97,6 +105,7 @@ const submitForm = () => {
                 :type="isPasswordVisible ? 'text' : 'password'"
                 :append-inner-icon="isPasswordVisible ? 'bx-hide' : 'bx-show'"
                 @click:append-inner="isPasswordVisible = !isPasswordVisible"
+                @focus="errorMessage = ''"
               />
               <!-- remember me checkbox -->
               <div class="d-flex align-center justify-space-between flex-wrap mt-1 mb-4">
@@ -128,9 +137,11 @@ const submitForm = () => {
                 />
                 <span v-else>Log in</span>
               </v-btn>
-              <v-card-text v-if="errorMessage">
-                <p class="text-error">{{ errorMessage }}</p>
-              </v-card-text>
+              <div class="error-message">
+                <v-card-text v-if="errorMessage">
+                  <p class="text-error">{{ errorMessage }}</p>
+                </v-card-text>
+              </div>
             </v-col>
           </v-row>
         </v-form>
@@ -140,5 +151,7 @@ const submitForm = () => {
 </template>
 
 <style lang="scss">
-@use "@core/scss/template/pages/page-auth.scss";
+  .error-message {
+    text-align: center;
+  }
 </style>

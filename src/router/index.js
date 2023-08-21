@@ -3,7 +3,7 @@ import { createRouter, createWebHistory } from "vue-router";
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
-    { path: "/", redirect: "/login" },
+    { path: '/', redirect: '/login' },
     {
       path: "/",
       component: () => import("../layouts/default.vue"),
@@ -21,8 +21,12 @@ const router = createRouter({
           component: () => import("../pages/account-settings.vue"),
         },
         {
-          path: "typography",
-          component: () => import("../pages/typography.vue"),
+          path: 'user-management',
+          component: () => import('../pages/user-management.vue'),
+        },
+        {
+          path: 'typography',
+          component: () => import('../pages/typography.vue'),
         },
         {
           path: "icons",
