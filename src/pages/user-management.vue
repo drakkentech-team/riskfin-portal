@@ -5,7 +5,9 @@ import { onMounted, onUnmounted, reactive, ref } from 'vue';
   const data = ref([]);
   const user = ref([]);
   const dialog = ref(false);
-  const showAlert = ref(false)
+  const showAlert = ref(false);
+  const isPasswordVisible = ref(false);
+  const isConfirmPasswordVisible = ref(false);
 
   const tabs = [
     { title: 'All', icon: 'bx:world', tab: 'account' },
@@ -70,6 +72,7 @@ import { onMounted, onUnmounted, reactive, ref } from 'vue';
     lastName: "",
     email: "",
     password: "",
+    confirmPassword: "",
     admin: null,
   })
 </script>
@@ -90,66 +93,83 @@ import { onMounted, onUnmounted, reactive, ref } from 'vue';
     </VRow>
     <VRow no-gutters>
       <VTabs
-      v-model="activeTab"
-      show-arrows
-    >
-      <VTab
-        v-for="item in tabs"
-        :key="item.icon"
-        :value="item.tab"
+        v-model="activeTab"
+        show-arrows
       >
+        <VTab
+          v-for="item in tabs"
+          :key="item.icon"
+          :value="item.tab"
+        >
         <VIcon
           size="20"
           start
           :icon="item.icon"
         />
-        {{ item.title }}
-      </VTab>
-    </VTabs>
-    <VDivider />
-      </VRow>
-      <v-row justify="center">
-      <v-dialog v-model="dialog" width="1024">
-        <v-card>
-          <v-card-title>
-            <span class="text-h5">Add new user</span>
-          </v-card-title>
-          <v-card-text>      
-            <v-container>
-              <v-row>
-                <v-col cols="12" sm="6" md="4">
-                  <v-text-field
-                    label="First Name"
-                    required
-                    v-model="form.firstName"
-                  />
-                </v-col>
-              <v-col cols="12" sm="6" md="4">
-                <v-text-field
-                  v-model="form.lastName"
-                  label="Last Name"
-                  required
-                ></v-text-field>
-              </v-col>
-            </v-row>
+          {{ item.title }}
+        </VTab>
+      </VTabs>
+      <VDivider />
+    </VRow>
+
+    <!-- Modal -->
+    <v-dialog v-model="dialog" width="800">
+      <v-card>
+        <v-container>
+          <v-row class="justify-center">
+            <v-col class="text-center" cols="12" sm="6" md="4">
+              <span class="text-h5">Create A New User</span>
+            </v-col>
+          </v-row>
+          <v-row>
+            <v-col cols="12" sm="6" md="12">
+              <v-text-field
+                v-model="form.email"
+                label="Email"
+                required
+              />
+            </v-col>
+          </v-row>
+          <v-row>
+            <v-col cols="12" sm="6" md="6">
+              <v-text-field
+                v-model="form.firstName"
+                label="First Name"
+                required
+              />
+            </v-col>
+            <v-col cols="12" sm="6" md="6">
+              <v-text-field
+                v-model="form.last"
+                label="Last Name"
+                required
+              />
+            </v-col>
+          </v-row>
             <v-row>
-              <v-col cols="12" sm="6" md="4">
-                <v-text-field
-                  v-model="form.email"
-                  label="Email"
-                  required
-                ></v-text-field>
-              </v-col>
-              <v-col cols="12" sm="6" md="4">
+              <v-col cols="12" sm="6" md="6">
                 <v-text-field
                   v-model="form.password"
                   label="Password"
-                  required
-                ></v-text-field>
+                  placeholder="············"
+                  :type="isPasswordVisible ? 'text' : 'password'"
+                  :append-inner-icon="isPasswordVisible ? 'bx-hide' : 'bx-show'"
+                  @click:append-inner="isPasswordVisible = !isPasswordVisible"
+                />
+              </v-col>
+              <v-col cols="12" sm="6" md="6">
+                <v-text-field
+                  v-model="form.confirmPassword"
+                  label="Confirm Password"
+                  placeholder="············"
+                  :type="isConfirmPasswordVisible ? 'text' : 'password'"
+                  :append-inner-icon="isConfirmPasswordVisible ? 'bx-hide' : 'bx-show'"
+                  @click:append-inner="isConfirmPasswordVisible = !isConfirmPasswordVisible"
+                />
               </v-col>
             </v-row>
             <v-row>
-              <v-col cols="12" sm="6" md="4">
+              <v-col cols="12" sm="6" md="6">
                 <v-select
                   :items="['Admin', 'Standard']"
                   label="User type"
@@ -167,7 +187,6 @@ import { onMounted, onUnmounted, reactive, ref } from 'vue';
               />
             </v-row>
           </v-container>
-        </v-card-text>
         <v-card-actions>
           <v-spacer/>
             <v-btn
@@ -187,7 +206,6 @@ import { onMounted, onUnmounted, reactive, ref } from 'vue';
           </v-card-actions>
         </v-card>
       </v-dialog>
-    </v-row>
     <v-table>
       <thead>
         <tr>
@@ -206,14 +224,13 @@ import { onMounted, onUnmounted, reactive, ref } from 'vue';
         </tr>
       </thead>
       <tbody>
-        <tr
-          v-for="item in data"
-            :key="item.sid"
+        <tr v-for="item in data"
+          :key="item.sid"
         >
-          <td>{{ item.first_name }}</td>
-          <td>{{ item.last_name }}</td>
-          <td>{{ item.email }}</td>
-          <td>{{ item.admin === 1 ? "Admin" : "Standard" }}</td>
+          <td class="capitalize">{{item.first_name}}</td>
+          <td class="capitalize">{{item.last_name}}</td>
+          <td>{{item.email}}</td>
+          <td>{{item.admin === 1 ? "Admin" : "Standard"}}</td>
         </tr>
       </tbody>
     </v-table>
@@ -223,5 +240,9 @@ import { onMounted, onUnmounted, reactive, ref } from 'vue';
 <style lang="scss" scoped>
 .clickable-cell {
   cursor: pointer;
+}
+
+.capitalize {
+  text-transform: capitalize;
 }
 </style>
