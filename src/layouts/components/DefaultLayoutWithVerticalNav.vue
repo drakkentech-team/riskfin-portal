@@ -108,6 +108,13 @@ const upgradeBanner = computed(() => {
       />-->
       <!--<VerticalNavLink
         :item="{
+          title: 'Product Management',
+          icon: 'carbon:product',
+          to: '/product_management',
+        }"
+      />
+      <VerticalNavLink
+        :item="{
           title: 'Error',
           icon: 'bx-info-circle',
           to: '/no-existence',
