@@ -9,35 +9,16 @@ import { onMounted, onUnmounted, reactive, ref } from 'vue';
 
   const tabs = [
     { title: 'All', icon: 'bx:world', tab: 'account' },
-    { title: 'Automated', icon: 'bx-bot', tab: 'security' },
-    { title: 'Custom', icon: 'bx-pencil', tab: 'notification' },
-    { title: 'Scheduled', icon: 'bx:time', tab: 'notification' },
+    { title: 'Admin', icon: 'clarity:administrator-line', tab: 'security' },
+    { title: 'Standard', icon: 'clarity:user-line', tab: 'notification' },
   ];
 
-  const fetchMessage = async () => {
+  const fetchUsers = async () => {
     try {
-      const response = await axios.get(`http://127.0.0.1:9000/messages`);
+      const response = await axios.get(`http://127.0.0.1:9000/all_web_user_profiles`);
       if (response && response.status === 200) {
         if (response.data) {
-          const uniqueMessages = {};
-          response.data.forEach((message) => {
-            const key = message.message_title + message.message_body;
-
-            if (!uniqueMessages[key]) {
-              uniqueMessages[key] = {
-                ...message,
-                count: 0,
-                flagCounts: { 0: 0, 1: 0, 2: 0, 3: 0 }
-              };
-            }
-
-            uniqueMessages[key].count++;
-            uniqueMessages[key].flagCounts[message.sid_message_flags_fk]++;
-          });
-
-          const filteredMessages = Object.values(uniqueMessages);
-
-          data.value = filteredMessages;
+          data.value = response.data;
           console.log('Data:', data.value);
         }
       }
@@ -46,37 +27,24 @@ import { onMounted, onUnmounted, reactive, ref } from 'vue';
     }
   };
 
-  const fetchUser = async () => {
-    try {
-      const r = await axios.get(`http://localhost:9000/all_user_profile`);
-      if (r && r.status === 200) {
-        if (r) {
-          user.value = r;
-          console.log('User:', user.value);
-        }
-      }
-    } catch (error) {
-      console.error('Failed to fetch messages:', error);
-    }
-  };
-
-  const handleFlagClick = (flagIndex) => {
-    console.log(`Clicked on flag index ${flagIndex} for item`);
-  }
-
   const handleSaveNotification = async () => {
     try {
-      const response = await axios.post(`https://41ba-13-246-23-177.ngrok-free.app/send_message`, {
-        title: form.title,
-        message: form.message,
-        user_id: form.user_id,
+      var adminValue
+      form.admin === 'Admin' ? adminValue = 1 : adminValue = 0
+      const response = await axios.post(`http://localhost:9000/web_register`, {
+        name: form.firstName,
+        surname: form.lastName,
+        email: form.email,
+        password: form.password,
+        admin: adminValue,
+        active: 1,
       })
       if (response && response.status === 200) {
         showAlert.value = true
         setTimeout(() => {
           showAlert.value = false;
         }, 5000);
-        fetchMessage();
+        fetchUsers();
       } 
     } 
     catch (error) {
@@ -90,18 +58,19 @@ import { onMounted, onUnmounted, reactive, ref } from 'vue';
   }
 
   onMounted(() => {
-    fetchMessage();
-    fetchUser();
-    const intervalId = setInterval(fetchMessage, 60000);
+    fetchUsers();
+    const intervalId = setInterval(fetchUsers, 60000);
     onUnmounted(() => {
       clearInterval(intervalId);
     });
   });
 
   const form = reactive({
-    title: '',
-    message: '',
-    user_id: [{"user_id": 1},{"user_id": 3}],
+    firstName: "",
+    lastName: "",
+    email: "",
+    password: "",
+    admin: null,
   })
 </script>
 
@@ -110,7 +79,7 @@ import { onMounted, onUnmounted, reactive, ref } from 'vue';
     <VRow no-gutters class="align-center justify-space-between">
       <VCol cols="auto">
         <VCardTitle class="text-md-h5 text-primary">
-          Notifications
+          User Management
         </VCardTitle>
       </VCol>
       <VCol cols="auto">
@@ -139,34 +108,53 @@ import { onMounted, onUnmounted, reactive, ref } from 'vue';
     </VTabs>
     <VDivider />
       </VRow>
-    <v-row justify="center">
+      <v-row justify="center">
       <v-dialog v-model="dialog" width="1024">
         <v-card>
           <v-card-title>
-            <span class="text-h5">New Notification</span>
+            <span class="text-h5">Add new user</span>
           </v-card-title>
           <v-card-text>      
             <v-container>
               <v-row>
                 <v-col cols="12" sm="6" md="4">
                   <v-text-field
-                    label="Title* "
+                    label="First Name"
                     required
-                    v-model="form.title"
+                    v-model="form.firstName"
                   />
                 </v-col>
               <v-col cols="12" sm="6" md="4">
                 <v-text-field
-                  v-model="form.message"
-                  label="Message*"
+                  v-model="form.lastName"
+                  label="Last Name"
                   required
                 ></v-text-field>
               </v-col>
-              <v-col cols="12" sm="6">
-                <v-select
-                  :items="['shane.vanniekerk@drakkentech.co.za  ']"
-                  label="Users*"
+            </v-row>
+            <v-row>
+              <v-col cols="12" sm="6" md="4">
+                <v-text-field
+                  v-model="form.email"
+                  label="Email"
                   required
+                ></v-text-field>
+              </v-col>
+              <v-col cols="12" sm="6" md="4">
+                <v-text-field
+                  v-model="form.password"
+                  label="Password"
+                  required
+                ></v-text-field>
+              </v-col>
+            </v-row>
+            <v-row>
+              <v-col cols="12" sm="6" md="4">
+                <v-select
+                  :items="['Admin', 'Standard']"
+                  label="User type"
+                  required
+                  v-model="form.admin"
                 />
               </v-col>
             </v-row>
@@ -174,12 +162,11 @@ import { onMounted, onUnmounted, reactive, ref } from 'vue';
               <v-alert
                 type="success"
                 title="Success"
-                text="Your notification has been successfully sent!"
+                text="User has been created successfully!"
                 v-model="showAlert"
               />
             </v-row>
           </v-container>
-          <small>*indicates required field</small>
         </v-card-text>
         <v-card-actions>
           <v-spacer/>
@@ -205,43 +192,28 @@ import { onMounted, onUnmounted, reactive, ref } from 'vue';
       <thead>
         <tr>
           <th class="text-left">
-            Title
+            First Name
+          </th>
+          <th class="text-center">
+            Last Name
           </th>
           <th class="text-left">
-            Message
+            Email
           </th>
           <th class="text-left">
-            <v-icon>mdi-progress-clock</v-icon>Pending
-          </th>
-          <th class="text-left">
-            <v-icon>lucide:mail-check</v-icon>Recieved
-          </th>
-          <th class="text-left">
-            <v-icon>mdi-tick-circle-outline</v-icon>Read
-          </th>
-          <th class="text-left">
-            <v-icon>basil:power-button-outline</v-icon>Closed
-          </th>
-          <th class="text-left">
-            Date
+            User Type
           </th>
         </tr>
       </thead>
       <tbody>
         <tr
           v-for="item in data"
-            :key="item.sid_messages"
+            :key="item.sid"
         >
-          <td>{{ item.message_title }}</td>
-          <td>{{ item.message_body }}</td>
-          <td>
-  
-  <span @click="handleFlagClick(0)" style="cursor: pointer;">{{ item.flagCounts[0] }}/{{ item.count }}</span>
-</td>
-          <td><span @click="handleFlagClick(1)" style="cursor: pointer;">{{ item.flagCounts[1] }}/{{ item.count }}</span></td>
-          <td><span @click="handleFlagClick(2)" style="cursor: pointer;">{{ item.flagCounts[2] }}/{{ item.count }}</span></td>
-          <td><span @click="handleFlagClick(3)" style="cursor: pointer;">{{ item.flagCounts[3] }}/{{ item.count }}</span></td>
-          <td>{{ item.message_date }}</td>
+          <td>{{ item.first_name }}</td>
+          <td>{{ item.last_name }}</td>
+          <td>{{ item.email }}</td>
+          <td>{{ item.admin === 1 ? "Admin" : "Standard" }}</td>
         </tr>
       </tbody>
     </v-table>

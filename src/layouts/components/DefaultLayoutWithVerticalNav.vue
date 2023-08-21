@@ -50,13 +50,13 @@ const upgradeBanner = computed(() => {
     </template>
 
     <template #vertical-nav-content>
-      <VerticalNavLink
+      <!-- <VerticalNavLink
         :item="{
           title: 'Dashboard',
           icon: 'bx-home',
           to: '/dashboard',
         }"
-      />
+      /> -->
       <VerticalNavLink
         :item="{
           title: 'Account Settings',
@@ -80,19 +80,33 @@ const upgradeBanner = computed(() => {
       />
       <VerticalNavLink
         :item="{
+          title: 'Products',
+          icon: 'healthicons:money-bag-outline',
+          to: '',
+        }"
+      />
+      <VerticalNavLink
+        :item="{
+          title: 'User Management',
+          icon: 'mdi-account-cog-outline',
+          to: '/user-management',
+        }"
+      />  
+      <!--<VerticalNavLink
+        :item="{
           title: 'Login',
           icon: 'bx-log-in',
           to: '/login',
         }"
-      />
-      <VerticalNavLink
+      />-->
+      <!--<VerticalNavLink
         :item="{
           title: 'Register',
           icon: 'bx-user-plus',
           to: '/register',
         }"
-      />
-      <VerticalNavLink
+      />-->
+      <!--<VerticalNavLink
         :item="{
           title: 'Product Management',
           icon: 'carbon:product',
@@ -105,10 +119,10 @@ const upgradeBanner = computed(() => {
           icon: 'bx-info-circle',
           to: '/no-existence',
         }"
-      />
+      />-->
 
       <!-- 👉 User Interface -->
-      <VerticalNavSectionTitle
+      <!--<VerticalNavSectionTitle
         :item="{
           heading: 'User Interface',
         }"
@@ -147,7 +161,7 @@ const upgradeBanner = computed(() => {
           icon: 'mdi-form-select',
           to: '/form-layouts',
         }"
-      />
+      />-->
     </template>
 
     <template #after-vertical-nav-items>
