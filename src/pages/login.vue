@@ -34,9 +34,11 @@ const handleLogin = async () => {
     console.error('Error in login:', error); // Add this line
     if (error.response && error.response.status === 404) {
       errorMessage.value = 'This user does not exist'
+      return
     }
     else if (error.response && error.response.status === 401) {
       errorMessage.value = 'Your password is incorrect'
+      return
     }
     else if (error.request && error.request.status === 0) {
       errorMessage.value = 'Could not connect to server. Please contact your server administrator.'
@@ -45,6 +47,9 @@ const handleLogin = async () => {
     form.isLoading = false
   }
 }
+const submitForm = () => {
+  console.log('Form:', form)
+};
 </script>
 
 
