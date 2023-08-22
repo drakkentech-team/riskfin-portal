@@ -41,8 +41,16 @@ const router = createRouter({
           component: () => import("../pages/tables.vue"),
         },
         {
-          path: "form-layouts",
-          component: () => import("../pages/form-layouts.vue"),
+          path: 'product_management',
+          component: () => import('../pages/product_management.vue'),
+        },
+        // {
+        //   path: 'product_management/add_product',
+        //   component: () => import('../pages/add_product.vue'),
+        // },
+        {
+          path: 'form-layouts',
+          component: () => import('../pages/form-layouts.vue'),
         },
       ],
     },
