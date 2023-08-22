@@ -9,11 +9,11 @@ import { reactive, ref } from 'vue';
   onMounted(async () => {
     try {
       var url = "http://localhost:9000/policy_details_get"
-      var data = {
+      var datas = {
         "user_id": 0,
         "flag": 0
       }
-      const response = await axios.post(url, data);
+      const response = await axios.post(url, datas);
       console.log(response.status)
     // const response = await axios.get('http://127.0.0.1:9000/policy_details');
     if (response && response.status === 200) {
