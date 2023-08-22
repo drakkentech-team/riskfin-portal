@@ -1,40 +1,44 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHistory } from "vue-router";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
-    { path: '/', redirect: '/dashboard' },
+    { path: '/', redirect: '/login' },
     {
-      path: '/',
-      component: () => import('../layouts/default.vue'),
+      path: "/",
+      component: () => import("../layouts/default.vue"),
       children: [
         {
-          path: 'dashboard',
-          component: () => import('../pages/dashboard.vue'),
+          path: "dashboard",
+          component: () => import("../pages/dashboard.vue"),
         },
         {
-          path: 'notifications',
-          component: () => import('../pages/notifications.vue'),
+          path: "notifications",
+          component: () => import("../pages/notifications.vue"),
         },
         {
-          path: 'account-settings',
-          component: () => import('../pages/account-settings.vue'),
+          path: "account-settings",
+          component: () => import("../pages/account-settings.vue"),
+        },
+        {
+          path: 'user-management',
+          component: () => import('../pages/user-management.vue'),
         },
         {
           path: 'typography',
           component: () => import('../pages/typography.vue'),
         },
         {
-          path: 'icons',
-          component: () => import('../pages/icons.vue'),
+          path: "icons",
+          component: () => import("../pages/icons.vue"),
         },
         {
-          path: 'cards',
-          component: () => import('../pages/cards.vue'),
+          path: "cards",
+          component: () => import("../pages/cards.vue"),
         },
         {
-          path: 'tables',
-          component: () => import('../pages/tables.vue'),
+          path: "tables",
+          component: () => import("../pages/tables.vue"),
         },
         {
           path: 'product_management',
@@ -51,43 +55,43 @@ const router = createRouter({
       ],
     },
     {
-      path: '/',
-      component: () => import('../layouts/blank.vue'),
+      path: "/",
+      component: () => import("../layouts/blank.vue"),
       children: [
         {
-          path: 'login',
-          component: () => import('../pages/login.vue'),
+          path: "login",
+          component: () => import("../pages/login.vue"),
         },
         {
-          path: 'register',
-          component: () => import('../pages/register.vue'),
+          path: "register",
+          component: () => import("../pages/register.vue"),
         },
         {
-          path: '/:pathMatch(.*)*',
-          component: () => import('../pages/[...all].vue'),
+          path: "/:pathMatch(.*)*",
+          component: () => import("../pages/[...all].vue"),
         },
       ],
     },
     {
-      path: '/riskfin-direct',
-      component: () => import('../pages/riskfin-direct/home.vue'),
+      path: "/riskfin-direct",
+      component: () => import("../pages/riskfin-direct/home.vue"),
       children: [
         {
-          path: 'register',
+          path: "register",
           name: "register",
-          component: () => import('../pages/riskfin-direct/register.vue'),
+          component: () => import("../pages/riskfin-direct/register.vue"),
         },
         {
-          path: 'register',
-          component: () => import('../pages/register.vue'),
+          path: "register",
+          component: () => import("../pages/register.vue"),
         },
         {
-          path: '/:pathMatch(.*)*',
-          component: () => import('../pages/[...all].vue'),
+          path: "/:pathMatch(.*)*",
+          component: () => import("../pages/[...all].vue"),
         },
       ],
     },
   ],
-})
+});
 
-export default router
+export default router;
