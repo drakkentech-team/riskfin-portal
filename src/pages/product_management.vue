@@ -8,7 +8,14 @@ import { reactive, ref } from 'vue';
   
   onMounted(async () => {
     try {
-    const response = await axios.get('http://127.0.0.1:9000/policy_details');
+      var url = "http://localhost:9000/policy_details_get"
+      var data = {
+        "user_id": 0,
+        "flag": 0
+      }
+      const response = await axios.post(url, data);
+      console.log(response.status)
+    // const response = await axios.get('http://127.0.0.1:9000/policy_details');
     if (response && response.status === 200) {
       data.value = response.data;
     }
