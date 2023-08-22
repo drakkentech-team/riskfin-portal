@@ -57,13 +57,13 @@ const upgradeBanner = computed(() => {
           to: '/dashboard',
         }"
       /> -->
-      <VerticalNavLink
+      <!--<VerticalNavLink
         :item="{
           title: 'Account Settings',
           icon: 'mdi-account-cog-outline',
           to: '/account-settings',
         }"
-      />
+      />-->
 
       <!-- 👉 Pages -->
       <VerticalNavSectionTitle
@@ -82,7 +82,7 @@ const upgradeBanner = computed(() => {
         :item="{
           title: 'Products',
           icon: 'healthicons:money-bag-outline',
-          to: '',
+          to: '/product_management',
         }"
       />
       <VerticalNavLink
