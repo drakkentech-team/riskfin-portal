@@ -66,7 +66,7 @@ import { onMounted, onUnmounted, reactive, ref } from 'vue';
 
   const handleSaveNotification = async () => {
     try {
-      const response = await axios.post(`https://41ba-13-246-23-177.ngrok-free.app/send_message`, {
+      const response = await axios.post(`http://localhost:9000/send_message`, {
         title: form.title,
         message: form.message,
         user_id: form.user_id,
