@@ -5,7 +5,19 @@ import { onMounted, onUnmounted, reactive, ref } from 'vue';
   const data = ref([]);
   const user = ref([]);
   const dialog = ref(false);
-  const showAlert = ref(false)
+  const showAlert = ref(false);
+  const messageStatusModal = ref(false);
+  const messageStatusHeading = ["Still pending","received", "read", "closed"]
+  const messageStatusModalHeading = ref("");
+  const firstTableData = ref([]);
+  const secondTableData = ref([]);
+  const showSecondTable = ref(true);
+  const itemsPerPage = ref(5);
+  const headers= ref([{ title: "First Name", align: 'start', key: 'name'},
+                      { title: 'Last Name', align: 'end', key: 'surname' },
+                      { title: 'Email', align: 'end', key: 'email' },
+                      { title: 'Contact Number', align: 'end', key: 'mobile_number'}
+                    ])
 
   const tabs = [
     { title: 'All', icon: 'bx:world', tab: 'account' },
@@ -20,23 +32,59 @@ import { onMounted, onUnmounted, reactive, ref } from 'vue';
       if (response && response.status === 200) {
         if (response.data) {
           const uniqueMessages = {};
+          let idCounter = 1;
           response.data.forEach((message) => {
-            const key = message.message_title + message.message_body;
+            const key = message.title + message.date;
 
             if (!uniqueMessages[key]) {
               uniqueMessages[key] = {
                 ...message,
                 count: 0,
-                flagCounts: { 0: 0, 1: 0, 2: 0, 3: 0 }
+                flagCounts: { pending: 0, received: 0, opened: 0, closed: 0 },
+                sids: { pending: [], received: [], notReceived:[], 
+                        opened: [], notOpened: [], closed: [], notClosed:[]},
+                id: idCounter
               };
+              idCounter++;
             }
 
             uniqueMessages[key].count++;
-            uniqueMessages[key].flagCounts[message.sid_message_flags_fk]++;
+            if (uniqueMessages[key].date && !uniqueMessages[key].received_date &&
+                !uniqueMessages[key].opened_date && !uniqueMessages[key].closed_date){
+              uniqueMessages[key].flagCounts.pending++;
+              uniqueMessages[key].sids.pending.push(message.user_sid);
+              uniqueMessages[key].sids.notReceived.push(message.user_sid);
+              uniqueMessages[key].sids.notOpened.push(message.user_sid);
+              uniqueMessages[key].sids.notClosed.push(message.user_sid);
+            }
+            else if (uniqueMessages[key].date && uniqueMessages[key].received_date &&
+                !uniqueMessages[key].opened_date && !uniqueMessages[key].closed_date){
+              uniqueMessages[key].flagCounts.received ++;
+              uniqueMessages[key].sids.received.push(message.user_sid);
+              uniqueMessages[key].sids.notOpened.push(message.user_sid);
+              uniqueMessages[key].sids.notClosed.push(message.user_sid);
+            }
+            else if (uniqueMessages[key].date && uniqueMessages[key].received_date && 
+                uniqueMessages[key].opened_date && !uniqueMessages[key].closed_date){
+              uniqueMessages[key].flagCounts.received ++;
+              uniqueMessages[key].flagCounts.opened ++;
+              uniqueMessages[key].sids.received.push(message.user_sid);
+              uniqueMessages[key].sids.opened.push(message.user_sid);
+              uniqueMessages[key].sids.notClosed.push(message.user_sid);
+            }
+            else if (uniqueMessages[key].date && uniqueMessages[key].received_date && 
+                uniqueMessages[key].opened_date && uniqueMessages[key].closed_date){
+                  uniqueMessages[key].flagCounts.received ++;
+                  uniqueMessages[key].flagCounts.opened ++;
+              uniqueMessages[key].flagCounts.closed ++;
+              uniqueMessages[key].sids.received.push(message.user_sid);
+              uniqueMessages[key].sids.opened.push(message.user_sid);
+              uniqueMessages[key].sids.closed.push(message.user_sid);
+            }
           });
-
+          
           const filteredMessages = Object.values(uniqueMessages);
-
+          console.log(filteredMessages)
           data.value = filteredMessages;
           console.log('Data:', data.value);
         }
@@ -51,7 +99,7 @@ import { onMounted, onUnmounted, reactive, ref } from 'vue';
       const r = await axios.get(`http://localhost:9000/all_user_profile`);
       if (r && r.status === 200) {
         if (r) {
-          user.value = r;
+          user.value = r.data;
           console.log('User:', user.value);
         }
       }
@@ -60,7 +108,30 @@ import { onMounted, onUnmounted, reactive, ref } from 'vue';
     }
   };
 
-  const handleFlagClick = (flagIndex) => {
+  const handleFlagClick = (flagIndex, id) => {
+    messageStatusModal.value = true;
+    messageStatusModalHeading.value = messageStatusHeading[flagIndex];
+    const clickedItem = data.value.find(item => item.id === id);
+    console.log('clickedItem', clickedItem)
+    if (flagIndex === 0){
+      firstTableData.value = user.value.filter(users => clickedItem.sids.pending.includes(users.sid_users));
+      showSecondTable.value = false;
+    }
+    else if (flagIndex === 1 && user){
+      firstTableData.value = user.value.filter(users => clickedItem.sids.received.includes(users.sid_users));
+      secondTableData.value = user.value.filter(users => clickedItem.sids.notReceived.includes(users.sid_users));
+      showSecondTable.value = secondTableData.value.length > 0;
+    }
+    else if (flagIndex === 2){
+      firstTableData.value = user.value.filter(users => clickedItem.sids.opened.includes(users.sid_users));
+      secondTableData.value = user.value.filter(users => clickedItem.sids.notOpened.includes(users.sid_users));
+      showSecondTable.value = secondTableData.value.length > 0;
+    }
+    else if (flagIndex === 3){
+      firstTableData.value = user.value.filter(users => clickedItem.sids.closed.includes(users.sid_users));
+      secondTableData.value = user.value.filter(users => clickedItem.sids.notClosed.includes(users.sid_users));
+      showSecondTable.value = secondTableData.value.length > 0;
+    }
     console.log(`Clicked on flag index ${flagIndex} for item`);
   }
 
@@ -139,7 +210,8 @@ import { onMounted, onUnmounted, reactive, ref } from 'vue';
     </VTabs>
     <VDivider />
       </VRow>
-    <v-row justify="center">
+    <!--New Notification Modal-->
+    <v-row justify="center"> 
       <v-dialog v-model="dialog" width="1024">
         <v-card>
           <v-card-title>
@@ -201,6 +273,34 @@ import { onMounted, onUnmounted, reactive, ref } from 'vue';
         </v-card>
       </v-dialog>
     </v-row>
+    <!--Flag status modal-->
+    <v-row justify="center"> 
+      <v-dialog v-model="messageStatusModal" width="1024">
+        <v-card>
+          <v-card-title>
+            <span class="text-h5">Message {{messageStatusModalHeading}}</span>
+          </v-card-title>
+          <v-data-table
+            v-model:items-per-page="itemsPerPage"
+            :headers="headers"
+            :items="firstTableData"
+            item-value="name"
+            class="elevation-1"
+          ></v-data-table>
+          <v-card-title v-if="showSecondTable">
+            <span class="text-h5">Message not yet {{messageStatusModalHeading}}</span>
+          </v-card-title>
+          <v-data-table
+            v-if="showSecondTable"
+            v-model:items-per-page="itemsPerPage"
+            :headers="headers"
+            :items="secondTableData"
+            item-value="name"
+            class="elevation-1"
+          ></v-data-table>
+        </v-card>
+      </v-dialog>
+    </v-row>
     <v-table>
       <thead>
         <tr>
@@ -214,7 +314,7 @@ import { onMounted, onUnmounted, reactive, ref } from 'vue';
             <v-icon>mdi-progress-clock</v-icon>Pending
           </th>
           <th class="text-left">
-            <v-icon>lucide:mail-check</v-icon>Recieved
+            <v-icon>lucide:mail-check</v-icon>received
           </th>
           <th class="text-left">
             <v-icon>mdi-tick-circle-outline</v-icon>Read
@@ -223,25 +323,24 @@ import { onMounted, onUnmounted, reactive, ref } from 'vue';
             <v-icon>basil:power-button-outline</v-icon>Closed
           </th>
           <th class="text-left">
-            Date
+            Date Sent
           </th>
         </tr>
       </thead>
       <tbody>
         <tr
           v-for="item in data"
-            :key="item.sid_messages"
+            :key="item.sid"
         >
-          <td>{{ item.message_title }}</td>
-          <td>{{ item.message_body }}</td>
-          <td>
-  
-  <span @click="handleFlagClick(0)" style="cursor: pointer;">{{ item.flagCounts[0] }}/{{ item.count }}</span>
-</td>
-          <td><span @click="handleFlagClick(1)" style="cursor: pointer;">{{ item.flagCounts[1] }}/{{ item.count }}</span></td>
-          <td><span @click="handleFlagClick(2)" style="cursor: pointer;">{{ item.flagCounts[2] }}/{{ item.count }}</span></td>
-          <td><span @click="handleFlagClick(3)" style="cursor: pointer;">{{ item.flagCounts[3] }}/{{ item.count }}</span></td>
-          <td>{{ item.message_date }}</td>
+          <td>{{ item.title }}</td>
+          <td>{{ item.body }}</td>
+          <td><span v-if="item.flagCounts.pending === 0" style="cursor: pointer;">None</span>
+              <span v-else @click="handleFlagClick(0, item.id)" style="cursor: pointer;">{{ item.flagCounts.pending }}/{{ item.count }}</span>
+          </td>
+          <td><span @click="handleFlagClick(1,item.id)" style="cursor: pointer;">{{ item.flagCounts.received }}/{{ item.count }}</span></td>
+          <td><span @click="handleFlagClick(2, item.id)" style="cursor: pointer;">{{ item.flagCounts.opened }}/{{ item.count }}</span></td>
+          <td><span @click="handleFlagClick(3, item.id)" style="cursor: pointer;">{{ item.flagCounts.closed }}/{{ item.count }}</span></td>
+          <td>{{ item.date }}</td>
         </tr>
       </tbody>
     </v-table>

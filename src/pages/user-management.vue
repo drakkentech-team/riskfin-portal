@@ -3,11 +3,21 @@
 import { onMounted, onUnmounted, reactive, ref } from 'vue';
 
   const data = ref([]);
-  const user = ref([]);
-  const dialog = ref(false);
+  const dialogDelete = ref(false)
+  const addUserModal = ref(false);
+  const editUserModal = ref(false);
+  const itemToBeDeleted = ref(null)
   const showAlert = ref(false);
   const isPasswordVisible = ref(false);
   const isConfirmPasswordVisible = ref(false);
+  const itemsPerPage = ref(10);
+  const headers= ref([{ title: "First Name", align: 'start', key: 'first_name'},
+                      { title: 'Last Name', align: 'start', key: 'last_name' },
+                      { title: 'Email', align: 'start', key: 'email' },
+                      { title: 'User type', align: 'start', key: 'admin'},
+                      { title: 'Active', align: 'start', key: 'active'},
+                      { title: 'Actions', align: 'end', key: 'actions', sortable: false }
+                    ])
 
   const tabs = [
     { title: 'All', icon: 'bx:world', tab: 'account' },
@@ -21,6 +31,19 @@ import { onMounted, onUnmounted, reactive, ref } from 'vue';
       if (response && response.status === 200) {
         if (response.data) {
           data.value = response.data;
+          data.value = data.value.map(item => {
+            if (item.admin === 1) {
+              item.admin = 'Admin';
+            } else {
+              item.admin = 'Standard';  // Assuming you want to set it to 'Standard' for other values
+            }
+            if (item.active === 1) {
+              item.active = 'Yes';
+            } else {
+              item.active = 'No';  // Assuming you want to set it to 'Standard' for other values
+            }
+            return item;
+          });
           console.log('Data:', data.value);
         }
       }
@@ -28,7 +51,43 @@ import { onMounted, onUnmounted, reactive, ref } from 'vue';
       console.error('Failed to fetch messages:', error);
     }
   };
+  const handleUpdateUser = async () => {
+    try {
+      var adminValue, activeValue
+      form.admin === 'Admin' ? adminValue = 1 : adminValue = 0
+      form.active === 'Yes' ? activeValue = 1 : activeValue = 0
 
+      let payload = {
+        name: form.firstName,
+        surname: form.lastName,
+        email: form.email,
+        admin: adminValue,
+        active: activeValue,
+      };
+
+      // If form.password has a value, add it to the payload
+      if (form.password) {
+        payload.password = form.password;
+      }
+      const response = await axios.put(`http://localhost:9000/web_user_profile?user_id=${form.sid}`, payload);
+      if (response && response.status === 200) {
+        showAlert.value = true
+        setTimeout(() => {
+          showAlert.value = false;
+        }, 5000);
+        fetchUsers();
+      } 
+    } 
+    catch (error) {
+      if (error.response && error.response.status === 404) {
+        errorMessage.value = 'This user does not exist'
+      }
+      else if (error.response && error.response.status === 401) {
+        errorMessage.value = 'Your password is incorrect'
+      }
+    }
+  }
+  
   const handleSaveNotification = async () => {
     try {
       var adminValue
@@ -59,6 +118,40 @@ import { onMounted, onUnmounted, reactive, ref } from 'vue';
     } 
   }
 
+  const deleteItem = (item) => {
+    dialogDelete.value = true
+    itemToBeDeleted.value = item
+  }
+
+  const deleteConfirm = async () => {
+    try {
+      const deleteResponse = await axios.put(`http://127.0.0.1:9000/delete_web_user?user_id=${itemToBeDeleted.value}`);
+      if (deleteResponse && deleteResponse.status === 200) {
+        console.log(deleteResponse)
+        itemToBeDeleted.value = null
+        fetchUsers();
+        dialogDelete.value = false
+
+      }
+    } catch (error) {
+      console.error('Failed to fetch messages:', error);
+    }
+  };
+
+  const editItem = (item) => {
+    editUserModal.value = true
+    form.sid = item.sid;
+    form.email = item.email;
+    form.firstName = item.first_name;
+    form.lastName = item.last_name;
+    form.admin = item.admin;
+    if (item.active === "Yes")
+      form.active = "Active";
+    else{
+      form.active = "Deactivated";
+    }
+  }
+
   onMounted(() => {
     fetchUsers();
     const intervalId = setInterval(fetchUsers, 60000);
@@ -68,12 +161,14 @@ import { onMounted, onUnmounted, reactive, ref } from 'vue';
   });
 
   const form = reactive({
+    sid: null,
     firstName: "",
     lastName: "",
     email: "",
     password: "",
     confirmPassword: "",
     admin: null,
+    active: null,
   })
 </script>
 
@@ -86,7 +181,7 @@ import { onMounted, onUnmounted, reactive, ref } from 'vue';
         </VCardTitle>
       </VCol>
       <VCol cols="auto">
-        <v-btn color="primary" @click="dialog=true" style="margin-right: 16px;">
+        <v-btn color="primary" @click="addUserModal=true" style="margin-right: 16px;">
           Add <VIcon icon="bx-message-add" />
         </v-btn>
       </VCol>
@@ -113,7 +208,7 @@ import { onMounted, onUnmounted, reactive, ref } from 'vue';
     </VRow>
 
     <!-- Modal -->
-    <v-dialog v-model="dialog" width="800">
+    <v-dialog v-model="addUserModal" width="800">
       <v-card>
         <v-container>
           <v-row class="justify-center">
@@ -177,6 +272,14 @@ import { onMounted, onUnmounted, reactive, ref } from 'vue';
                   v-model="form.admin"
                 />
               </v-col>
+              <v-col cols="12" sm="6" md="6">
+                <v-select
+                  :items="['Active', 'Deactivated']"
+                  label="Account status"
+                  required
+                  v-model="form.admin"
+                />
+              </v-col>
             </v-row>
             <v-row justify="center">
               <v-alert
@@ -192,7 +295,7 @@ import { onMounted, onUnmounted, reactive, ref } from 'vue';
             <v-btn
               color="blue-darken-1"
               variant="text"
-              @click="dialog = false"
+              @click="addUserModal = false"
             >
               Close
             </v-btn>
@@ -206,34 +309,148 @@ import { onMounted, onUnmounted, reactive, ref } from 'vue';
           </v-card-actions>
         </v-card>
       </v-dialog>
-    <v-table>
-      <thead>
-        <tr>
-          <th class="text-left">
-            First Name
-          </th>
-          <th class="text-center">
-            Last Name
-          </th>
-          <th class="text-left">
-            Email
-          </th>
-          <th class="text-left">
-            User Type
-          </th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="item in data"
-          :key="item.sid"
-        >
-          <td class="capitalize">{{item.first_name}}</td>
-          <td class="capitalize">{{item.last_name}}</td>
-          <td>{{item.email}}</td>
-          <td>{{item.admin === 1 ? "Admin" : "Standard"}}</td>
-        </tr>
-      </tbody>
-    </v-table>
+      <v-dialog v-model="editUserModal" width="800">
+      <v-card>
+        <v-container>
+          <v-row class="justify-center">
+            <v-col class="text-center" cols="12" sm="6" md="4">
+              <span class="text-h5">Edit User</span>
+            </v-col>
+          </v-row>
+          <v-row>
+            <v-col cols="12" sm="6" md="12">
+              <v-text-field
+                v-model="form.email"
+                label="Email"
+                required
+              />
+            </v-col>
+          </v-row>
+          <v-row>
+            <v-col cols="12" sm="6" md="6">
+              <v-text-field
+                v-model="form.firstName"
+                label="First Name"
+                required
+              />
+            </v-col>
+            <v-col cols="12" sm="6" md="6">
+              <v-text-field
+                v-model="form.lastName"
+                label="Last Name"
+                required
+              />
+            </v-col>
+          </v-row>
+            <v-row>
+              <v-col cols="12" sm="6" md="6">
+                <v-text-field
+                  v-model="form.password"
+                  label="Password"
+                  placeholder="············"
+                  :type="isPasswordVisible ? 'text' : 'password'"
+                  :append-inner-icon="isPasswordVisible ? 'bx-hide' : 'bx-show'"
+                  @click:append-inner="isPasswordVisible = !isPasswordVisible"
+                />
+              </v-col>
+              <v-col cols="12" sm="6" md="6">
+                <v-text-field
+                  v-model="form.confirmPassword"
+                  label="Confirm Password"
+                  placeholder="············"
+                  :type="isConfirmPasswordVisible ? 'text' : 'password'"
+                  :append-inner-icon="isConfirmPasswordVisible ? 'bx-hide' : 'bx-show'"
+                  @click:append-inner="isConfirmPasswordVisible = !isConfirmPasswordVisible"
+                />
+              </v-col>
+            </v-row>
+            <v-row>
+              <v-col cols="12" sm="6" md="6">
+                <v-select
+                  :items="['Admin', 'Standard']"
+                  label="User type"
+                  required
+                  v-model="form.admin"
+                />
+              </v-col>
+              <v-col cols="12" sm="6" md="6">
+                <v-select
+                  :items="['Active', 'Deactivated']"
+                  label="Account status"
+                  required
+                  v-model="form.active"
+                />
+              </v-col>
+            </v-row>
+            <v-row justify="center">
+              <v-alert
+                type="success"
+                title="Success"
+                text="User has been updated successfully!"
+                v-model="showAlert"
+              />
+            </v-row>
+          </v-container>
+        <v-card-actions>
+          <v-spacer/>
+            <v-btn
+              color="blue-darken-1"
+              variant="text"
+              @click="addUserModal = false"
+            >
+              Close
+            </v-btn>
+            <v-btn
+              color="blue-darken-1"
+              variant="text"
+              @click="handleUpdateUser"
+            >
+              Send
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
+      <v-dialog v-model="dialogDelete" max-width="600px">
+          <v-card>
+            <v-card-title class="text-h5">Are you sure you want to deactivate this user?</v-card-title>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn color="blue-darken-1" variant="text" @click="dialogDelete = false">Cancel</v-btn>
+              <v-btn color="blue-darken-1" variant="text" @click="deleteConfirm">OK</v-btn>
+              <v-spacer></v-spacer>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+      <v-data-table
+            v-model:items-per-page="itemsPerPage"
+            :headers="headers"
+            :items="data"
+            item-value="first_name"
+            class="elevation-1"
+          >
+          <template v-slot:item.actions="{ item }">
+            <v-icon
+              size="small"
+              class="me-2"
+              @click="editItem(item.selectable)"
+            >
+              mdi-pencil
+            </v-icon>
+            <v-icon
+              size="small"
+              v-if="item.selectable.active === 'No'"
+            >
+              mdi-delete-off
+            </v-icon>
+            <v-icon
+              size="small"
+              @click="deleteItem(item.selectable.sid)"
+              v-else
+            >
+              mdi-delete
+            </v-icon>
+          </template>
+          </v-data-table>
   </VCard>
 </template>
 
