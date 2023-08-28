@@ -1,8 +1,6 @@
 <script setup>
 import axios from 'axios';
 import { reactive, ref } from 'vue';
-// import { VAlert, VBtn, VCard, VCol, VContainer, VDialog, VRow, VTable } from 'vuetify/lib';
-
 
   const showAlert = ref(false)
   const dialog = ref(false)
@@ -10,27 +8,66 @@ import { reactive, ref } from 'vue';
 
   const updateDialog = ref(false); 
   const updateProductId = ref(null);
-  
-  onMounted(async () => {
-    try {
-      var url = "http://localhost:9000/policy_details_get"
-      var datas = {
-        "user_id": 0,
-        "flag": 0
-      }
-      const response = await axios.post(url, datas);
-      console.log(response.status)
-      console.log(response.data)
-    // const response = await axios.get('http://127.0.0.1:9000/policy_details');
+
+let availableProdList = [];
+let deletedProdList = [];
+let responseData = [];
+
+onMounted(async () => {
+  try {
+    const url = "http://localhost:9000/policy_details_get";
+    const datas = {
+      "user_id": 0,
+      "flag": 0
+    };
+    const response = await axios.post(url, datas);
+    
     if (response && response.status === 200) {
-      data.value = response.data;
+      responseData = response.data;
+      availableProdList = responseData.filter(item => item.policy_details_delete === 0);
+      deletedProdList = responseData.filter(item => item.policy_details_delete === 1);
+
+      data.value = availableProdList; 
     }
   } catch (error) {
     console.error('Failed to fetch policy details:', error);
   }
-}) 
+});
 
-// (policy_name, short_description, long_description, policy_premium, and premium_due_date).
+const showAvailableProducts = () => {
+  data.value = availableProdList;
+};
+
+const showDeletedProducts = () => {
+  data.value = deletedProdList;
+};
+
+const showAllProducts = () => {
+  data.value = responseData;
+};
+
+const restoreProduct = async (item) => {
+  try {
+    const response = await axios.put(
+      `http://localhost:9000/update_policy_details?sid_policy_details=${item.sid_policy_details}`,
+      {
+        policy_details_delete: 0,
+      }
+    );
+
+    if (response && response.status === 200) {
+      const index = data.value.findIndex(product => product.sid_policy_details === item.sid_policy_details);
+      if (index !== -1) {
+        data.value[index].policy_details_delete = 0;
+      }
+      deletedProdList = deletedProdList.filter(product => product.sid_policy_details !== item.sid_policy_details);
+      data.value = deletedProdList;
+    }
+  } catch (error) {
+    console.error('Error restoring product:', error);
+  }
+};
+
 
 const form = reactive({
   policy_name: '',
@@ -41,10 +78,7 @@ const form = reactive({
 });
 
 const handleSaveProduct = async () => {
-  // console.log("in here")
   try {
-    // console.log("in here2")
-    // console.log(form.policy_name,form.short_description,form.long_description,form.policy_premium,form.premium_due_date,)
     const response = await axios.post(`http://localhost:9000/policy_details?`, {
       policy_name: form.policy_name,
       short_description: form.short_description,
@@ -52,18 +86,14 @@ const handleSaveProduct = async () => {
       policy_premium: form.policy_premium,
       premium_due_date: form.premium_due_date,
     });
-    // console.log("in here3");
     if (response && response.status === 200) {
-      // console.log("in here4");
       showAlert.value = true;
       setTimeout(() => {
-        // console.log("in here5");
         showAlert.value = false;
       }, 5000);
     }
   } catch (error) {
       console.error('Error adding product:', error);
-    // Handle error responses here
   }
 };
 
@@ -90,93 +120,114 @@ const forms = reactive({
 
 // Function to handle updating the product
 const handleUpdateProduct = async () => {
-  // console.log(`http://localhost:9000/update_policy_details?sid_policy_details=${updateProductId.value}`)
   try {
-      // const updatedForm = { ...forms, status: 0 };
-
-    // console.log(form);
     const response = await axios.put(`http://localhost:9000/update_policy_details?sid_policy_details=${updateProductId.value}`, {
       policy_name: forms.policy_name,
       short_description: forms.short_description,
       long_description: forms.long_description,
       policy_premium: forms.policy_premium,
       premium_due_date: forms.premium_due_date,
-
     });
     if (response && response.status === 200) {
       showAlert.value = true;
       setTimeout(() => {
         showAlert.value = false;
       }, 5000);
-      // forms.status = 0;
     }    
   } catch (error) {
     console.error('Error updating product:', error);
   }
 };
 
+
 // Function to handle deleting a product
 const deleteProduct = async (item) => {
   if (confirm('Are you sure you want to delete this product?')) {
         console.log(item)
 
-    try {
-      const response = await axios.post(`http://127.0.0.1:5173/policy_details/${item.sid_policy_details}`, {
-        policy_details_delete: 1, // Set the status to 0 to mark it as deleted
-    });
+        try {
+    const response = await axios.put(
+      `http://localhost:9000/update_policy_details?sid_policy_details=${item.sid_policy_details}`,
+      {
+        policy_details_delete: 1,
+      });
 
     if (response && response.status === 200) {
       confirm('Product deleted successfully?')
-      showAlert.value = true;
-      setTimeout(() => {
-        showAlert.value = false;
-      }, 5000);
 
-      // Update the data array to reflect the deleted status
       const index = data.value.findIndex(product => product.sid_policy_details === item.sid_policy_details);
       if (index !== -1) {
-        data.value[index].status = 1;
+        data.value[index].policy_details_delete = 1;
       }
+      availableProdList = availableProdList.filter(product => product.sid_policy_details !== item.sid_policy_details);
+      data.value = availableProdList;
     }
   } catch (error) {
     console.error('Error deleting product:', error);
   }
-        // axios.delete('http://localhost:9000/policy_details?sid_policy_details=13&tbl_policy_details_delete=1').then(res => {
-
-        //   alert(res.data.message);
-        //   this.getProducts();
-        // })
-      }
-
-    // }
+  }
   
 };
+
+// const deleteProduct = async (item) => {
+//   try {
+//     const response = await axios.put(
+//       `http://localhost:9000/update_policy_details?sid_policy_details=${item.sid_policy_details}`,
+//       {
+//         policy_details_delete: 1,
+//         // You can include other fields if needed
+//       }
+//     );
+
+//     if (response && response.status === 200) {
+//       // Update the data array to reflect the restored status
+//       const index = data.value.findIndex(product => product.sid_policy_details === item.sid_policy_details);
+//       if (index !== -1) {
+//         data.value[index].policy_details_delete = 1;
+//       }
+//     }
+//   } catch (error) {
+//     console.error('Error restoring product:', error);
+//   }
+// };
 
 </script>
 
 <template>
   <VCard class="text-center text-sm-start">
+    <VRow no-gutters class="align-center justify-space-between">
+      <VCol cols="auto">
+        <VCardTitle class="text-md-h5 text-primary">
+          Products
+        </VCardTitle>
+      </VCol>
+      <VCol cols="auto">
+        <v-btn color="primary" @click="dialog=true" style="margin-right: 16px;">
+          Add <VIcon icon="bx-message-add" />
+        </v-btn>
+      </VCol>
+    </VRow>
      <v-row no-gutters>
       <v-col cols="12" sm="8" order="2" order-sm="1">
-        <v-card-item class="d-flex align-center">
+        <!-- <v-card-item class="d-flex align-center">
           <v-card-title class="text-md-h5 text-primary flex-grow-1">
             Products
           </v-card-title>
-          <v-btn color="primary" @click="dialog=true">
+          <v-btn color="primary" @click="dialog=true" >
             Add Product <v-icon icon="bx-message-add" />
           </v-btn>
-        </v-card-item>
+        </v-card-item> -->
 
         <!---Delete filter Controls-->
-          <v-btn variant="plain">
-            Available Products
-          </v-btn>
-          <v-btn variant="plain">
-            Deleted Products
-          </v-btn>
-          <v-btn variant="plain">
-            All Products
-          </v-btn>
+        <v-btn variant="plain" @click="showAvailableProducts">
+          Available Products
+        </v-btn>
+        <v-btn variant="plain" @click="showDeletedProducts">
+          Deleted Products
+        </v-btn>
+        <v-btn variant="plain" @click="showAllProducts">
+          All Products
+        </v-btn>
       </v-col>
     </v-row>
 
@@ -221,6 +272,17 @@ const deleteProduct = async (item) => {
                   required
                 ></v-text-field>
               </v-col>
+
+        <!-- <v-col cols="12" sm="6" md="4">
+          <v-date-picker v-model="forms.premium_due_date" label="Premium Due Date*" required></v-date-picker>
+        </v-col> -->
+            <!-- <v-col cols="12" sm="6" md="4">
+              <v-date-picker
+                v-model="form.premium_due_date"
+                label="Premium Due Date*"
+                required
+              ></v-date-picker>
+            </v-col> -->
 <!-- <v-date-picker v-model="forms.premium_due_date" label="Premium Due Date*" required /> -->
               <v-col cols="12" sm="6" md="4">
                 <v-text-field
@@ -285,10 +347,31 @@ const deleteProduct = async (item) => {
         <td>{{ item.policy_premium }}</td>
         <td>{{ item.premium_due_date }}</td>
         <td>
-          <button @click="showUpdateDialog(item)">Edit</button>
-          <button type="button" @click="deleteProduct(item)" class="btn btn-danger">
+          <div class="button-container">
+          <!-- Restore Button -->
+          <button
+            v-if="item.policy_details_delete === 1"
+            @click="restoreProduct(item)"
+            class="btn btn-success"
+          >
+            Restore
+          </button>
+          <!-- Edit and Delete Buttons -->
+          <button
+            v-if="item.policy_details_delete === 0"
+            @click="showUpdateDialog(item)"
+            class="btn btn-danger"
+          >
+            Edit
+          </button>
+          <button
+            v-if="item.policy_details_delete === 0"
+            @click="deleteProduct(item)"
+            class="btn btn-danger"
+          >
             Delete
           </button>
+        </div>
         </td>
       </tr>
     </tbody>
@@ -374,102 +457,10 @@ const deleteProduct = async (item) => {
   </VCard>
 </template>
 
-<!-- <script setup>
-import axios from 'axios';
-import { ref } from 'vue';
-
-const showAlert = ref(false)
-const dialog = ref(false)
-const data = ref([])
-
-const updateDialog = ref(false); 
-const updateProductId = ref(null);  
-
-onMounted(async () => {
-    try {
-    const response = await axios.get('http://127.0.0.1:9000/policy_details');
-    if (response && response.status === 200) {
-      data.value = response.data;
-    }
-  } catch (error) {
-    console.error('Failed to fetch policy details:', error);
-  }
-}) 
-
-const form = reactive({
-  policy_name: '',
-  short_description: '',
-  long_description: '',
-  policy_premium: '',
-  premium_due_date: '',
-});
-
-const handleSaveProduct = async () => {
-  try {
-    console.log(form);
-    const response = await axios.post('http://localhost:9000/policy_details', {
-      policy_name: form.policy_name,
-      short_description: form.short_description,
-      long_description: form.long_description,
-      policy_premium: form.policy_premium,
-      premium_due_date: form.premium_due_date,
-    });
-    if (response && response.status === 200) {
-      showAlert.value = true;
-      setTimeout(() => {
-        showAlert.value = false;
-      }, 5000);
-    }
-  } catch (error) {
-    console.error('Error adding product:', error);
-  }
-};
-
-
-// Function to show the update dialog
-const showUpdateDialog = (item) => {
-  forms.policy_name = item.policy_name;
-  forms.short_description = item.short_description;
-  forms.long_description = item.long_description;
-  forms.policy_premium = item.policy_premium;
-  forms.premium_due_date = item.premium_due_date;
-
-  updateProductId.value = item.sid_policy_details;
-
-  updateDialog.value = true;
-};
-
-
-const forms = reactive({
-  policy_name: '',
-  short_description: '',
-  long_description: '',
-  policy_premium: '',
-  premium_due_date: '',
-});
-
-// Function to handle updating the product
-const handleUpdateProduct = async () => {
-  console.log(`http://localhost:9000/update_policy_details?sid_policy_details=${updateProductId.value}`)
-  try {
-    console.log(form);
-    const response = await axios.put(`http://localhost:9000/update_policy_details?sid_policy_details=${updateProductId.value}`, {
-      policy_name: forms.policy_name,
-      short_description: forms.short_description,
-      long_description: forms.long_description,
-      policy_premium: forms.policy_premium,
-      premium_due_date: forms.premium_due_date,
-
-    });
-    if (response && response.status === 200) {
-      showAlert.value = true;
-      setTimeout(() => {
-        showAlert.value = false;
-      }, 5000);
-    }    
-  } catch (error) {
-    console.error('Error adding product:', error);
-  }
-};
-
-</script> -->
+<style>
+.button-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+</style>
