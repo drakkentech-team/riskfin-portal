@@ -74,7 +74,7 @@ const form = reactive({
   short_description: '',
   long_description: '',
   policy_premium: '',
-  premium_due_date: '',
+  // premium_due_date: '',
 });
 
 const handleSaveProduct = async () => {
@@ -84,8 +84,9 @@ const handleSaveProduct = async () => {
       short_description: form.short_description,
       long_description: form.long_description,
       policy_premium: form.policy_premium,
-      premium_due_date: form.premium_due_date,
+      // premium_due_date: form.premium_due_date,
     });
+    console.log(response);
     if (response && response.status === 200) {
       showAlert.value = true;
       setTimeout(() => {
@@ -102,7 +103,7 @@ const showUpdateDialog = (item) => {
   forms.short_description = item.short_description;
   forms.long_description = item.long_description;
   forms.policy_premium = item.policy_premium;
-  forms.premium_due_date = item.premium_due_date;
+  // forms.premium_due_date = item.premium_due_date;
 
   updateProductId.value = item.sid_policy_details;
 
@@ -115,7 +116,7 @@ const forms = reactive({
   short_description: '',
   long_description: '',
   policy_premium: '',
-  premium_due_date: '',
+  // premium_due_date: '',
 });
 
 // Function to handle updating the product
@@ -126,7 +127,7 @@ const handleUpdateProduct = async () => {
       short_description: forms.short_description,
       long_description: forms.long_description,
       policy_premium: forms.policy_premium,
-      premium_due_date: forms.premium_due_date,
+      // premium_due_date: forms.premium_due_date,
     });
     if (response && response.status === 200) {
       showAlert.value = true;
@@ -142,10 +143,10 @@ const handleUpdateProduct = async () => {
 
 // Function to handle deleting a product
 const deleteProduct = async (item) => {
-  if (confirm('Are you sure you want to delete this product?')) {
-        console.log(item)
+  // if (confirm('Are you sure you want to delete this product?')) {
+  //       console.log(item)
 
-        try {
+  try {
     const response = await axios.put(
       `http://localhost:9000/update_policy_details?sid_policy_details=${item.sid_policy_details}`,
       {
@@ -153,11 +154,13 @@ const deleteProduct = async (item) => {
       });
 
     if (response && response.status === 200) {
-      confirm('Product deleted successfully?')
+      // confirm('Product deleted successfully?')
+      
 
       const index = data.value.findIndex(product => product.sid_policy_details === item.sid_policy_details);
       if (index !== -1) {
         data.value[index].policy_details_delete = 1;
+        deleteDialog.value = true;
       }
       availableProdList = availableProdList.filter(product => product.sid_policy_details !== item.sid_policy_details);
       data.value = availableProdList;
@@ -165,7 +168,7 @@ const deleteProduct = async (item) => {
   } catch (error) {
     console.error('Error deleting product:', error);
   }
-  }
+  // }
   
 };
 
@@ -284,13 +287,13 @@ const deleteProduct = async (item) => {
               ></v-date-picker>
             </v-col> -->
 <!-- <v-date-picker v-model="forms.premium_due_date" label="Premium Due Date*" required /> -->
-              <v-col cols="12" sm="6" md="4">
+              <!-- <v-col cols="12" sm="6" md="4">
                 <v-text-field
                   v-model="form.premium_due_date"
                   label="Premium Due Date*"
                   required
                 ></v-text-field>
-              </v-col>
+              </v-col> -->
             
             </v-row>
             <v-row justify="center">
@@ -331,9 +334,9 @@ const deleteProduct = async (item) => {
         <th class="text-left">
           Policy Premium
         </th>
-        <th class="text-left">
+        <!-- <th class="text-left">
           Premium Due Date
-        </th>
+        </th> -->
         <th class="text-left">
           Action
         </th>
@@ -345,7 +348,7 @@ const deleteProduct = async (item) => {
         <td>{{ item.short_description }}</td>
         <td>{{ item.long_description }}</td>
         <td>{{ item.policy_premium }}</td>
-        <td>{{ item.premium_due_date }}</td>
+        <!-- <td>{{ item.premium_due_date }}</td> -->
         <td>
           <div class="button-container">
           <!-- Restore Button -->
@@ -424,13 +427,13 @@ const deleteProduct = async (item) => {
                 ></v-text-field>
               </v-col>
 
-              <v-col cols="12" sm="6" md="4">
+              <!-- <v-col cols="12" sm="6" md="4">
                 <v-text-field
                   v-model="forms.premium_due_date"
                   label="Premium Due Date*"
                   required
                 ></v-text-field>
-              </v-col>
+              </v-col> -->
             </v-row>
             <v-row justify="center">
               <v-alert
@@ -454,6 +457,79 @@ const deleteProduct = async (item) => {
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+     <!-- Delete Product Dialog -->
+    <!-- <v-dialog v-model="deleteDialog" width="1024">
+      <v-card> -->
+        <!-- <v-card-title>
+          <span class="text-h5">Update Product</span>
+        </v-card-title> -->
+        <!-- <v-card-text>
+          <v-container> -->
+            <!-- <v-row>
+              <v-col cols="12" sm="6" md="4">
+                  <v-text-field
+                    label="Policy Name* "
+                    required
+                    v-model="forms.policy_name"
+                  />
+                </v-col> -->
+              
+              <!-- <v-col cols="12" sm="6" md="4">
+                <v-text-field
+                  v-model="forms.short_description"
+                  label="Short Description*"
+                  required
+                ></v-text-field>
+              </v-col> -->
+
+              <!-- <v-col cols="12" sm="6" md="4">
+                <v-text-field
+                  v-model="forms.long_description"
+                  label="Long Description*"
+                  required
+                ></v-text-field>
+              </v-col> -->
+
+              <!-- <v-col cols="12" sm="6" md="4">
+                <v-text-field
+                  v-model="forms.policy_premium"
+                  label="Policy Premium*"
+                  required
+                ></v-text-field>
+              </v-col> -->
+
+              <!-- <v-col cols="12" sm="6" md="4">
+                <v-text-field
+                  v-model="forms.premium_due_date"
+                  label="Premium Due Date*"
+                  required
+                ></v-text-field>
+              </v-col> -->
+            <!-- </v-row> -->
+            <!-- <v-row justify="center">
+              <v-alert
+                type="success"
+                title="Success"
+                text="Product has been successfully deleted!"
+                v-model="showAlert"
+              ></v-alert>
+            </v-row>
+          </v-container> -->
+          <!-- <small>*indicates required field</small> -->
+        <!-- </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="blue-darken-1" variant="text" @click="updateDialog = false">
+            Close
+          </v-btn> -->
+          <!-- <v-btn color="blue-darken-1" variant="text" @click="handleUpdateProduct">
+            Update Product
+          </v-btn> -->
+        <!-- </v-card-actions>
+      </v-card>
+    </v-dialog> -->
+
   </VCard>
 </template>
 
