@@ -1,7 +1,3 @@
-# vue
-
-This template should help get you started developing with Vue 3 in Vite.
-
 ## Project Setup
 
 ```sh
@@ -19,3 +15,4 @@ npm run dev
 ```sh
 npm run build
 ```
+You will need to request an .env file, as well as a bearer token from the lead developer in order for this project to run.

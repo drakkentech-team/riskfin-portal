@@ -56,7 +56,7 @@ const submitForm = () => {
 
 
 <template>
-  <div class="auth-wrapper d-flex align-center justify-center pa-4">
+  <div class="auth-wrapper d-flex align-center justify-center pa-4 centered-wrapper">
     <v-card class="auth-card pa-4 pt-7" max-width="448">
       <v-card-item class="justify-center">
         <template #prepend>
@@ -154,4 +154,11 @@ const submitForm = () => {
   .error-message {
     text-align: center;
   }
+
+  .centered-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh; /* Ensure the container covers the whole viewport */
+}
 </style>

@@ -2,21 +2,79 @@
   import axios from 'axios';
 import { onMounted, onUnmounted, reactive, ref } from 'vue';
 
+  const apiBaseUrl = "http://localhost:9000";
+  const bearerToken = "1HW94aH3Gu9BNxqw2QnY4y7zMa1xwlm_rg2ZiA9tt3fu";
+
+  /*New Notification Fields*/
+  const title = ref("");
+  const message = ref("");
+  const users = ref([]);
+
+  /*Snackbar*/
+  const saveNotificationSnackbar = ref(false)
+  const snackbarText = ref('Notification successfully sent');
+  const snackbarTimeout = ref(5000)
+
+  /*Modal Dropdown Lists*/
+  const titleDropdownList = [
+    { title: 'First Name', value:"<First Name>"},
+    { title: 'Last Name', value: '<Last Name>'},
+    { title: 'Policy', value: '<Policy>'},
+    { title: 'Date', value: '<Date>'},
+    { title: 'Days in arrears', value: '<Days in arrears>'},
+  ]
+
+  const items = [
+    { title: 'First Name', value:"<First Name>"},
+    { title: 'Last Name', value: '<Last Name>'},
+    { title: 'Policy', value: '<Policy>'},
+    { title: 'Date', value: '<Date>'},
+    { title: 'Days in arrears', value: '<Days in arrears>'}
+  ]
+
+  /*Data*/
+  const messageTemplateData = ref(null)
+  const userData = ref(null);
+
+  /*Modals*/
+  const loadPreviousNotificationsModal = ref(false);
+  const addUsersModal = ref(false);
+
+  /*Headers*/
+  const previousNotificationHeaders = ref([
+    { title: "Title", align: 'start', key: 'title'},
+    { title: 'Message', align: 'start', key: 'message' },
+    { title: 'Date Sent', align: 'start', key: 'date' },
+  ])
+
+  const addUsersHeaders = ref([
+    { title: "Name", align: 'start', key: 'name'},
+    { title: 'Email', align: 'start', key: 'email' },
+    { title: 'Selected', align: 'start', key: 'userSelected' },
+  ])
+
   const data = ref([]);
-  const user = ref([]);
+  
   const dialog = ref(false);
-  const showAlert = ref(false);
   const messageStatusModal = ref(false);
-  const messageStatusHeading = ["Still pending","received", "read", "closed"]
-  const messageStatusModalHeading = ref("");
+  const displayMessageTitle = ref("");
+  const displayMessage = ref("");
   const firstTableData = ref([]);
-  const secondTableData = ref([]);
-  const showSecondTable = ref(true);
   const itemsPerPage = ref(5);
-  const headers= ref([{ title: "First Name", align: 'start', key: 'name'},
-                      { title: 'Last Name', align: 'end', key: 'surname' },
-                      { title: 'Email', align: 'end', key: 'email' },
-                      { title: 'Contact Number', align: 'end', key: 'mobile_number'}
+  const notificationsPerPage = ref(10);
+  const textareaValue = ref("")
+  const notificationHeaders = ref([
+    { title: "Title", align: 'start', key: 'title'},
+    { title: 'Message', align: 'start', key: 'body' },
+    { title: 'Date Sent', align: 'start', key: 'date' },
+  ])
+
+  const headers= ref([{ title: "Name", align: 'start', key: 'name'},
+                      { title: 'Email', align: 'start', key: 'email' },
+                      { title: 'Message Status', align: 'start', key: 'messageStatus'},
+                      { title: 'Received On', align: 'start', key: 'received'},
+                      { title: 'Read On', align: 'start', key: 'read'},
+                      { title: 'Closed On', align: 'start', key: 'closed'},
                     ])
 
   const tabs = [
@@ -26,9 +84,96 @@ import { onMounted, onUnmounted, reactive, ref } from 'vue';
     { title: 'Scheduled', icon: 'bx:time', tab: 'notification' },
   ];
 
+  /*Methods*/
+  const handlePrevNotificationRowClick = (sid) => {
+    const clickedItem = messageTemplateData.value.find(item => item.sid === sid);
+    title.value = clickedItem.title
+    message.value = clickedItem.message
+    loadPreviousNotificationsModal.value = false
+  }
+
+  const handleCloseNewNotificationModal = () => {
+    dialog.value = false
+    title.value = ""
+    message.value = ""
+    users.value = []
+  }
+
+  const handleCheckboxChange = (item) => {
+    console.log(item)
+    const foundIndex = userData.value.findIndex((user) => user.sid_users === item.raw.sid_users);
+    console.log(foundIndex)
+    if (foundIndex !== -1) {
+      userData.value[foundIndex].columns.userSelected = item.columns.userSelected;
+    }
+  };
+
+  /*API Calls*/
+  const getMessageTemplate = async () => {
+    try {
+      const response = await axios.get(`${apiBaseUrl}/message_template`,{
+        headers: {
+          'Authorization': `Bearer ${bearerToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      if (response && response.status === 200) {
+          messageTemplateData.value = response.data;
+      }
+    } 
+    catch (error) {
+      console.error('Failed to fetch messages:', error);
+    }
+  };
+
+
+
+
+      const handleTextareaInput = (event) => {
+        const cursorPosition = event.target.selectionStart;
+        for (const item of items) {
+          if (
+            cursorPosition >= item.value.length &&
+            event.target.value.substr(cursorPosition - item.value.length, item.value.length) === item.value
+          ) {
+            message.value = event.target.value.substr(0, cursorPosition - item.value.length) + event.target.value.substr(cursorPosition);
+            break;
+          }
+        }
+      };
+
+  const insertValue = (m) => {
+    const lastCharacter = message.value.slice(-1);
+      if (lastCharacter === ' ') {
+        message.value += m; // Append the new value without a space
+      } else {
+        message.value += ' ' + m; // Append the new value with a space
+      }
+  }
+
+  const insertValueTitle = (m) => {
+    const lastCharacter = title.value.slice(-1);
+      if (lastCharacter === ' ') {
+        title.value += m; // Append the new value without a space
+      } else {
+        title.value += ' ' + m; // Append the new value with a space
+      }
+  }
+
+  const notificationTabs = [
+    { title: 'Manual',  tab: 'account' },
+    { title: 'Scheduled',  tab: 'security' },
+    { title: 'Triggerd',  tab: 'notification' },
+  ];
+
   const fetchMessage = async () => {
     try {
-      const response = await axios.get(`http://127.0.0.1:9000/messages`);
+      const response = await axios.get(`${apiBaseUrl}/messages`,{
+        headers: {
+          'Authorization': `Bearer ${bearerToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
       if (response && response.status === 200) {
         if (response.data) {
           const uniqueMessages = {};
@@ -40,53 +185,54 @@ import { onMounted, onUnmounted, reactive, ref } from 'vue';
               uniqueMessages[key] = {
                 ...message,
                 count: 0,
-                flagCounts: { pending: 0, received: 0, opened: 0, closed: 0 },
-                sids: { pending: [], received: [], notReceived:[], 
-                        opened: [], notOpened: [], closed: [], notClosed:[]},
+                sids: [],
+                messageStatus: [],
+                messageReceived:[],
+                read: [],
+                closed: [],
                 id: idCounter
               };
               idCounter++;
             }
 
             uniqueMessages[key].count++;
-            if (uniqueMessages[key].date && !uniqueMessages[key].received_date &&
-                !uniqueMessages[key].opened_date && !uniqueMessages[key].closed_date){
-              uniqueMessages[key].flagCounts.pending++;
-              uniqueMessages[key].sids.pending.push(message.user_sid);
-              uniqueMessages[key].sids.notReceived.push(message.user_sid);
-              uniqueMessages[key].sids.notOpened.push(message.user_sid);
-              uniqueMessages[key].sids.notClosed.push(message.user_sid);
+            if(message.received_date){
+              uniqueMessages[key].messageReceived.push(message.received_date)
             }
-            else if (uniqueMessages[key].date && uniqueMessages[key].received_date &&
-                !uniqueMessages[key].opened_date && !uniqueMessages[key].closed_date){
-              uniqueMessages[key].flagCounts.received ++;
-              uniqueMessages[key].sids.received.push(message.user_sid);
-              uniqueMessages[key].sids.notOpened.push(message.user_sid);
-              uniqueMessages[key].sids.notClosed.push(message.user_sid);
+            else{
+              uniqueMessages[key].messageReceived.push("Not yet received");
             }
-            else if (uniqueMessages[key].date && uniqueMessages[key].received_date && 
-                uniqueMessages[key].opened_date && !uniqueMessages[key].closed_date){
-              uniqueMessages[key].flagCounts.received ++;
-              uniqueMessages[key].flagCounts.opened ++;
-              uniqueMessages[key].sids.received.push(message.user_sid);
-              uniqueMessages[key].sids.opened.push(message.user_sid);
-              uniqueMessages[key].sids.notClosed.push(message.user_sid);
+              
+
+            message.opened_date ? 
+              uniqueMessages[key].read.push(message.opened_date) :
+              uniqueMessages[key].read.push("Not yet read");
+
+              message.closed_date ? 
+              uniqueMessages[key].closed.push(message.closed_date) :
+              uniqueMessages[key].closed.push("Not yet closed");  
+
+            uniqueMessages[key].sids.push(message.user_sid);
+            if (message.date && !message.received_date &&
+                !message.opened_date && !message.closed_date){
+              uniqueMessages[key].messageStatus.push("Pending");
             }
-            else if (uniqueMessages[key].date && uniqueMessages[key].received_date && 
-                uniqueMessages[key].opened_date && uniqueMessages[key].closed_date){
-                  uniqueMessages[key].flagCounts.received ++;
-                  uniqueMessages[key].flagCounts.opened ++;
-              uniqueMessages[key].flagCounts.closed ++;
-              uniqueMessages[key].sids.received.push(message.user_sid);
-              uniqueMessages[key].sids.opened.push(message.user_sid);
-              uniqueMessages[key].sids.closed.push(message.user_sid);
+            else if (message.date && message.received_date &&
+                !message.opened_date && !message.closed_date){
+                  uniqueMessages[key].messageStatus.push("Received");
+            }
+            else if (message.date && message.received_date && 
+            message.opened_date && !message.closed_date){
+                  uniqueMessages[key].messageStatus.push("Opened");
+            }
+            else if (message.date && message.received_date && 
+            message.opened_date && message.closed_date){
+                  uniqueMessages[key].messageStatus.push("Closed");
             }
           });
           
           const filteredMessages = Object.values(uniqueMessages);
-          console.log(filteredMessages)
           data.value = filteredMessages;
-          console.log('Data:', data.value);
         }
       }
     } catch (error) {
@@ -96,57 +242,61 @@ import { onMounted, onUnmounted, reactive, ref } from 'vue';
 
   const fetchUser = async () => {
     try {
-      const r = await axios.get(`http://localhost:9000/all_user_profile`);
-      if (r && r.status === 200) {
-        if (r) {
-          user.value = r.data;
-          console.log('User:', user.value);
+      const response = await axios.get(`${apiBaseUrl}/all_user_profile`,{
+        headers: {
+          'Authorization': `Bearer ${bearerToken}`,
+          'Content-Type': 'application/json'
         }
+      });
+      if (response && response.status === 200) {
+        response.data.forEach((user) => {
+          user.name = `${user.name} ${user.surname}`;
+          user.userSelected = false
+        })
+        userData.value = response.data;
+        console.log(userData.value)
       }
-    } catch (error) {
+    } 
+    catch (error) {
       console.error('Failed to fetch messages:', error);
     }
   };
 
-  const handleFlagClick = (flagIndex, id) => {
+  const handleFlagClick = (id) => {
     messageStatusModal.value = true;
-    messageStatusModalHeading.value = messageStatusHeading[flagIndex];
     const clickedItem = data.value.find(item => item.id === id);
-    console.log('clickedItem', clickedItem)
-    if (flagIndex === 0){
-      firstTableData.value = user.value.filter(users => clickedItem.sids.pending.includes(users.sid_users));
-      showSecondTable.value = false;
-    }
-    else if (flagIndex === 1 && user){
-      firstTableData.value = user.value.filter(users => clickedItem.sids.received.includes(users.sid_users));
-      secondTableData.value = user.value.filter(users => clickedItem.sids.notReceived.includes(users.sid_users));
-      showSecondTable.value = secondTableData.value.length > 0;
-    }
-    else if (flagIndex === 2){
-      firstTableData.value = user.value.filter(users => clickedItem.sids.opened.includes(users.sid_users));
-      secondTableData.value = user.value.filter(users => clickedItem.sids.notOpened.includes(users.sid_users));
-      showSecondTable.value = secondTableData.value.length > 0;
-    }
-    else if (flagIndex === 3){
-      firstTableData.value = user.value.filter(users => clickedItem.sids.closed.includes(users.sid_users));
-      secondTableData.value = user.value.filter(users => clickedItem.sids.notClosed.includes(users.sid_users));
-      showSecondTable.value = secondTableData.value.length > 0;
-    }
-    console.log(`Clicked on flag index ${flagIndex} for item`);
+    displayMessageTitle.value = clickedItem.title
+    displayMessage.value = clickedItem.body
+    firstTableData.value = userData.value.filter(users => clickedItem.sids.includes(users.sid_users));
+    const { messageStatus, messageReceived, read, closed } = clickedItem;
+    firstTableData.value.forEach((item, index) => {
+      if (messageStatus[index]) {
+        item.messageStatus = messageStatus[index];
+        item.received = messageReceived[index];
+        item.read = read[index];
+        item.closed = closed[index];
+      } else {
+        item.messageStatus = "Unknown";
+      }
+    });
   }
 
   const handleSaveNotification = async () => {
+    console.log(title.value)
+    console.log(message.value)
+    console.log(users.value)
     try {
-      const response = await axios.post(`https://41ba-13-246-23-177.ngrok-free.app/send_message`, {
-        title: form.title,
-        message: form.message,
-        user_id: form.user_id,
-      })
+      const response = await axios.post(`${apiBaseUrl}/send_message`, {
+        title: title.value,
+        message: message.value,
+        user_id: users.value,
+      },{
+        headers: {
+            'Authorization': `Bearer ${bearerToken}`,
+            'Content-Type': 'application/json'
+          }})
       if (response && response.status === 200) {
-        showAlert.value = true
-        setTimeout(() => {
-          showAlert.value = false;
-        }, 5000);
+        saveNotificationSnackbar.value = true
         fetchMessage();
       } 
     } 
@@ -163,6 +313,7 @@ import { onMounted, onUnmounted, reactive, ref } from 'vue';
   onMounted(() => {
     fetchMessage();
     fetchUser();
+    getMessageTemplate();
     const intervalId = setInterval(fetchMessage, 60000);
     onUnmounted(() => {
       clearInterval(intervalId);
@@ -177,6 +328,7 @@ import { onMounted, onUnmounted, reactive, ref } from 'vue';
 </script>
 
 <template>
+  <!--Notification main page-->
   <VCard class="text-center text-sm-start">
     <VRow no-gutters class="align-center justify-space-between">
       <VCol cols="auto">
@@ -186,15 +338,15 @@ import { onMounted, onUnmounted, reactive, ref } from 'vue';
       </VCol>
       <VCol cols="auto">
         <v-btn color="primary" @click="dialog=true" style="margin-right: 16px;">
-          Add <VIcon icon="bx-message-add" />
+          New Notification <VIcon icon="bx-message-add" />
         </v-btn>
       </VCol>
     </VRow>
     <VRow no-gutters>
       <VTabs
-      v-model="activeTab"
-      show-arrows
-    >
+        v-model="activeTab"
+        show-arrows
+      >
       <VTab
         v-for="item in tabs"
         :key="item.icon"
@@ -212,53 +364,138 @@ import { onMounted, onUnmounted, reactive, ref } from 'vue';
       </VRow>
     <!--New Notification Modal-->
     <v-row justify="center"> 
-      <v-dialog v-model="dialog" width="1024">
+      <v-dialog v-model="dialog" @click:outside="handleCloseNewNotificationModal" width="1024">
         <v-card>
-          <v-card-title>
-            <span class="text-h5">New Notification</span>
-          </v-card-title>
-          <v-card-text>      
-            <v-container>
-              <v-row>
-                <v-col cols="12" sm="6" md="4">
-                  <v-text-field
-                    label="Title* "
-                    required
-                    v-model="form.title"
-                  />
+
+          <v-row class="pl-13 pt-3">
+                <v-col cols="12" sm="6" md="5">
+                  <v-card-title>
+                    <v-text-field label="Add Title" v-model="title" variant="underlined"></v-text-field>
+                  </v-card-title>
                 </v-col>
-              <v-col cols="12" sm="6" md="4">
-                <v-text-field
-                  v-model="form.message"
-                  label="Message*"
-                  required
-                ></v-text-field>
-              </v-col>
-              <v-col cols="12" sm="6">
-                <v-select
-                  :items="['shane.vanniekerk@drakkentech.co.za  ']"
-                  label="Users*"
-                  required
-                />
+                <v-col class=" pt-10" cols="12" sm="6" md="2">
+          <v-menu >
+            <template v-slot:activator="{ props }">
+              <v-btn 
+              variant="text"
+              v-bind="props"
+              prepend-icon="ic:round-plus"
+            >
+              Add field to title
+            </v-btn>
+          </template>
+      <v-list >
+        <v-list-item
+          v-for="(item, index) in titleDropdownList"
+          :key="index"
+          :value="index"
+          @click="insertValueTitle(item.value)"
+        >
+          <v-list-item-title>{{ item.title }}</v-list-item-title>
+        </v-list-item>
+      </v-list>
+    </v-menu>
+      </v-col>
+                
+            </v-row>   
+              
+          
+          <v-row class="pl-15 my-n1">
+            <v-col cols="12" sm="6" md="6">
+              <v-btn
+        variant="text"
+        @click="length--"
+      >
+        Standard
+      </v-btn>
+      <v-btn
+        variant="text"
+        @click="length++"
+      >
+        Scheduled
+      </v-btn>
+      <v-btn
+        variant="text"
+        @click="length++"
+      >
+        Automated
+      </v-btn>
               </v-col>
             </v-row>
-            <v-row justify="center">
-              <v-alert
-                type="success"
-                title="Success"
-                text="Your notification has been successfully sent!"
-                v-model="showAlert"
-              />
-            </v-row>
-          </v-container>
-          <small>*indicates required field</small>
-        </v-card-text>
+            <v-row>
+              </v-row>
+              <v-row class="pl-9 my-n1">
+      <v-col cols="12" sm="6" md="4">
+        <v-text-field
+          prepend-icon="bx:time"
+          placeholder="Send Immediately"
+          variant="plain"
+          readonly
+        ></v-text-field>
+      </v-col>
+    </v-row>
+    <v-row class="pl-7 my-n2">
+      <v-col cols="12" sm="6" md="4">
+        <v-btn
+        variant="text"
+        @click="addUsersModal=true"
+        prepend-icon="ph:users-bold"
+      >
+      <span class="pl-2">Add users</span>
+      </v-btn>
+      </v-col>
+    </v-row>
+    <v-row >
+      <v-col cols="12" sm="6" md="4">
+        <v-btn class="mx-15"
+        variant="text"
+        @click="loadPreviousNotificationsModal=true"
+        prepend-icon="ic:round-plus"
+      >
+        Load previous notification
+      </v-btn>
+      </v-col>
+      <v-col cols="12" sm="6" md="4">
+          <v-menu>
+            <template v-slot:activator="{ props }">
+              <v-btn
+              variant="text"
+              v-bind="props"
+              prepend-icon="ic:round-plus"
+            >
+              Add field to message
+            </v-btn>
+          </template>
+      <v-list>
+        <v-list-item
+          v-for="(item, index) in items"
+          :key="index"
+          :value="index"
+          @click="insertValue(item.value)"
+        >
+          <v-list-item-title>{{ item.title }}</v-list-item-title>
+        </v-list-item>
+      </v-list>
+    </v-menu>
+      </v-col>
+    </v-row>
+    <v-container fluid>
+      <v-textarea class="pl-15 custom-textarea my-n4"
+        name="input-7-1"
+        variant="filled"
+        label="Message"
+        auto-grow
+        model-value=""
+        v-model="message"
+        @input="handleTextareaInput($event)"
+      />
+    </v-container>
         <v-card-actions>
           <v-spacer/>
             <v-btn
               color="blue-darken-1"
               variant="text"
-              @click="dialog = false"
+              @click="handleCloseNewNotificationModal"
             >
               Close
             </v-btn>
@@ -273,13 +510,102 @@ import { onMounted, onUnmounted, reactive, ref } from 'vue';
         </v-card>
       </v-dialog>
     </v-row>
+
+    <!--Load Previous Notification modal-->
+      <v-row justify="center"> 
+        <v-dialog v-model="loadPreviousNotificationsModal" width="1200">
+          <v-card>
+            <v-card-title class="pt-5">
+                <span class="text-h7 ">Click on a notification to load it</span>
+            </v-card-title>
+            <v-data-table
+              v-model:items-per-page="itemsPerPage"
+              :headers="previousNotificationHeaders"
+              :items="messageTemplateData"
+              item-value="title"
+              class="elevation-1"
+            >
+              <template v-slot:item.title="{ item }">
+                <tr>
+                  <td><span style="cursor: pointer;" @click="handlePrevNotificationRowClick(item.selectable.sid)">{{ item.columns.title }}</span></td>
+                  </tr>
+              </template>
+              <template v-slot:item.message="{ item }">
+                <tr>
+                  <td><span style="cursor: pointer;" @click="handlePrevNotificationRowClick(item.selectable.sid)">{{ item.columns.message }}</span></td>
+                </tr>
+              </template>
+              <template v-slot:item.date="{ item }">
+                <tr>
+                  <td><span style="cursor: pointer;" @click="handlePrevNotificationRowClick(item.selectable.sid)">{{ item.columns.date }}</span></td>
+                </tr>
+              </template>
+            </v-data-table>
+          </v-card>
+        </v-dialog>
+      </v-row>
+    <!--End of Load Previous Notification modal-->
+
+    <!--Add Users Modal-->
+    <v-row justify="center"> 
+        <v-dialog v-model="addUsersModal" width="1200">
+          <v-card>
+            <v-card-title class="pt-5">
+                <span class="text-h7 ">Select a user to add as a recipient</span>
+            </v-card-title>
+            <v-data-table
+              v-model:items-per-page="itemsPerPage"
+              :headers="addUsersHeaders"
+              :items="userData"
+              item-value="name"
+              class="elevation-1"
+            >
+              <template v-slot:item.userSelected="{ item }">
+                <v-checkbox-btn
+                  v-model="item.columns.userSelected"
+                  @change="handleCheckboxChange(item)"
+                ></v-checkbox-btn>
+              </template>
+            </v-data-table>
+          </v-card>
+        </v-dialog>
+      </v-row>
+    <!--End of Add Users Modal-->
+
+    <!--Snackbar-->
+      <div class="text-center">
+        <v-snackbar
+          v-model="saveNotificationSnackbar"
+          :timeout="snackbarTimeout"
+        >
+          {{ snackbarText }}
+
+          <template v-slot:actions>
+            <v-btn
+              color="blue"
+              variant="text"
+              @click="saveNotificationSnackbar = false"
+            >
+              Close
+            </v-btn>
+          </template>
+        </v-snackbar>
+      </div>
+    <!--End of Snackbar-->  
+
     <!--Flag status modal-->
     <v-row justify="center"> 
-      <v-dialog v-model="messageStatusModal" width="1024">
+      <v-dialog v-model="messageStatusModal" width="1200">
         <v-card>
           <v-card-title>
-            <span class="text-h5">Message {{messageStatusModalHeading}}</span>
+              <span class="text-h7">{{displayMessageTitle}}</span>
           </v-card-title>
+          <v-row>
+          
+              <v-col cols="12" sm="6" md="8" class="pl-9 pb-8">
+              <span >{{displayMessage}}</span>
+              </v-col>
+            </v-row>
           <v-data-table
             v-model:items-per-page="itemsPerPage"
             :headers="headers"
@@ -287,68 +613,45 @@ import { onMounted, onUnmounted, reactive, ref } from 'vue';
             item-value="name"
             class="elevation-1"
           ></v-data-table>
-          <v-card-title v-if="showSecondTable">
-            <span class="text-h5">Message not yet {{messageStatusModalHeading}}</span>
-          </v-card-title>
-          <v-data-table
-            v-if="showSecondTable"
-            v-model:items-per-page="itemsPerPage"
-            :headers="headers"
-            :items="secondTableData"
-            item-value="name"
-            class="elevation-1"
-          ></v-data-table>
         </v-card>
       </v-dialog>
     </v-row>
-    <v-table>
-      <thead>
-        <tr>
-          <th class="text-left">
-            Title
-          </th>
-          <th class="text-left">
-            Message
-          </th>
-          <th class="text-left">
-            <v-icon>mdi-progress-clock</v-icon>Pending
-          </th>
-          <th class="text-left">
-            <v-icon>lucide:mail-check</v-icon>received
-          </th>
-          <th class="text-left">
-            <v-icon>mdi-tick-circle-outline</v-icon>Read
-          </th>
-          <th class="text-left">
-            <v-icon>basil:power-button-outline</v-icon>Closed
-          </th>
-          <th class="text-left">
-            Date Sent
-          </th>
+    <v-data-table
+      v-model:items-per-page="notificationsPerPage"
+      :headers="notificationHeaders"
+      :items="data"
+      item-value="title"
+      class="elevation-1 pt-5"
+    >
+    <template v-slot:item.title="{ item }">
+      <tr>
+        <td><span style="cursor: pointer;" @click="handleFlagClick(item.selectable.id)">{{ item.columns.title }}</span></td>
         </tr>
-      </thead>
-      <tbody>
-        <tr
-          v-for="item in data"
-            :key="item.sid"
-        >
-          <td>{{ item.title }}</td>
-          <td>{{ item.body }}</td>
-          <td><span v-if="item.flagCounts.pending === 0" style="cursor: pointer;">None</span>
-              <span v-else @click="handleFlagClick(0, item.id)" style="cursor: pointer;">{{ item.flagCounts.pending }}/{{ item.count }}</span>
-          </td>
-          <td><span @click="handleFlagClick(1,item.id)" style="cursor: pointer;">{{ item.flagCounts.received }}/{{ item.count }}</span></td>
-          <td><span @click="handleFlagClick(2, item.id)" style="cursor: pointer;">{{ item.flagCounts.opened }}/{{ item.count }}</span></td>
-          <td><span @click="handleFlagClick(3, item.id)" style="cursor: pointer;">{{ item.flagCounts.closed }}/{{ item.count }}</span></td>
-          <td>{{ item.date }}</td>
-        </tr>
-      </tbody>
-    </v-table>
+    </template>
+    <template v-slot:item.body="{ item }">
+      <tr>
+        <td><span style="cursor: pointer;" @click="handleFlagClick(item.selectable.id)">{{ item.columns.body }}</span></td>
+      </tr>
+    </template>
+    <template v-slot:item.date="{ item }">
+      <tr>
+        <td><span style="cursor: pointer;" @click="handleFlagClick(item.selectable.id)">{{ item.columns.date }}</span></td>
+      </tr>
+    </template>
+    </v-data-table>
   </VCard>
 </template>
 
 <style lang="scss" scoped>
 .clickable-cell {
   cursor: pointer;
+}
+
+.custom-text-field::placeholder {
+  cursor: pointer;
+}
+
+.custom-textarea {
+  inline-size: 55%; /* Adjust the width as needed */
 }
 </style>

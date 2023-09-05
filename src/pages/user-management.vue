@@ -60,7 +60,6 @@ import { onMounted, onUnmounted, reactive, ref } from 'vue';
       let payload = {
         name: form.firstName,
         surname: form.lastName,
-        email: form.email,
         admin: adminValue,
         active: activeValue,
       };
@@ -92,14 +91,16 @@ import { onMounted, onUnmounted, reactive, ref } from 'vue';
     try {
       var adminValue
       form.admin === 'Admin' ? adminValue = 1 : adminValue = 0
-      const response = await axios.post(`http://localhost:9000/web_register`, {
+      const apiBaseUrl = process.env.VUE_APP_API_BASE_URL;
+
+      const response = await axios.post(`${apiBaseUrl}/web_register`, {
         name: form.firstName,
         surname: form.lastName,
         email: form.email,
         password: form.password,
         admin: adminValue,
         active: 1,
-      })
+      });
       if (response && response.status === 200) {
         showAlert.value = true
         setTimeout(() => {
