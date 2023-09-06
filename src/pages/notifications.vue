@@ -1,6 +1,6 @@
 <script setup>
   import axios from 'axios';
-import { onMounted, onUnmounted, reactive, ref } from 'vue';
+  import { onMounted, onUnmounted, reactive, ref } from 'vue';
 
   const apiBaseUrl = "http://localhost:9000";
   const bearerToken = "1HW94aH3Gu9BNxqw2QnY4y7zMa1xwlm_rg2ZiA9tt3fu";
@@ -40,6 +40,9 @@ import { onMounted, onUnmounted, reactive, ref } from 'vue';
   const loadPreviousNotificationsModal = ref(false);
   const addUsersModal = ref(false);
 
+  /*Checkboxes*/
+  const allUsersCheckbox = ref(false)
+
   /*Headers*/
   const previousNotificationHeaders = ref([
     { title: "Title", align: 'start', key: 'title'},
@@ -64,9 +67,9 @@ import { onMounted, onUnmounted, reactive, ref } from 'vue';
   const notificationsPerPage = ref(10);
   const textareaValue = ref("")
   const notificationHeaders = ref([
-    { title: "Title", align: 'start', key: 'title'},
-    { title: 'Message', align: 'start', key: 'body' },
-    { title: 'Date Sent', align: 'start', key: 'date' },
+    { title: "Title", align: 'center', key: 'title', width: '180px'},
+    { title: 'Message', align: 'left', key: 'body' },
+    { title: 'Date Sent', align: 'center', key: 'date', width: '200px' },
   ])
 
   const headers= ref([{ title: "Name", align: 'start', key: 'name'},
@@ -80,7 +83,7 @@ import { onMounted, onUnmounted, reactive, ref } from 'vue';
   const tabs = [
     { title: 'All', icon: 'bx:world', tab: 'account' },
     { title: 'Automated', icon: 'bx-bot', tab: 'security' },
-    { title: 'Custom', icon: 'bx-pencil', tab: 'notification' },
+    { title: 'Standard', icon: 'bx-pencil', tab: 'notification' },
     { title: 'Scheduled', icon: 'bx:time', tab: 'notification' },
   ];
 
@@ -97,16 +100,60 @@ import { onMounted, onUnmounted, reactive, ref } from 'vue';
     title.value = ""
     message.value = ""
     users.value = []
+    for (const user of userData.value) {
+      user.userSelected = false;
+    }
   }
 
   const handleCheckboxChange = (item) => {
-    console.log(item)
     const foundIndex = userData.value.findIndex((user) => user.sid_users === item.raw.sid_users);
-    console.log(foundIndex)
     if (foundIndex !== -1) {
-      userData.value[foundIndex].columns.userSelected = item.columns.userSelected;
+      userData.value[foundIndex].userSelected = item.columns.userSelected;
+      const userSid = String(userData.value[foundIndex].sid_users);
+      if (userData.value[foundIndex].userSelected === true) {
+        users.value.push({ user_id: userSid });
+      } else if (userData.value[foundIndex].userSelected === false) {
+        const index = users.value.findIndex((user) => user.user_id === userSid);
+        if (index !== -1) {
+          users.value.splice(index, 1);
+        }
+      }
     }
   };
+
+  const handleAddAllUsers = () => {
+    allUsersCheckbox.value = !allUsersCheckbox.value
+    if (allUsersCheckbox.value === true) {
+      users.value.splice(0, users.value.length)
+      for (const user of userData.value) {
+        user.userSelected = true;
+        const userSid = String(user.sid_users);
+        users.value.push({ user_id: userSid });
+      }
+    } else if (allUsersCheckbox.value === false) {
+      for (const user of userData.value) {
+        user.userSelected = false;
+        const userSid = String(user.sid_users);
+        const index = users.value.findIndex((user) => user.user_id === userSid);
+        if (index !== -1) {
+          users.value.splice(index, 1);
+        }
+      }
+    }
+  }
+
+  const userText = computed(() => {
+    const userCount = users.value.length;
+    console.log(userCount)
+    if (userCount === 0) {
+      return "No users added";
+    } else if (userCount === 1) {
+      return "1 user added";
+    } else {
+      return `${userCount} users added`;
+    }
+  });
+
 
   /*API Calls*/
   const getMessageTemplate = async () => {
@@ -342,7 +389,7 @@ import { onMounted, onUnmounted, reactive, ref } from 'vue';
         </v-btn>
       </VCol>
     </VRow>
-    <VRow no-gutters>
+    <VRow no-gutters class="pl-5">
       <VTabs
         v-model="activeTab"
         show-arrows
@@ -434,15 +481,22 @@ import { onMounted, onUnmounted, reactive, ref } from 'vue';
         ></v-text-field>
       </v-col>
     </v-row>
-    <v-row class="pl-7 my-n2">
-      <v-col cols="12" sm="6" md="4">
+    <v-row class="my-n2">
+      <v-col class="pl-10" cols="12" sm="6" md="4">
         <v-btn
-        variant="text"
-        @click="addUsersModal=true"
-        prepend-icon="ph:users-bold"
-      >
-      <span class="pl-2">Add users</span>
-      </v-btn>
+          variant="text"
+          @click="addUsersModal=true"
+          prepend-icon="ph:users-bold"
+        >
+          <span class="pl-2">{{userText}}</span>
+        </v-btn>
+      </v-col>
+      <v-col class="mx-n12" cols="12" sm="6" md="8 ">
+        <v-checkbox
+          v-model="allUsersCheckbox"
+          label="Add all users"
+          @click="handleAddAllUsers"
+        ></v-checkbox>
       </v-col>
     </v-row>
     <v-row >
@@ -548,7 +602,7 @@ import { onMounted, onUnmounted, reactive, ref } from 'vue';
 
     <!--Add Users Modal-->
     <v-row justify="center"> 
-        <v-dialog v-model="addUsersModal" width="1200">
+        <v-dialog v-model="addUsersModal" width="800">
           <v-card>
             <v-card-title class="pt-5">
                 <span class="text-h7 ">Select a user to add as a recipient</span>
@@ -621,7 +675,7 @@ import { onMounted, onUnmounted, reactive, ref } from 'vue';
       :headers="notificationHeaders"
       :items="data"
       item-value="title"
-      class="elevation-1 pt-5"
+      class="elevation-1 pt-5 pl-5 pr-5"
     >
     <template v-slot:item.title="{ item }">
       <tr>

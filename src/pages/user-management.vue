@@ -1,6 +1,19 @@
 <script setup>
   import axios from 'axios';
-import { onMounted, onUnmounted, reactive, ref } from 'vue';
+  import { onMounted, onUnmounted, reactive, ref } from 'vue';
+
+  const apiBaseUrl = "http://localhost:9000";
+  const bearerToken = "1HW94aH3Gu9BNxqw2QnY4y7zMa1xwlm_rg2ZiA9tt3fu";
+
+  /*Edit User Fields*/
+  const sid = ref(null);
+  const firstName= ref("");
+  const lastName= ref("");
+  const email= ref("");
+  const password= ref("");
+  const confirmPassword= ref("");
+  const admin= ref(null);
+  const active= ref(null);
 
   const data = ref([]);
   const dialogDelete = ref(false)
@@ -21,13 +34,18 @@ import { onMounted, onUnmounted, reactive, ref } from 'vue';
 
   const tabs = [
     { title: 'All', icon: 'bx:world', tab: 'account' },
-    { title: 'Admin', icon: 'clarity:administrator-line', tab: 'security' },
-    { title: 'Standard', icon: 'clarity:user-line', tab: 'notification' },
+    { title: 'Active', icon: 'clarity:administrator-line', tab: 'security' },
+    { title: 'Deactivated', icon: 'clarity:user-line', tab: 'notification' },
   ];
 
   const fetchUsers = async () => {
     try {
-      const response = await axios.get(`http://127.0.0.1:9000/all_web_user_profiles`);
+      const response = await axios.get(`http://127.0.0.1:9000/all_web_user_profiles`,{
+        headers: {
+          'Authorization': `Bearer ${bearerToken}`,
+          'Content-Type': 'application/json'
+        },
+      });
       if (response && response.status === 200) {
         if (response.data) {
           data.value = response.data;
@@ -54,52 +72,25 @@ import { onMounted, onUnmounted, reactive, ref } from 'vue';
   const handleUpdateUser = async () => {
     try {
       var adminValue, activeValue
-      form.admin === 'Admin' ? adminValue = 1 : adminValue = 0
-      form.active === 'Yes' ? activeValue = 1 : activeValue = 0
+      admin.value === 'Admin' ? adminValue = 1 : adminValue = 0
+      active.value === 'Yes' ? activeValue = 1 : activeValue = 0
 
       let payload = {
-        name: form.firstName,
-        surname: form.lastName,
+        name: firstName.value,
+        surname: lastName.value,
         admin: adminValue,
         active: activeValue,
       };
 
       // If form.password has a value, add it to the payload
-      if (form.password) {
-        payload.password = form.password;
+      if (password.value) {
+        payload.password = password.value;
       }
-      const response = await axios.put(`http://localhost:9000/web_user_profile?user_id=${form.sid}`, payload);
-      if (response && response.status === 200) {
-        showAlert.value = true
-        setTimeout(() => {
-          showAlert.value = false;
-        }, 5000);
-        fetchUsers();
-      } 
-    } 
-    catch (error) {
-      if (error.response && error.response.status === 404) {
-        errorMessage.value = 'This user does not exist'
-      }
-      else if (error.response && error.response.status === 401) {
-        errorMessage.value = 'Your password is incorrect'
-      }
-    }
-  }
-  
-  const handleSaveNotification = async () => {
-    try {
-      var adminValue
-      form.admin === 'Admin' ? adminValue = 1 : adminValue = 0
-      const apiBaseUrl = process.env.VUE_APP_API_BASE_URL;
-
-      const response = await axios.post(`${apiBaseUrl}/web_register`, {
-        name: form.firstName,
-        surname: form.lastName,
-        email: form.email,
-        password: form.password,
-        admin: adminValue,
-        active: 1,
+      const response = await axios.put(`http://localhost:9000/web_user_profile?user_id=${sid.value}`, payload, {
+        headers: {
+          'Authorization': `Bearer ${bearerToken}`,
+          'Content-Type': 'application/json'
+        }
       });
       if (response && response.status === 200) {
         showAlert.value = true
@@ -110,12 +101,42 @@ import { onMounted, onUnmounted, reactive, ref } from 'vue';
       } 
     } 
     catch (error) {
-      if (error.response && error.response.status === 404) {
-        errorMessage.value = 'This user does not exist'
-      }
-      else if (error.response && error.response.status === 401) {
-        errorMessage.value = 'Your password is incorrect'
-      }
+      console.log(error)
+    }
+  }
+  
+  const handleSaveNotification = async () => {
+    try {
+      var adminValue
+      admin.value === 'Admin' ? adminValue = 1 : adminValue = 0
+      console.log(firstName.value)
+      console.log(lastName.value)
+      console.log(email.value)
+      console.log(password.value)
+      console.log(adminValue.value)
+      const response = await axios.post(`${apiBaseUrl}/web_register`, {
+        name: firstName.value,
+        surname: lastName.value,
+        email: email.value,
+        password: password.value,
+        admin: adminValue,
+        active: 1,
+      },{
+        headers: {
+          'Authorization': `Bearer ${bearerToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      if (response && response.status === 200) {
+        showAlert.value = true
+        setTimeout(() => {
+          showAlert.value = false;
+        }, 5000);
+        fetchUsers();
+      } 
+    } 
+    catch (error) {
+      console.log(error)
     } 
   }
 
@@ -126,7 +147,12 @@ import { onMounted, onUnmounted, reactive, ref } from 'vue';
 
   const deleteConfirm = async () => {
     try {
-      const deleteResponse = await axios.put(`http://127.0.0.1:9000/delete_web_user?user_id=${itemToBeDeleted.value}`);
+      const deleteResponse = await axios.put(`http://127.0.0.1:9000/delete_web_user?user_id=${itemToBeDeleted.value}`, {
+        headers: {
+          'Authorization': `Bearer ${bearerToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
       if (deleteResponse && deleteResponse.status === 200) {
         console.log(deleteResponse)
         itemToBeDeleted.value = null
@@ -141,15 +167,15 @@ import { onMounted, onUnmounted, reactive, ref } from 'vue';
 
   const editItem = (item) => {
     editUserModal.value = true
-    form.sid = item.sid;
-    form.email = item.email;
-    form.firstName = item.first_name;
-    form.lastName = item.last_name;
-    form.admin = item.admin;
+    sid.value = item.sid;
+    email.value = item.email;
+    firstName.value = item.first_name;
+    lastName.value = item.last_name;
+    admin.value = item.admin;
     if (item.active === "Yes")
-      form.active = "Active";
+      active.value = "Active";
     else{
-      form.active = "Deactivated";
+      active.value = "Deactivated";
     }
   }
 
@@ -160,17 +186,6 @@ import { onMounted, onUnmounted, reactive, ref } from 'vue';
       clearInterval(intervalId);
     });
   });
-
-  const form = reactive({
-    sid: null,
-    firstName: "",
-    lastName: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
-    admin: null,
-    active: null,
-  })
 </script>
 
 <template>
@@ -183,11 +198,11 @@ import { onMounted, onUnmounted, reactive, ref } from 'vue';
       </VCol>
       <VCol cols="auto">
         <v-btn color="primary" @click="addUserModal=true" style="margin-right: 16px;">
-          Add <VIcon icon="bx-message-add" />
+          Add New User <VIcon icon="bx-message-add" />
         </v-btn>
       </VCol>
     </VRow>
-    <VRow no-gutters>
+    <VRow no-gutters class="pl-5">
       <VTabs
         v-model="activeTab"
         show-arrows
@@ -208,209 +223,214 @@ import { onMounted, onUnmounted, reactive, ref } from 'vue';
       <VDivider />
     </VRow>
 
-    <!-- Modal -->
-    <v-dialog v-model="addUserModal" width="800">
-      <v-card>
-        <v-container>
-          <v-row class="justify-center">
-            <v-col class="text-center" cols="12" sm="6" md="4">
-              <span class="text-h5">Create A New User</span>
-            </v-col>
-          </v-row>
-          <v-row>
-            <v-col cols="12" sm="6" md="12">
-              <v-text-field
-                v-model="form.email"
-                label="Email"
-                required
-              />
-            </v-col>
-          </v-row>
-          <v-row>
-            <v-col cols="12" sm="6" md="6">
-              <v-text-field
-                v-model="form.firstName"
-                label="First Name"
-                required
-              />
-            </v-col>
-            <v-col cols="12" sm="6" md="6">
-              <v-text-field
-                v-model="form.last"
-                label="Last Name"
-                required
-              />
-            </v-col>
-          </v-row>
-            <v-row>
-              <v-col cols="12" sm="6" md="6">
-                <v-text-field
-                  v-model="form.password"
-                  label="Password"
-                  placeholder="············"
-                  :type="isPasswordVisible ? 'text' : 'password'"
-                  :append-inner-icon="isPasswordVisible ? 'bx-hide' : 'bx-show'"
-                  @click:append-inner="isPasswordVisible = !isPasswordVisible"
-                />
+    <!-- Add New User Modal -->
+      <v-dialog v-model="addUserModal" width="800">
+        <v-card>
+          <v-container>
+            <v-row class="justify-center">
+              <v-col class="text-center" cols="12" sm="6" md="4">
+                <span class="text-h5">Create A New User</span>
               </v-col>
-              <v-col cols="12" sm="6" md="6">
+            </v-row>
+            <v-row>
+              <v-col cols="12" sm="6" md="12">
                 <v-text-field
-                  v-model="form.confirmPassword"
-                  label="Confirm Password"
-                  placeholder="············"
-                  :type="isConfirmPasswordVisible ? 'text' : 'password'"
-                  :append-inner-icon="isConfirmPasswordVisible ? 'bx-hide' : 'bx-show'"
-                  @click:append-inner="isConfirmPasswordVisible = !isConfirmPasswordVisible"
+                  v-model="email"
+                  label="Email"
+                  required
                 />
               </v-col>
             </v-row>
             <v-row>
               <v-col cols="12" sm="6" md="6">
-                <v-select
-                  :items="['Admin', 'Standard']"
-                  label="User type"
-                  required
-                  v-model="form.admin"
-                />
-              </v-col>
-              <v-col cols="12" sm="6" md="6">
-                <v-select
-                  :items="['Active', 'Deactivated']"
-                  label="Account status"
-                  required
-                  v-model="form.admin"
-                />
-              </v-col>
-            </v-row>
-            <v-row justify="center">
-              <v-alert
-                type="success"
-                title="Success"
-                text="User has been created successfully!"
-                v-model="showAlert"
-              />
-            </v-row>
-          </v-container>
-        <v-card-actions>
-          <v-spacer/>
-            <v-btn
-              color="blue-darken-1"
-              variant="text"
-              @click="addUserModal = false"
-            >
-              Close
-            </v-btn>
-            <v-btn
-              color="blue-darken-1"
-              variant="text"
-              @click="handleSaveNotification"
-            >
-              Send
-            </v-btn>
-          </v-card-actions>
-        </v-card>
-      </v-dialog>
-      <v-dialog v-model="editUserModal" width="800">
-      <v-card>
-        <v-container>
-          <v-row class="justify-center">
-            <v-col class="text-center" cols="12" sm="6" md="4">
-              <span class="text-h5">Edit User</span>
-            </v-col>
-          </v-row>
-          <v-row>
-            <v-col cols="12" sm="6" md="12">
-              <v-text-field
-                v-model="form.email"
-                label="Email"
-                required
-              />
-            </v-col>
-          </v-row>
-          <v-row>
-            <v-col cols="12" sm="6" md="6">
-              <v-text-field
-                v-model="form.firstName"
-                label="First Name"
-                required
-              />
-            </v-col>
-            <v-col cols="12" sm="6" md="6">
-              <v-text-field
-                v-model="form.lastName"
-                label="Last Name"
-                required
-              />
-            </v-col>
-          </v-row>
-            <v-row>
-              <v-col cols="12" sm="6" md="6">
                 <v-text-field
-                  v-model="form.password"
-                  label="Password"
-                  placeholder="············"
-                  :type="isPasswordVisible ? 'text' : 'password'"
-                  :append-inner-icon="isPasswordVisible ? 'bx-hide' : 'bx-show'"
-                  @click:append-inner="isPasswordVisible = !isPasswordVisible"
+                  v-model="firstName"
+                  label="First Name"
+                  required
                 />
               </v-col>
               <v-col cols="12" sm="6" md="6">
                 <v-text-field
-                  v-model="form.confirmPassword"
-                  label="Confirm Password"
-                  placeholder="············"
-                  :type="isConfirmPasswordVisible ? 'text' : 'password'"
-                  :append-inner-icon="isConfirmPasswordVisible ? 'bx-hide' : 'bx-show'"
-                  @click:append-inner="isConfirmPasswordVisible = !isConfirmPasswordVisible"
-                />
-              </v-col>
-            </v-row>
-            <v-row>
-              <v-col cols="12" sm="6" md="6">
-                <v-select
-                  :items="['Admin', 'Standard']"
-                  label="User type"
+                  v-model="last"
+                  label="Last Name"
                   required
-                  v-model="form.admin"
-                />
-              </v-col>
-              <v-col cols="12" sm="6" md="6">
-                <v-select
-                  :items="['Active', 'Deactivated']"
-                  label="Account status"
-                  required
-                  v-model="form.active"
                 />
               </v-col>
             </v-row>
-            <v-row justify="center">
-              <v-alert
-                type="success"
-                title="Success"
-                text="User has been updated successfully!"
-                v-model="showAlert"
-              />
-            </v-row>
-          </v-container>
-        <v-card-actions>
-          <v-spacer/>
-            <v-btn
-              color="blue-darken-1"
-              variant="text"
-              @click="addUserModal = false"
-            >
-              Close
-            </v-btn>
-            <v-btn
-              color="blue-darken-1"
-              variant="text"
-              @click="handleUpdateUser"
-            >
-              Send
-            </v-btn>
-          </v-card-actions>
-        </v-card>
-      </v-dialog>
+              <v-row>
+                <v-col cols="12" sm="6" md="6">
+                  <v-text-field
+                    v-model="password"
+                    label="Password"
+                    placeholder="············"
+                    :type="isPasswordVisible ? 'text' : 'password'"
+                    :append-inner-icon="isPasswordVisible ? 'bx-hide' : 'bx-show'"
+                    @click:append-inner="isPasswordVisible = !isPasswordVisible"
+                  />
+                </v-col>
+                <v-col cols="12" sm="6" md="6">
+                  <v-text-field
+                    v-model="confirmPassword"
+                    label="Confirm Password"
+                    placeholder="············"
+                    :type="isConfirmPasswordVisible ? 'text' : 'password'"
+                    :append-inner-icon="isConfirmPasswordVisible ? 'bx-hide' : 'bx-show'"
+                    @click:append-inner="isConfirmPasswordVisible = !isConfirmPasswordVisible"
+                  />
+                </v-col>
+              </v-row>
+              <v-row>
+                <v-col cols="12" sm="6" md="6">
+                  <v-select
+                    :items="['Admin', 'Standard']"
+                    label="User type"
+                    required
+                    v-model="admin"
+                  />
+                </v-col>
+                <v-col cols="12" sm="6" md="6">
+                  <v-select
+                    :items="['Active', 'Deactivated']"
+                    label="Account status"
+                    required
+                    v-model="active"
+                  />
+                </v-col>
+              </v-row>
+              <v-row justify="center">
+                <v-alert
+                  type="success"
+                  title="Success"
+                  text="User has been created successfully!"
+                  v-model="showAlert"
+                />
+              </v-row>
+            </v-container>
+          <v-card-actions>
+            <v-spacer/>
+              <v-btn
+                color="blue-darken-1"
+                variant="text"
+                @click="addUserModal = false"
+              >
+                Close
+              </v-btn>
+              <v-btn
+                color="blue-darken-1"
+                variant="text"
+                @click="handleSaveNotification"
+              >
+                Send
+              </v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+      <!--End of Add New User Modal-->  
+
+      <!--Edit User Modal-->
+        <v-dialog v-model="editUserModal" width="800">
+          <v-card>
+            <v-container>
+              <v-row class="justify-center">
+                <v-col class="text-center" cols="12" sm="6" md="4">
+                  <span class="text-h5">Edit User</span>
+                </v-col>
+              </v-row>
+              <v-row>
+                <v-col cols="12" sm="6" md="12">
+                  <v-text-field
+                    v-model="email"
+                    label="Email"
+                    required
+                  />
+                </v-col>
+              </v-row>
+              <v-row>
+                <v-col cols="12" sm="6" md="6">
+                  <v-text-field
+                    v-model="firstName"
+                    label="First Name"
+                    required
+                  />
+                </v-col>
+                <v-col cols="12" sm="6" md="6">
+                  <v-text-field
+                    v-model="lastName"
+                    label="Last Name"
+                    required
+                  />
+                </v-col>
+              </v-row>
+              <v-row>
+                <v-col cols="12" sm="6" md="6">
+                  <v-text-field
+                    v-model="password"
+                    label="Password"
+                    placeholder="············"
+                    :type="isPasswordVisible ? 'text' : 'password'"
+                    :append-inner-icon="isPasswordVisible ? 'bx-hide' : 'bx-show'"
+                    @click:append-inner="isPasswordVisible = !isPasswordVisible"
+                  />
+                </v-col>
+                <v-col cols="12" sm="6" md="6">
+                  <v-text-field
+                    v-model="confirmPassword"
+                    label="Confirm Password"
+                    placeholder="············"
+                    :type="isConfirmPasswordVisible ? 'text' : 'password'"
+                    :append-inner-icon="isConfirmPasswordVisible ? 'bx-hide' : 'bx-show'"
+                    @click:append-inner="isConfirmPasswordVisible = !isConfirmPasswordVisible"
+                  />
+                </v-col>
+              </v-row>
+              <v-row>
+                <v-col cols="12" sm="6" md="6">
+                  <v-select
+                    :items="['Admin', 'Standard']"
+                    label="User type"
+                    required
+                    v-model="admin"
+                  />
+                </v-col>
+                <v-col cols="12" sm="6" md="6">
+                  <v-select
+                    :items="['Active', 'Deactivated']"
+                    label="Account status"
+                    required
+                    v-model="active"
+                  />
+                </v-col>
+              </v-row>
+              <v-row justify="center">
+                <v-alert
+                  type="success"
+                  title="Success"
+                  text="User has been updated successfully!"
+                  v-model="showAlert"
+                />
+              </v-row>
+            </v-container>
+          <v-card-actions>
+            <v-spacer/>
+              <v-btn
+                color="blue-darken-1"
+                variant="text"
+                @click="addUserModal = false"
+              >
+                Close
+              </v-btn>
+              <v-btn
+                color="blue-darken-1"
+                variant="text"
+                @click="handleUpdateUser"
+              >
+                Send
+              </v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+      <!--End of Edit User Modal-->
+
       <v-dialog v-model="dialogDelete" max-width="600px">
           <v-card>
             <v-card-title class="text-h5">Are you sure you want to deactivate this user?</v-card-title>
@@ -427,7 +447,7 @@ import { onMounted, onUnmounted, reactive, ref } from 'vue';
             :headers="headers"
             :items="data"
             item-value="first_name"
-            class="elevation-1"
+            class="elevation-1 pt-2 pl-5 pr-5"
           >
           <template v-slot:item.actions="{ item }">
             <v-icon
