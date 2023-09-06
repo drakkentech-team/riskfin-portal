@@ -90,11 +90,11 @@
                       { title: 'Closed On', align: 'start', key: 'closed'},
                     ])
 
-  const tabs = [
-    { title: 'All', icon: 'bx:world', tab: 'account' },
-    { title: 'Automated', icon: 'bx-bot', tab: 'security' },
-    { title: 'Standard', icon: 'bx-pencil', tab: 'notification' },
-    { title: 'Scheduled', icon: 'bx:time', tab: 'notification' },
+  const activeNotificationTabs = [
+    { title: 'All', tab: 'account' },
+    { title: 'Standard', tab: 'notification' },
+    { title: 'Automated', tab: 'security' },
+    { title: 'Scheduled', tab: 'notification' },
   ];
 
   /*Methods*/
@@ -356,6 +356,7 @@
           }})
       if (response && response.status === 200) {
         saveNotificationSnackbar.value = true
+        data.value
         fetchMessage();
       } 
     } 
@@ -373,17 +374,7 @@
     fetchMessage();
     fetchUser();
     getMessageTemplate();
-    const intervalId = setInterval(fetchMessage, 60000);
-    onUnmounted(() => {
-      clearInterval(intervalId);
-    });
   });
-
-  const form = reactive({
-    title: '',
-    message: '',
-    user_id: [{"user_id": 1},{"user_id": 3}],
-  })
 </script>
 
 <template>
@@ -410,15 +401,10 @@
           class="custom-tabs"
         >
           <VTab
-            v-for="item in tabs"
+            v-for="item in activeNotificationTabs"
             :key="item.icon"
             :value="item.tab"
           >
-            <VIcon
-              size="20"
-              start
-              :icon="item.icon"
-            />
             {{ item.title }}
           </VTab>
         </VTabs>

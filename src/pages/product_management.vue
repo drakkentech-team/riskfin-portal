@@ -7,11 +7,11 @@
 
   const policyToBeDisabled = ref(null)
   /*TABS*/
-  const activePolicyTab = ref('available')
+  const activePolicyTab = ref('Available')
   const policyTabs = [
-    { title: 'All Policies', tab: 'all' },
-    { title: 'Available Policies', tab: 'available' },
-    { title: 'Disabled Policies', tab: 'disabled' },
+    { title: 'All', tab: 'All' },
+    { title: 'Available', tab: 'Available' },
+    { title: 'Disabled', tab: 'Disabled' },
   ];
 
 

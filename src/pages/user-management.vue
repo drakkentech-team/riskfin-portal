@@ -42,10 +42,10 @@
                       { title: 'Actions', align: 'end', key: 'actions', sortable: false }
                     ])
 
-  const tabs = [
-    { title: 'All', icon: 'bx:world', tab: 'account' },
-    { title: 'Active', icon: 'clarity:administrator-line', tab: 'security' },
-    { title: 'Deactivated', icon: 'clarity:user-line', tab: 'notification' },
+  const activeUserTabs = [
+    { title: 'All', tab: 'All' },
+    { title: 'Active', tab: 'Active' },
+    { title: 'Deactivated', tab: 'Deactivated' },
   ];
 
   const fetchUsers = async () => {
@@ -214,15 +214,10 @@
         show-arrows
       >
         <VTab
-          v-for="item in tabs"
+          v-for="item in activeUserTabs"
           :key="item.icon"
           :value="item.tab"
         >
-        <VIcon
-          size="20"
-          start
-          :icon="item.icon"
-        />
           {{ item.title }}
         </VTab>
       </VTabs>
@@ -412,7 +407,7 @@
               <v-btn
                 color="blue-darken-1"
                 variant="text"
-                @click="addUserModal = false"
+                @click="editUserModal = false"
               >
                 Close
               </v-btn>
