@@ -203,7 +203,7 @@ const handleUpdateProduct = async () => {
 const disablePolicy = async () => {
   try {
     const response = await axios.put(`http://localhost:9000/update_policy_details?sid_policy_details=${policyToBeDisabled.value}`,{
-      policy_details_delete: 0
+      policy_details_delete: 1
     },
     {
       headers: {
@@ -213,13 +213,9 @@ const disablePolicy = async () => {
     });
 
     if (response && response.status === 200) {
-      const index = data.value.findIndex(product => product.sid_policy_details === item.sid_policy_details);
-      if (index !== -1) {
-        data.value[index].policy_details_delete = 1;
-        deleteDialog.value = true;
-      }
-      availableProdList = availableProdList.filter(product => product.sid_policy_details !== item.sid_policy_details);
-      data.value = availableProdList;
+      policyToBeDisabled.value = null
+      getPolicies();
+      deletePolicyModal.value = false
     }
   } catch (error) {
     console.error('Error deleting product:', error);
