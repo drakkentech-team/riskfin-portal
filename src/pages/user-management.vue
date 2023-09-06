@@ -73,11 +73,11 @@
     try {
       var adminValue, activeValue
       admin.value === 'Admin' ? adminValue = 1 : adminValue = 0
-      active.value === 'Yes' ? activeValue = 1 : activeValue = 0
-
+      active.value === 'Active' ? activeValue = 1 : activeValue = 0
+      console.log(active.value)
       let payload = {
-        name: firstName.value,
-        surname: lastName.value,
+        first_name: firstName.value,
+        last_name: lastName.value,
         admin: adminValue,
         active: activeValue,
       };
@@ -86,6 +86,8 @@
       if (password.value) {
         payload.password = password.value;
       }
+      console.log(payload)
+
       const response = await axios.put(`http://localhost:9000/web_user_profile?user_id=${sid.value}`, payload, {
         headers: {
           'Authorization': `Bearer ${bearerToken}`,
@@ -113,7 +115,7 @@
       console.log(lastName.value)
       console.log(email.value)
       console.log(password.value)
-      console.log(adminValue.value)
+      console.log(adminValue)
       const response = await axios.post(`${apiBaseUrl}/web_register`, {
         name: firstName.value,
         surname: lastName.value,
@@ -168,7 +170,6 @@
   const editItem = (item) => {
     editUserModal.value = true
     sid.value = item.sid;
-    email.value = item.email;
     firstName.value = item.first_name;
     lastName.value = item.last_name;
     admin.value = item.admin;
@@ -251,7 +252,7 @@
               </v-col>
               <v-col cols="12" sm="6" md="6">
                 <v-text-field
-                  v-model="last"
+                  v-model="lastName"
                   label="Last Name"
                   required
                 />
@@ -334,15 +335,6 @@
               <v-row class="justify-center">
                 <v-col class="text-center" cols="12" sm="6" md="4">
                   <span class="text-h5">Edit User</span>
-                </v-col>
-              </v-row>
-              <v-row>
-                <v-col cols="12" sm="6" md="12">
-                  <v-text-field
-                    v-model="email"
-                    label="Email"
-                    required
-                  />
                 </v-col>
               </v-row>
               <v-row>
