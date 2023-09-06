@@ -356,7 +356,6 @@
           }})
       if (response && response.status === 200) {
         saveNotificationSnackbar.value = true
-        data.value
         fetchMessage();
       } 
     } 
