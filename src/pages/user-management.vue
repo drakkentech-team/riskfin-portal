@@ -5,6 +5,16 @@
   const apiBaseUrl = "http://localhost:9000";
   const bearerToken = "1HW94aH3Gu9BNxqw2QnY4y7zMa1xwlm_rg2ZiA9tt3fu";
 
+
+  /*RULES*/
+  const rules = {
+    required: value => !!value || 'Required.',
+    counter: value => value.length <= 20 || 'Max 20 characters',
+    email: value => {
+      const pattern = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+      return pattern.test(value) || 'Invalid e-mail.'
+    },
+  }
   /*Edit User Fields*/
   const sid = ref(null);
   const firstName= ref("");
@@ -111,11 +121,6 @@
     try {
       var adminValue
       admin.value === 'Admin' ? adminValue = 1 : adminValue = 0
-      console.log(firstName.value)
-      console.log(lastName.value)
-      console.log(email.value)
-      console.log(password.value)
-      console.log(adminValue)
       const response = await axios.post(`${apiBaseUrl}/web_register`, {
         name: firstName.value,
         surname: lastName.value,
@@ -221,7 +226,6 @@
           {{ item.title }}
         </VTab>
       </VTabs>
-      <VDivider />
     </VRow>
 
     <!-- Add New User Modal -->
@@ -238,6 +242,7 @@
                 <v-text-field
                   v-model="email"
                   label="Email"
+                  :rules="[rules.required, rules.email]"
                   required
                 />
               </v-col>

@@ -1,12 +1,46 @@
 <script setup>
   import axios from 'axios';
-import { reactive, ref } from 'vue';
+  import { reactive, ref } from 'vue';
 
   const apiBaseUrl = "http://localhost:9000";
   const bearerToken = "1HW94aH3Gu9BNxqw2QnY4y7zMa1xwlm_rg2ZiA9tt3fu";
 
+  const policyToBeDisabled = ref(null)
+  /*TABS*/
+  const activePolicyTab = ref('available')
+  const policyTabs = [
+    { title: 'All Policies', tab: 'all' },
+    { title: 'Available Policies', tab: 'available' },
+    { title: 'Disabled Policies', tab: 'disabled' },
+  ];
+
+
   const showAlert = ref(false)
-  const dialog = ref(false)
+  
+  /*MODALS*/
+  const addNewPolicyModal = ref(false)
+  const deletePolicyModal = ref(false)
+
+  /*METHODS*/
+  const handleTabClick = (tabItem) => {
+    activePolicyTab.value = tabItem;
+    if (tabItem === 'all'){
+      data.value = responseData;
+    }
+    else if (tabItem === 'available'){
+      data.value = availableProdList;
+    }
+    else if (tabItem === 'disabled'){
+      data.value = deletedProdList;
+    }
+  }
+
+  const handleDeletePolicy = (item) => {
+
+    deletePolicyModal.value = true
+    policyToBeDisabled.value = item
+  }
+
   const data = ref([])
 
   const updateDialog = ref(false); 
@@ -147,7 +181,12 @@ const handleUpdateProduct = async () => {
       long_description: forms.long_description,
       policy_premium: forms.policy_premium,
       // premium_due_date: forms.premium_due_date,
-    });
+    },{
+        headers: {
+          'Authorization': `Bearer ${bearerToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
     if (response && response.status === 200) {
       showAlert.value = true;
       setTimeout(() => {
@@ -161,21 +200,19 @@ const handleUpdateProduct = async () => {
 
 
 // Function to handle deleting a product
-const deleteProduct = async (item) => {
-  // if (confirm('Are you sure you want to delete this product?')) {
-  //       console.log(item)
-
+const disablePolicy = async () => {
   try {
-    const response = await axios.put(
-      `http://localhost:9000/update_policy_details?sid_policy_details=${item.sid_policy_details}`,
-      {
-        policy_details_delete: 1,
-      });
+    const response = await axios.put(`http://localhost:9000/update_policy_details?sid_policy_details=${policyToBeDisabled.value}`,{
+      policy_details_delete: 0
+    },
+    {
+      headers: {
+        'Authorization': `Bearer ${bearerToken}`,
+        'Content-Type': 'application/json'
+      }
+    });
 
     if (response && response.status === 200) {
-      // confirm('Product deleted successfully?')
-      
-
       const index = data.value.findIndex(product => product.sid_policy_details === item.sid_policy_details);
       if (index !== -1) {
         data.value[index].policy_details_delete = 1;
@@ -187,31 +224,8 @@ const deleteProduct = async (item) => {
   } catch (error) {
     console.error('Error deleting product:', error);
   }
-  // }
   
 };
-
-// const deleteProduct = async (item) => {
-//   try {
-//     const response = await axios.put(
-//       `http://localhost:9000/update_policy_details?sid_policy_details=${item.sid_policy_details}`,
-//       {
-//         policy_details_delete: 1,
-//         // You can include other fields if needed
-//       }
-//     );
-
-//     if (response && response.status === 200) {
-//       // Update the data array to reflect the restored status
-//       const index = data.value.findIndex(product => product.sid_policy_details === item.sid_policy_details);
-//       if (index !== -1) {
-//         data.value[index].policy_details_delete = 1;
-//       }
-//     }
-//   } catch (error) {
-//     console.error('Error restoring product:', error);
-//   }
-// };
 
 </script>
 
@@ -220,27 +234,35 @@ const deleteProduct = async (item) => {
     <VRow no-gutters class="align-center justify-space-between">
       <VCol cols="auto">
         <VCardTitle class="text-md-h5 text-primary">
-          Products
+          Policies
         </VCardTitle>
       </VCol>
       <VCol cols="auto">
-        <v-btn color="primary" @click="dialog=true" style="margin-right: 16px;">
-          Add <VIcon icon="bx-message-add" />
+        <v-btn color="primary" prepend-icon="ic:round-plus" @click="addNewPolicyModal=true" style="margin-right: 16px;">
+          Add New Policy
         </v-btn>
       </VCol>
     </VRow>
-     <v-row no-gutters>
+    <!--POLICY TABS-->
+    <VRow no-gutters class="pl-5">
+        <VTabs
+          v-model="activePolicyTab"
+          show-arrows
+          class="custom-tabs"     
+        >
+          <VTab
+            v-for="item in policyTabs"
+            :key="item.icon"
+            :value="item.tab"
+            @click="handleTabClick(item.tab)"
+          >
+            {{ item.title }}
+          </VTab>
+        </VTabs>
+      </VRow>
+    <!--END OF POLICY TABS-->
+     <!-- <v-row no-gutters>
       <v-col cols="12" sm="8" order="2" order-sm="1">
-        <!-- <v-card-item class="d-flex align-center">
-          <v-card-title class="text-md-h5 text-primary flex-grow-1">
-            Products
-          </v-card-title>
-          <v-btn color="primary" @click="dialog=true" >
-            Add Product <v-icon icon="bx-message-add" />
-          </v-btn>
-        </v-card-item> -->
-
-        <!---Delete filter Controls-->
         <v-btn variant="plain" @click="showAvailableProducts">
           Available Products
         </v-btn>
@@ -251,10 +273,10 @@ const deleteProduct = async (item) => {
           All Products
         </v-btn>
       </v-col>
-    </v-row>
+    </v-row> -->
 
     <!---New product fields-->
-    <v-dialog v-model="dialog" width="1024">
+    <v-dialog v-model="addNewPolicyModal" width="1024">
       <v-card>
         <v-card-title>
           <span class="text-h5">New Product</span>
@@ -328,7 +350,7 @@ const deleteProduct = async (item) => {
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="blue-darken-1" variant="text" @click="dialog = false">
+          <v-btn color="blue-darken-1" variant="text" @click="addNewPolicyModal = false">
             Close
           </v-btn>
           <v-btn color="blue-darken-1" variant="text" @click="handleSaveProduct">
@@ -342,7 +364,7 @@ const deleteProduct = async (item) => {
     <thead>
       <tr>
         <th class="text-left">
-          Policy Name
+          Name
         </th>
         <th class="text-left">
           Short Description
@@ -388,7 +410,7 @@ const deleteProduct = async (item) => {
           </button>
           <button
             v-if="item.policy_details_delete === 0"
-            @click="deleteProduct(item)"
+            @click="handleDeletePolicy(item.sid_policy_details)"
             class="btn btn-danger"
           >
             Delete
@@ -404,6 +426,20 @@ const deleteProduct = async (item) => {
 
     </tbody>
   </v-table>
+
+  <!--DELETE POLICY POPUP-->
+    <v-dialog v-model="deletePolicyModal" max-width="600px">
+      <v-card>
+        <v-card-title class="text-h5">Are you sure you want to disable this policy?</v-card-title>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="blue-darken-1" variant="text" @click="deletePolicyModal = false">Cancel</v-btn>
+          <v-btn color="blue-darken-1" variant="text" @click="disablePolicy">OK</v-btn>
+          <v-spacer></v-spacer>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+  <!--END OF DELETE POLICY POPUP-->  
 
     <!-- Update Product Dialog -->
     <v-dialog v-model="updateDialog" width="1024">
@@ -476,79 +512,6 @@ const deleteProduct = async (item) => {
         </v-card-actions>
       </v-card>
     </v-dialog>
-
-     <!-- Delete Product Dialog -->
-    <!-- <v-dialog v-model="deleteDialog" width="1024">
-      <v-card> -->
-        <!-- <v-card-title>
-          <span class="text-h5">Update Product</span>
-        </v-card-title> -->
-        <!-- <v-card-text>
-          <v-container> -->
-            <!-- <v-row>
-              <v-col cols="12" sm="6" md="4">
-                  <v-text-field
-                    label="Policy Name* "
-                    required
-                    v-model="forms.policy_name"
-                  />
-                </v-col> -->
-              
-              <!-- <v-col cols="12" sm="6" md="4">
-                <v-text-field
-                  v-model="forms.short_description"
-                  label="Short Description*"
-                  required
-                ></v-text-field>
-              </v-col> -->
-
-              <!-- <v-col cols="12" sm="6" md="4">
-                <v-text-field
-                  v-model="forms.long_description"
-                  label="Long Description*"
-                  required
-                ></v-text-field>
-              </v-col> -->
-
-              <!-- <v-col cols="12" sm="6" md="4">
-                <v-text-field
-                  v-model="forms.policy_premium"
-                  label="Policy Premium*"
-                  required
-                ></v-text-field>
-              </v-col> -->
-
-              <!-- <v-col cols="12" sm="6" md="4">
-                <v-text-field
-                  v-model="forms.premium_due_date"
-                  label="Premium Due Date*"
-                  required
-                ></v-text-field>
-              </v-col> -->
-            <!-- </v-row> -->
-            <!-- <v-row justify="center">
-              <v-alert
-                type="success"
-                title="Success"
-                text="Product has been successfully deleted!"
-                v-model="showAlert"
-              ></v-alert>
-            </v-row>
-          </v-container> -->
-          <!-- <small>*indicates required field</small> -->
-        <!-- </v-card-text>
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn color="blue-darken-1" variant="text" @click="updateDialog = false">
-            Close
-          </v-btn> -->
-          <!-- <v-btn color="blue-darken-1" variant="text" @click="handleUpdateProduct">
-            Update Product
-          </v-btn> -->
-        <!-- </v-card-actions>
-      </v-card>
-    </v-dialog> -->
-
   </VCard>
 </template>
 

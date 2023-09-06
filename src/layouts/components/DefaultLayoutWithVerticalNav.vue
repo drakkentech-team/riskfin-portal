@@ -80,7 +80,7 @@ const upgradeBanner = computed(() => {
       />
       <VerticalNavLink
         :item="{
-          title: 'Products',
+          title: 'Policies',
           icon: 'healthicons:money-bag-outline',
           to: '/product_management',
         }"

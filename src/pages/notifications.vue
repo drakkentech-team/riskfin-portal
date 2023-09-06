@@ -5,6 +5,16 @@
   const apiBaseUrl = "http://localhost:9000";
   const bearerToken = "1HW94aH3Gu9BNxqw2QnY4y7zMa1xwlm_rg2ZiA9tt3fu";
 
+  /*RULES*/
+  const rules = {
+    required: value => !!value || 'Required.',
+    counter: value => value.length <= 20 || 'Max 20 characters',
+    email: value => {
+      const pattern = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+      return pattern.test(value) || 'Invalid e-mail.'
+    },
+  }
+
   /*New Notification Fields*/
   const title = ref("");
   const message = ref("");
@@ -141,6 +151,11 @@
       }
     }
   }
+
+  /*Functions*/
+  const isSendButtonDisabled = computed(() => {
+    return !title.value.length || !message.value.length || !users.value.length;
+  });
 
   const userText = computed(() => {
     const userCount = users.value.length;
@@ -329,9 +344,6 @@
   }
 
   const handleSaveNotification = async () => {
-    console.log(title.value)
-    console.log(message.value)
-    console.log(users.value)
     try {
       const response = await axios.post(`${apiBaseUrl}/send_message`, {
         title: title.value,
@@ -389,181 +401,190 @@
         </v-btn>
       </VCol>
     </VRow>
-    <VRow no-gutters class="pl-5">
-      <VTabs
-        v-model="activeTab"
-        show-arrows
-      >
-      <VTab
-        v-for="item in tabs"
-        :key="item.icon"
-        :value="item.tab"
-      >
-        <VIcon
-          size="20"
-          start
-          :icon="item.icon"
-        />
-        {{ item.title }}
-      </VTab>
-    </VTabs>
-    <VDivider />
-      </VRow>
-    <!--New Notification Modal-->
-    <v-row justify="center"> 
-      <v-dialog v-model="dialog" @click:outside="handleCloseNewNotificationModal" width="1024">
-        <v-card>
 
-          <v-row class="pl-13 pt-3">
-                <v-col cols="12" sm="6" md="5">
-                  <v-card-title>
-                    <v-text-field label="Add Title" v-model="title" variant="underlined"></v-text-field>
-                  </v-card-title>
-                </v-col>
-                <v-col class=" pt-10" cols="12" sm="6" md="2">
-          <v-menu >
-            <template v-slot:activator="{ props }">
-              <v-btn 
-              variant="text"
-              v-bind="props"
-              prepend-icon="ic:round-plus"
-            >
-              Add field to title
-            </v-btn>
-          </template>
-      <v-list >
-        <v-list-item
-          v-for="(item, index) in titleDropdownList"
-          :key="index"
-          :value="index"
-          @click="insertValueTitle(item.value)"
+    <!--NOTIFICATION TABS-->
+      <VRow no-gutters class="pl-5">
+        <VTabs
+          v-model="activeTab"
+          show-arrows
+          class="custom-tabs"
         >
-          <v-list-item-title>{{ item.title }}</v-list-item-title>
-        </v-list-item>
-      </v-list>
-    </v-menu>
-      </v-col>
+          <VTab
+            v-for="item in tabs"
+            :key="item.icon"
+            :value="item.tab"
+          >
+            <VIcon
+              size="20"
+              start
+              :icon="item.icon"
+            />
+            {{ item.title }}
+          </VTab>
+        </VTabs>
+      </VRow>
+    <!--END OF NOTIFICATION TABS-->
+
+    <!--New Notification Modal-->
+      <v-row justify="center"> 
+        <v-dialog v-model="dialog" @click:outside="handleCloseNewNotificationModal" width="1024">
+          <v-card>
+            <v-row class="pl-13 pt-3">
+                  <v-col cols="12" sm="6" md="5">
+                    <v-card-title>
+                      <v-text-field 
+                        label="Add Title" 
+                        v-model="title" 
+                        variant="underlined" 
+                        :rules="[rules.required]"
+                      />
+                    </v-card-title>
+                  </v-col>
+                  <v-col class=" pt-10" cols="12" sm="6" md="2">
+            <v-menu >
+              <template v-slot:activator="{ props }">
+                <v-btn 
+                variant="text"
+                v-bind="props"
+                prepend-icon="ic:round-plus"
+              >
+                Add field to title
+              </v-btn>
+            </template>
+        <v-list >
+          <v-list-item
+            v-for="(item, index) in titleDropdownList"
+            :key="index"
+            :value="index"
+            @click="insertValueTitle(item.value)"
+          >
+            <v-list-item-title>{{ item.title }}</v-list-item-title>
+          </v-list-item>
+        </v-list>
+      </v-menu>
+        </v-col>
+                  
+              </v-row>   
                 
-            </v-row>   
-              
-          
-          <v-row class="pl-15 my-n1">
-            <v-col cols="12" sm="6" md="6">
-              <v-btn
-        variant="text"
-        @click="length--"
-      >
-        Standard
-      </v-btn>
-      <v-btn
-        variant="text"
-        @click="length++"
-      >
-        Scheduled
-      </v-btn>
-      <v-btn
-        variant="text"
-        @click="length++"
-      >
-        Automated
-      </v-btn>
-              </v-col>
-            </v-row>
-            <v-row>
-              </v-row>
-              <v-row class="pl-9 my-n1">
-      <v-col cols="12" sm="6" md="4">
-        <v-text-field
-          prepend-icon="bx:time"
-          placeholder="Send Immediately"
-          variant="plain"
-          readonly
-        ></v-text-field>
-      </v-col>
-    </v-row>
-    <v-row class="my-n2">
-      <v-col class="pl-10" cols="12" sm="6" md="4">
+            
+            <v-row class="pl-15 my-n1">
+              <v-col cols="12" sm="6" md="6">
+                <v-btn
+          variant="text"
+          @click="length--"
+        >
+          Standard
+        </v-btn>
         <v-btn
           variant="text"
-          @click="addUsersModal=true"
-          prepend-icon="ph:users-bold"
+          @click="length++"
         >
-          <span class="pl-2">{{userText}}</span>
+          Scheduled
         </v-btn>
-      </v-col>
-      <v-col class="mx-n12" cols="12" sm="6" md="8 ">
-        <v-checkbox
-          v-model="allUsersCheckbox"
-          label="Add all users"
-          @click="handleAddAllUsers"
-        ></v-checkbox>
-      </v-col>
-    </v-row>
-    <v-row >
-      <v-col cols="12" sm="6" md="4">
-        <v-btn class="mx-15"
-        variant="text"
-        @click="loadPreviousNotificationsModal=true"
-        prepend-icon="ic:round-plus"
-      >
-        Load previous notification
-      </v-btn>
-      </v-col>
-      <v-col cols="12" sm="6" md="4">
-          <v-menu>
-            <template v-slot:activator="{ props }">
-              <v-btn
-              variant="text"
-              v-bind="props"
-              prepend-icon="ic:round-plus"
-            >
-              Add field to message
-            </v-btn>
-          </template>
-      <v-list>
-        <v-list-item
-          v-for="(item, index) in items"
-          :key="index"
-          :value="index"
-          @click="insertValue(item.value)"
+        <v-btn
+          variant="text"
+          @click="length++"
         >
-          <v-list-item-title>{{ item.title }}</v-list-item-title>
-        </v-list-item>
-      </v-list>
-    </v-menu>
-      </v-col>
-    </v-row>
-    <v-container fluid>
-      <v-textarea class="pl-15 custom-textarea my-n4"
-        name="input-7-1"
-        variant="filled"
-        label="Message"
-        auto-grow
-        model-value=""
-        v-model="message"
-        @input="handleTextareaInput($event)"
-      />
-    </v-container>
-        <v-card-actions>
-          <v-spacer/>
-            <v-btn
-              color="blue-darken-1"
-              variant="text"
-              @click="handleCloseNewNotificationModal"
-            >
-              Close
-            </v-btn>
-            <v-btn
-              color="blue-darken-1"
-              variant="text"
-              @click="handleSaveNotification"
-            >
-              Send
-            </v-btn>
-          </v-card-actions>
-        </v-card>
-      </v-dialog>
-    </v-row>
+          Automated
+        </v-btn>
+                </v-col>
+              </v-row>
+              <v-row>
+                </v-row>
+                <v-row class="pl-9 my-n1">
+        <v-col cols="12" sm="6" md="4">
+          <v-text-field
+            prepend-icon="bx:time"
+            placeholder="Send Immediately"
+            variant="plain"
+            readonly
+          ></v-text-field>
+        </v-col>
+      </v-row>
+      <v-row class="my-n2">
+        <v-col class="pl-10" cols="12" sm="6" md="4">
+          <v-btn
+            variant="text"
+            @click="addUsersModal=true"
+            prepend-icon="ph:users-bold"
+          >
+            <span class="pl-2">{{userText}}</span>
+          </v-btn>
+        </v-col>
+        <v-col class="mx-n12" cols="12" sm="6" md="8 ">
+          <v-checkbox
+            v-model="allUsersCheckbox"
+            label="Add all users"
+            @click="handleAddAllUsers"
+          ></v-checkbox>
+        </v-col>
+      </v-row>
+      <v-row >
+        <v-col cols="12" sm="6" md="4">
+          <v-btn class="mx-15"
+          variant="text"
+          @click="loadPreviousNotificationsModal=true"
+          prepend-icon="ic:round-plus"
+        >
+          Load previous notification
+        </v-btn>
+        </v-col>
+        <v-col cols="12" sm="6" md="4">
+            <v-menu>
+              <template v-slot:activator="{ props }">
+                <v-btn
+                variant="text"
+                v-bind="props"
+                prepend-icon="ic:round-plus"
+              >
+                Add field to message
+              </v-btn>
+            </template>
+        <v-list>
+          <v-list-item
+            v-for="(item, index) in items"
+            :key="index"
+            :value="index"
+            @click="insertValue(item.value)"
+          >
+            <v-list-item-title>{{ item.title }}</v-list-item-title>
+          </v-list-item>
+        </v-list>
+      </v-menu>
+        </v-col>
+      </v-row>
+      <v-container fluid>
+        <v-textarea class="pl-15 custom-textarea my-n4"
+          name="input-7-1"
+          variant="filled"
+          label="Message"
+          auto-grow
+          model-value=""
+          v-model="message"
+          @input="handleTextareaInput($event)"
+        />
+      </v-container>
+          <v-card-actions>
+            <v-spacer/>
+              <v-btn
+                color="blue-darken-1"
+                variant="text"
+                @click="handleCloseNewNotificationModal"
+              >
+                Close
+              </v-btn>
+              <v-btn
+                color="blue-darken-1"
+                variant="text"
+                @click="handleSaveNotification"
+                :disabled="isSendButtonDisabled"
+              >
+                Send
+              </v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+      </v-row>
 
     <!--Load Previous Notification modal-->
       <v-row justify="center"> 
