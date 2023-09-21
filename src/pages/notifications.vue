@@ -281,7 +281,7 @@ import config from "../utils/config";
 
   /*Functions*/
   const isSendButtonDisabled = computed(() => {
-    return !title.value.length || !message.value.length || !selectedUsers.value.length;
+    return !title.value.length || !message.value.length || !selectedUsers.value.length || !date.value;
   });
 
   const selectedData = computed(() => {
