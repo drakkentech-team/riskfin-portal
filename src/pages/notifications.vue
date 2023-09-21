@@ -102,7 +102,7 @@ import config from "../utils/config";
   const notificationHeaders = ref([
     { title: "Title", align: 'center', key: 'title', width: "250px"},
     { title: 'Message', align: 'left', key: 'body',width: "500px"},
-    { title: 'Date Sent', align: 'center', key: 'date_sent',width: "200px"},
+    { title: 'Date Sent', align: 'center', key: 'date_created',width: "200px"},
     { title: 'Pending', align: 'center', key: 'count_pending',width: "100px"},
     { title: 'Received', align: 'center', key: 'count_received',width: "100px"},
     { title: 'Opened', align: 'center', key: 'count_opened',width: "100px"},
@@ -129,7 +129,7 @@ import config from "../utils/config";
   const notificationModalTabs = [
     { title: 'Personal', tab: 'Personal' },
     { title: 'Scheduled', tab: 'Scheduled' },
-    { title: 'Triggered', tab: 'Triggered' },
+    { title: 'Automated', tab: 'Triggered' },
   ];
   
 
@@ -246,14 +246,14 @@ import config from "../utils/config";
     if (allUsersCheckbox.value === true) 
     {
       selectedUsers.value.length = 0;
-      userData.value.forEach(user => {
+      filteredUserData.value.forEach(user => {
         user.userSelected = true;
       });
-      selectedUsers.value.push(...userData.value.map(user => user.sid));
+      selectedUsers.value.push(...filteredUserData.value.map(user => user.sid));
     } 
     else if (allUsersCheckbox.value === false) 
     {
-      userData.value.forEach(user => {
+      filteredUserData.value.forEach(user => {
         user.userSelected = false;
       });
       selectedUsers.value.length = 0;
@@ -332,13 +332,33 @@ import config from "../utils/config";
     }
   });
 
+  const showAddUserButton = ref(false)
+
   const policyText = computed(() => {
     const policyCount = selectedPolicies.value.length;
     if (policyCount === 0) {
+      showAddUserButton.value = false;
+      selectedUsers.value = []
+      userData.value.forEach(user => {
+        user.userSelected = false;
+      });
+      allUsersCheckbox.value = false
       return "Add Policy";
     } else if (policyCount === 1) {
+      showAddUserButton.value = true
+      selectedUsers.value = []
+      userData.value.forEach(user => {
+        user.userSelected = false;
+      });
+      allUsersCheckbox.value = false
       return "1 policy added";
     } else {
+      showAddUserButton.value = true
+      selectedUsers.value = []
+      userData.value.forEach(user => {
+        user.userSelected = false;
+      });
+      allUsersCheckbox.value = false
       return `${policyCount} policies added`;
     }
   });
@@ -635,7 +655,7 @@ import config from "../utils/config";
       payload = {
         title: title.value,
         message: message.value,
-        arrears_days: 1,
+        arrears_days: daysOverdue.value,
         policy_id: formattedPolicyIds,
         user_id: formattedUserIds,
         message_type: "automated_message",
@@ -658,6 +678,7 @@ import config from "../utils/config";
         allPoliciesCheckbox.value = false
         title.value = ""
         message.value = ""
+        date.value = ""
         userData.value.forEach((user) => {
           user.userSelected = false
         })
@@ -854,7 +875,7 @@ import config from "../utils/config";
       </v-row>
       <v-row class="my-n2">
         <v-col class="pl-10" cols="12" sm="6" md="4">
-          <v-btn 
+          <v-btn v-if="showAddUserButton"
             variant="text"
             @click="addUsersModal=true"
             prepend-icon="ph:users-bold"
@@ -863,7 +884,7 @@ import config from "../utils/config";
           </v-btn>
         </v-col>
         <v-col class="mx-n12" cols="12" sm="6" md="8 ">
-          <v-checkbox 
+          <v-checkbox v-if="showAddUserButton"
             v-model="allUsersCheckbox"
             label="Add all users"
             @click="addAllUsers"
