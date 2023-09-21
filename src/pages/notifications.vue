@@ -27,7 +27,7 @@ import config from "../utils/config";
   const users = ref([]);
   const selectedPolicies = ref([]);
   const selectedUsers = ref([]);
-
+  
   const messageArray = ref(null)
   const scheduledMessageArray = ref(null)
   const triggerMessageArray = ref(null)
@@ -217,6 +217,7 @@ import config from "../utils/config";
     {
       allPoliciesCheckbox.value = false;
     }
+    console.log(selectedPolicies.value)
   };
 
   const handleAddAllUsers = () => {
@@ -853,7 +854,7 @@ import config from "../utils/config";
       </v-row>
       <v-row class="my-n2">
         <v-col class="pl-10" cols="12" sm="6" md="4">
-          <v-btn
+          <v-btn 
             variant="text"
             @click="addUsersModal=true"
             prepend-icon="ph:users-bold"
@@ -862,7 +863,7 @@ import config from "../utils/config";
           </v-btn>
         </v-col>
         <v-col class="mx-n12" cols="12" sm="6" md="8 ">
-          <v-checkbox
+          <v-checkbox 
             v-model="allUsersCheckbox"
             label="Add all users"
             @click="addAllUsers"

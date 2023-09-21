@@ -286,6 +286,18 @@ import { computed, onMounted, ref } from 'vue';
     }
   }
 
+  const handleCloseNewNotificationModal = () => {
+    addUserModal.value = false
+    editUserModal.value = false
+    firstName.value = ""
+          lastName.value = ""
+           email.value = ""
+           password.value = ""
+           confirmPassword.value = ""
+           admin.value = "Admin"
+           active.value = "Active"
+  }
+
   onMounted(() => {
     fetchUsers();
   });
@@ -300,7 +312,7 @@ import { computed, onMounted, ref } from 'vue';
         </VCardTitle>
       </VCol>
       <VCol cols="auto">
-        <v-btn color="primary" @click="addUserModal=true" style="margin-right: 16px;">
+        <v-btn color="primary" @click="addUserModal=true" @click:outside="handleCloseNewNotificationModal" style="margin-right: 16px;">
           Add New User <VIcon icon="bx-message-add" />
         </v-btn>
       </VCol>
@@ -321,7 +333,7 @@ import { computed, onMounted, ref } from 'vue';
     </VRow>
 
     <!-- Add New User Modal -->
-      <v-dialog v-model="addUserModal" width="800">
+      <v-dialog v-model="addUserModal" @click:outside="handleCloseNewNotificationModal" width="800">
         <v-card>
           <v-container>
             <v-row class="justify-center">
@@ -403,7 +415,7 @@ import { computed, onMounted, ref } from 'vue';
               <v-btn
                 color="blue-darken-1"
                 variant="text"
-                @click="addUserModal = false"
+                @click="handleCloseNewNotificationModal"
               >
                 Close
               </v-btn>
@@ -427,7 +439,7 @@ import { computed, onMounted, ref } from 'vue';
               ></v-alert>
             </v-row>
       <!--Edit User Modal-->
-        <v-dialog v-model="editUserModal" width="800">
+        <v-dialog v-model="editUserModal" @click:outside="handleCloseNewNotificationModal" width="800">
           <v-card>
             <v-container>
               <v-row class="justify-center">
@@ -499,7 +511,7 @@ import { computed, onMounted, ref } from 'vue';
               <v-btn
                 color="blue-darken-1"
                 variant="text"
-                @click="editUserModal = false"
+                @click="handleCloseNewNotificationModal"
               >
                 Close
               </v-btn>
