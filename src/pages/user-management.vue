@@ -424,7 +424,7 @@ import { computed, onMounted, ref } from 'vue';
                 variant="text"
                 @click="handleSaveNotification"
               >
-                Send
+                Save
               </v-btn>
             </v-card-actions>
           </v-card>
