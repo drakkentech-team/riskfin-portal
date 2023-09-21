@@ -35,10 +35,6 @@ import config from "../utils/config";
   const policyData = ref([])
   const daysOverdue = ref(1);
 
-  /*Snackbar*/
-  const saveNotificationSnackbar = ref(false)
-  const snackbarText = ref('Notification successfully sent');
-  const snackbarTimeout = ref(5000)
 
   /*Modal Dropdown Lists*/
   const titleDropdownList = [

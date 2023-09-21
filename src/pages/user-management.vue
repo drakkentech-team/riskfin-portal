@@ -1,11 +1,15 @@
 <script setup>
   import axios from 'axios';
-import { computed, onMounted, onUnmounted, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 
   const apiBaseUrl = "http://localhost:9000";
   const bearerToken = "1HW94aH3Gu9BNxqw2QnY4y7zMa1xwlm_rg2ZiA9tt3fu";
 
+  const activeUserArray = ref(null)
+  const deactivatedUserArray = ref(null)
 
+
+  const activeTab = ref("All")  
   /*RULES*/
   const rules = {
     required: value => !!value || 'Required.',
@@ -56,10 +60,11 @@ import { computed, onMounted, onUnmounted, ref } from 'vue';
   const email= ref("");
   const password= ref("");
   const confirmPassword= ref("");
-  const admin= ref(null);
-  const active= ref(null);
+  const admin= ref("Admin");
+  const active= ref("Active");
 
   const emptyFieldErrorModal = ref(false);
+  const emptyEditFieldErrorModal = ref(false);
 
   const data = ref([]);
   const dialogDelete = ref(false)
@@ -99,16 +104,17 @@ import { computed, onMounted, onUnmounted, ref } from 'vue';
             if (item.admin === 1) {
               item.admin = 'Admin';
             } else {
-              item.admin = 'Standard';  // Assuming you want to set it to 'Standard' for other values
+              item.admin = 'Standard';
             }
             if (item.active === 1) {
               item.active = 'Yes';
             } else {
-              item.active = 'No';  // Assuming you want to set it to 'Standard' for other values
+              item.active = 'No';
             }
             return item;
           });
-          console.log('Data:', data.value);
+          activeUserArray.value = data.value.filter(user => user.active === 'Yes');
+          deactivatedUserArray.value = data.value.filter(user => user.active=== 'No');
         }
       }
     } catch (error) {
@@ -116,6 +122,24 @@ import { computed, onMounted, onUnmounted, ref } from 'vue';
     }
   };
   const handleUpdateUser = async () => {
+    var checkPassword = true
+    var checkConfirmPassword = true
+    if (password.value){
+      checkPassword = rules.password(password.value)
+    }
+    if (password.value && confirmPassword.value){
+      checkConfirmPassword = rules.confirmPassword(confirmPassword.value)
+    }
+
+    console.log(checkPassword)
+    console.log(checkConfirmPassword)
+    if (!firstName.value || !lastName.value
+         || checkPassword !== true || checkConfirmPassword !== true ||
+        !admin.value || !active.value) 
+    {
+      return emptyEditFieldErrorModal.value = true;
+    }
+    else{
     try {
       var adminValue, activeValue
       admin.value === 'Admin' ? adminValue = 1 : adminValue = 0
@@ -141,7 +165,15 @@ import { computed, onMounted, onUnmounted, ref } from 'vue';
         }
       });
       if (response && response.status === 200) {
+        editUserModal.value = false
         showAlert.value = true
+        firstName.value = ""
+          lastName.value = ""
+           email.value = ""
+           password.value = ""
+           confirmPassword.value = ""
+           admin.value = "Admin"
+           active.value = "Active"
         setTimeout(() => {
           showAlert.value = false;
         }, 5000);
@@ -151,6 +183,7 @@ import { computed, onMounted, onUnmounted, ref } from 'vue';
     catch (error) {
       console.log(error)
     }
+  }
   }
   
   const handleSaveNotification = async () => {
@@ -164,14 +197,16 @@ import { computed, onMounted, onUnmounted, ref } from 'vue';
     else{
       try {
         var adminValue
+        var activeValue
         admin.value === 'Admin' ? adminValue = 1 : adminValue = 0
+        active.value === 'Active' ? activeValue = 1 : activeValue = 0
         const response = await axios.post(`${apiBaseUrl}/web_register`, {
           name: firstName.value,
           surname: lastName.value,
           email: email.value,
           password: password.value,
           admin: adminValue,
-          active: 1,
+          active: activeValue,
         },{
           headers: {
             'Authorization': `Bearer ${bearerToken}`,
@@ -179,7 +214,15 @@ import { computed, onMounted, onUnmounted, ref } from 'vue';
           }
         });
         if (response && response.status === 200) {
+          addUserModal.value = false
           showAlert.value = true
+          firstName.value = ""
+          lastName.value = ""
+           email.value = ""
+           password.value = ""
+           confirmPassword.value = ""
+           admin.value = "Admin"
+           active.value = "Active"
           setTimeout(() => {
             showAlert.value = false;
           }, 5000);
@@ -196,6 +239,19 @@ import { computed, onMounted, onUnmounted, ref } from 'vue';
     dialogDelete.value = true
     itemToBeDeleted.value = item
   }
+
+  const selectedData = computed(() => {
+    if (activeTab.value === 'All') {
+        return data.value;
+      } else if (activeTab.value === 'Active') {
+        return activeUserArray.value;
+      } else if (activeTab.value === 'Deactivated') {
+        return deactivatedUserArray.value;
+      }
+      else {
+        return [];
+      }
+  });
 
   const deleteConfirm = async () => {
     try {
@@ -232,15 +288,11 @@ import { computed, onMounted, onUnmounted, ref } from 'vue';
 
   onMounted(() => {
     fetchUsers();
-    const intervalId = setInterval(fetchUsers, 60000);
-    onUnmounted(() => {
-      clearInterval(intervalId);
-    });
   });
 </script>
 
 <template>
-  <VCard class="text-center text-sm-start">
+  <VCard class="text-center text-sm-start pt-4">
     <VRow no-gutters class="align-center justify-space-between">
       <VCol cols="auto">
         <VCardTitle class="text-md-h5 text-primary">
@@ -345,14 +397,6 @@ import { computed, onMounted, onUnmounted, ref } from 'vue';
                   />
                 </v-col>
               </v-row>
-              <v-row justify="center">
-                <v-alert
-                  type="success"
-                  title="Success"
-                  text="User has been created successfully!"
-                  v-model="showAlert"
-                />
-              </v-row>
             </v-container>
           <v-card-actions>
             <v-spacer/>
@@ -374,7 +418,14 @@ import { computed, onMounted, onUnmounted, ref } from 'vue';
           </v-card>
         </v-dialog>
       <!--End of Add New User Modal-->  
-
+      <v-row justify="center">
+              <v-alert
+                type="success"
+                title="Success"
+                text="User Has Successfully Been Added/Updated"
+                v-model="showAlert"
+              ></v-alert>
+            </v-row>
       <!--Edit User Modal-->
         <v-dialog v-model="editUserModal" width="800">
           <v-card>
@@ -403,11 +454,12 @@ import { computed, onMounted, onUnmounted, ref } from 'vue';
               <v-row>
                 <v-col cols="12" sm="6" md="6">
                   <v-text-field
-                    v-model="password"
+                  v-model="password"
                     label="Password"
                     placeholder="············"
                     :type="isPasswordVisible ? 'text' : 'password'"
                     :append-inner-icon="isPasswordVisible ? 'bx-hide' : 'bx-show'"
+                    :rules="[rules.password]"
                     @click:append-inner="isPasswordVisible = !isPasswordVisible"
                   />
                 </v-col>
@@ -416,6 +468,7 @@ import { computed, onMounted, onUnmounted, ref } from 'vue';
                     v-model="confirmPassword"
                     label="Confirm Password"
                     placeholder="············"
+                    :rules="[rules.confirmPassword]"
                     :type="isConfirmPasswordVisible ? 'text' : 'password'"
                     :append-inner-icon="isConfirmPasswordVisible ? 'bx-hide' : 'bx-show'"
                     @click:append-inner="isConfirmPasswordVisible = !isConfirmPasswordVisible"
@@ -439,14 +492,6 @@ import { computed, onMounted, onUnmounted, ref } from 'vue';
                     v-model="active"
                   />
                 </v-col>
-              </v-row>
-              <v-row justify="center">
-                <v-alert
-                  type="success"
-                  title="Success"
-                  text="User has been updated successfully!"
-                  v-model="showAlert"
-                />
               </v-row>
             </v-container>
           <v-card-actions>
@@ -491,10 +536,20 @@ import { computed, onMounted, onUnmounted, ref } from 'vue';
             </v-card-actions>
           </v-card>
         </v-dialog>
+        <v-dialog v-model="emptyEditFieldErrorModal" max-width="600px">
+          <v-card>
+            <v-card-title class="text-h5 centered-text">Unable to edit user. <br> Please make sure you have filled in all the fields</v-card-title>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn color="blue-darken-1" variant="text" @click="emptyEditFieldErrorModal = false">Ok</v-btn>
+              <v-spacer></v-spacer>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
       <v-data-table
             v-model:items-per-page="itemsPerPage"
             :headers="headers"
-            :items="data"
+            :items="selectedData"
             item-value="first_name"
             class="elevation-1 pt-2 pl-5 pr-5"
           >
