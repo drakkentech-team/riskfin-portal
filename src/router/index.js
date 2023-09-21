@@ -44,6 +44,10 @@ const router = createRouter({
           path: 'product_management',
           component: () => import('../pages/product_management.vue'),
         },
+        {
+          path: 'news',
+          component: () => import('../pages/news.vue'),
+        },
         // {
         //   path: 'product_management/add_product',
         //   component: () => import('../pages/add_product.vue'),

@@ -19,35 +19,7 @@ const upgradeBanner = computed(() => {
 <template>
   <VerticalNavLayout>
     <!-- 👉 navbar -->
-    <template #navbar="{ toggleVerticalOverlayNavActive }">
-      <div class="d-flex h-100 align-center">
-        <!-- 👉 Vertical nav toggle in overlay mode -->
-        <IconBtn
-          class="ms-n3 d-lg-none"
-          @click="toggleVerticalOverlayNavActive(true)"
-        >
-          <VIcon icon="bx-menu" />
-        </IconBtn>
 
-        <!-- 👉 Search -->
-        <div
-          class="d-flex align-center cursor-pointer"
-          style="user-select: none;"
-        >
-          <!-- 👉 Search Trigger button -->
-          <IconBtn>
-            <VIcon icon="bx-search" />
-          </IconBtn>
-
-          <span class="d-none d-md-flex align-center text-disabled">
-            <span class="me-3">Search</span>
-            <span class="meta-key">&#8984;K</span>
-          </span>
-        </div>
-
-        <VSpacer />
-      </div>
-    </template>
 
     <template #vertical-nav-content>
       <!-- <VerticalNavLink
@@ -81,8 +53,15 @@ const upgradeBanner = computed(() => {
       <VerticalNavLink
         :item="{
           title: 'Policies',
-          icon: 'healthicons:money-bag-outline',
+          icon: 'bx-book-content',
           to: '/product_management',
+        }"
+      />
+      <VerticalNavLink
+        :item="{
+          title: 'News',
+          icon: 'bx-news',
+          to: '/news',
         }"
       />
       <VerticalNavLink

@@ -1,17 +1,17 @@
 <script setup>
   import axios from 'axios';
-  import { reactive, ref } from 'vue';
+import { reactive, ref } from 'vue';
 
   const apiBaseUrl = "http://localhost:9000";
   const bearerToken = "1HW94aH3Gu9BNxqw2QnY4y7zMa1xwlm_rg2ZiA9tt3fu";
 
   const policyToBeDisabled = ref(null)
   /*TABS*/
-  const activePolicyTab = ref('Available')
+  const activePolicyTab = ref('all')
   const policyTabs = [
-    { title: 'All', tab: 'All' },
-    { title: 'Available', tab: 'Available' },
-    { title: 'Disabled', tab: 'Disabled' },
+    { title: 'All', tab: 'all' },
+    { title: 'Available', tab: 'available' },
+    { title: 'Disabled', tab: 'disabled' },
   ];
 
 
@@ -66,8 +66,8 @@
       if (response && response.status === 200) {
         responseData = response.data;
         console.log(response.data)
-        availableProdList = responseData.filter(item => item.policy_details_delete === 0);
-        deletedProdList = responseData.filter(item => item.policy_details_delete === 1);
+        availableProdList = responseData.filter(item => item.policy_detail_delete === 0);
+        deletedProdList = responseData.filter(item => item.policy_detail_delete === 1);
         data.value = availableProdList; 
       }
     } 
@@ -96,18 +96,18 @@ const showAllProducts = () => {
 const restoreProduct = async (item) => {
   try {
     const response = await axios.put(
-      `http://localhost:9000/update_policy_details?sid_policy_details=${item.sid_policy_details}`,
+      `http://localhost:9000/update_policy_details?sid=${item.sid}`,
       {
-        policy_details_delete: 0,
+        policy_detail_delete: 0,
       }
     );
 
     if (response && response.status === 200) {
-      const index = data.value.findIndex(product => product.sid_policy_details === item.sid_policy_details);
+      const index = data.value.findIndex(product => product.sid === item.sid);
       if (index !== -1) {
-        data.value[index].policy_details_delete = 0;
+        data.value[index].policy_detail_delete = 0;
       }
-      deletedProdList = deletedProdList.filter(product => product.sid_policy_details !== item.sid_policy_details);
+      deletedProdList = deletedProdList.filter(product => product.sid !== item.sid);
       data.value = deletedProdList;
     }
   } catch (error) {
@@ -158,7 +158,7 @@ const showUpdateDialog = (item) => {
   forms.policy_premium = item.policy_premium;
   // forms.premium_due_date = item.premium_due_date;
 
-  updateProductId.value = item.sid_policy_details;
+  updateProductId.value = item.sid;
 
   updateDialog.value = true;
 };
@@ -174,8 +174,9 @@ const forms = reactive({
 
 // Function to handle updating the product
 const handleUpdateProduct = async () => {
+  console.log(forms.policy_premium)
   try {
-    const response = await axios.put(`http://localhost:9000/update_policy_details?sid_policy_details=${updateProductId.value}`, {
+    const response = await axios.put(`http://localhost:9000/update_policy_details?sid=${updateProductId.value}`, {
       policy_name: forms.policy_name,
       short_description: forms.short_description,
       long_description: forms.long_description,
@@ -192,6 +193,7 @@ const handleUpdateProduct = async () => {
       setTimeout(() => {
         showAlert.value = false;
       }, 5000);
+      getPolicies();
     }    
   } catch (error) {
     console.error('Error updating product:', error);
@@ -202,8 +204,8 @@ const handleUpdateProduct = async () => {
 // Function to handle deleting a product
 const disablePolicy = async () => {
   try {
-    const response = await axios.put(`http://localhost:9000/update_policy_details?sid_policy_details=${policyToBeDisabled.value}`,{
-      policy_details_delete: 1
+    const response = await axios.put(`http://localhost:9000/update_policy_details?sid=${policyToBeDisabled.value}`,{
+      policy_detail_delete: 1
     },
     {
       headers: {
@@ -380,7 +382,7 @@ const disablePolicy = async () => {
       </tr>
     </thead>
     <tbody v-if="data.length > 0">
-      <tr v-for="item in data" :key="item.sid_policy_details">
+      <tr v-for="item in data" :key="item.sid">
         <td>{{ item.policy_name }}</td>
         <td>{{ item.short_description }}</td>
         <td>{{ item.long_description }}</td>
@@ -390,7 +392,7 @@ const disablePolicy = async () => {
           <div class="button-container">
           <!-- Restore Button -->
           <button
-            v-if="item.policy_details_delete === 1"
+            v-if="item.policy_detail_delete === 1"
             @click="restoreProduct(item)"
             class="btn btn-success"
           >
@@ -398,15 +400,15 @@ const disablePolicy = async () => {
           </button>
           <!-- Edit and Delete Buttons -->
           <button
-            v-if="item.policy_details_delete === 0"
+            v-if="item.policy_detail_delete === 0"
             @click="showUpdateDialog(item)"
             class="btn btn-danger"
           >
             Edit
           </button>
           <button
-            v-if="item.policy_details_delete === 0"
-            @click="handleDeletePolicy(item.sid_policy_details)"
+            v-if="item.policy_detail_delete === 0"
+            @click="handleDeletePolicy(item.sid)"
             class="btn btn-danger"
           >
             Delete

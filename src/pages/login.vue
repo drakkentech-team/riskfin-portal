@@ -2,6 +2,7 @@
 import axios from 'axios';
 import { reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
+import { useUserStore } from '../store/user'
 
 const router = useRouter()
 
@@ -16,6 +17,7 @@ const isPasswordVisible = ref(false)
 const errorMessage = ref('') 
 
 const handleLogin = async () => {
+  const userStore = useUserStore()
   errorMessage.value = '';
   form.isLoading = true
   try {
@@ -27,6 +29,8 @@ const handleLogin = async () => {
     console.log('Response status:', response.status); // Add this line
 
     if (response && response.status === 200) {
+      userStore.setUserData(response.data)
+      console.log(userStore.userData)
       await router.push({ path: '/notifications' })
     } 
   } 
@@ -151,14 +155,14 @@ const submitForm = () => {
 </template>
 
 <style lang="scss">
-  .error-message {
-    text-align: center;
-  }
+.error-message {
+  text-align: center;
+}
 
-  .centered-wrapper {
+.centered-wrapper {
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
   min-height: 100vh; /* Ensure the container covers the whole viewport */
 }
 </style>

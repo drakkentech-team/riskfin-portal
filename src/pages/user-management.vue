@@ -1,6 +1,6 @@
 <script setup>
   import axios from 'axios';
-  import { onMounted, onUnmounted, reactive, ref } from 'vue';
+import { computed, onMounted, onUnmounted, ref } from 'vue';
 
   const apiBaseUrl = "http://localhost:9000";
   const bearerToken = "1HW94aH3Gu9BNxqw2QnY4y7zMa1xwlm_rg2ZiA9tt3fu";
@@ -10,11 +10,45 @@
   const rules = {
     required: value => !!value || 'Required.',
     counter: value => value.length <= 20 || 'Max 20 characters',
-    email: value => {
-      const pattern = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
-      return pattern.test(value) || 'Invalid e-mail.'
+    emailValue: value => {
+      if (value){
+        const pattern = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+        return pattern.test(value) || 'Invalid e-mail.'
+      }  
     },
+    emailExists: value => {
+      for (let user of data.value) {
+        if (user.email === value) {
+          console.log("Hello")
+          return 'This user already exists.';
+        }
+      }
+      return true
+    },
+    password: value => {
+      const pattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$/
+      return pattern.test(value) || 'Password must contain at least 8 characters, one uppercase, one lowercase, one number, and one special character.'
+    },
+    confirmPassword: value => {
+      const string = password.value
+      return value === string || 'Your passwords do not match.'
+    }
   }
+
+  // const isFormValid = computed(() => {
+  //     return (
+  //       emailValue(email.value) === true &&
+  //       emailExists(email.value) === true &&
+  //       password(password.value) === true &&
+  //       confirmPassword(confirmPassword.value) === true
+  //     );
+  //   });
+
+  const disableAddButton = computed(() => {
+    return !title.value.length || !message.value.length || !users.value.length;
+  });
+
+  
   /*Edit User Fields*/
   const sid = ref(null);
   const firstName= ref("");
@@ -24,6 +58,8 @@
   const confirmPassword= ref("");
   const admin= ref(null);
   const active= ref(null);
+
+  const emptyFieldErrorModal = ref(false);
 
   const data = ref([]);
   const dialogDelete = ref(false)
@@ -118,33 +154,42 @@
   }
   
   const handleSaveNotification = async () => {
-    try {
-      var adminValue
-      admin.value === 'Admin' ? adminValue = 1 : adminValue = 0
-      const response = await axios.post(`${apiBaseUrl}/web_register`, {
-        name: firstName.value,
-        surname: lastName.value,
-        email: email.value,
-        password: password.value,
-        admin: adminValue,
-        active: 1,
-      },{
-        headers: {
-          'Authorization': `Bearer ${bearerToken}`,
-          'Content-Type': 'application/json'
-        }
-      });
-      if (response && response.status === 200) {
-        showAlert.value = true
-        setTimeout(() => {
-          showAlert.value = false;
-        }, 5000);
-        fetchUsers();
+    if (!firstName.value || !lastName.value ||
+        !email.value || !password.value || 
+        !confirmPassword.value ||
+        !admin.value || !active.value) 
+    {
+      return emptyFieldErrorModal.value = true;
+    }
+    else{
+      try {
+        var adminValue
+        admin.value === 'Admin' ? adminValue = 1 : adminValue = 0
+        const response = await axios.post(`${apiBaseUrl}/web_register`, {
+          name: firstName.value,
+          surname: lastName.value,
+          email: email.value,
+          password: password.value,
+          admin: adminValue,
+          active: 1,
+        },{
+          headers: {
+            'Authorization': `Bearer ${bearerToken}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        if (response && response.status === 200) {
+          showAlert.value = true
+          setTimeout(() => {
+            showAlert.value = false;
+          }, 5000);
+          fetchUsers();
+        } 
       } 
-    } 
-    catch (error) {
-      console.log(error)
-    } 
+      catch (error) {
+        console.log(error)
+      } 
+    }
   }
 
   const deleteItem = (item) => {
@@ -237,7 +282,7 @@
                 <v-text-field
                   v-model="email"
                   label="Email"
-                  :rules="[rules.required, rules.email]"
+                  :rules="[rules.emailValue, rules.emailExists]"
                   required
                 />
               </v-col>
@@ -266,6 +311,7 @@
                     placeholder="············"
                     :type="isPasswordVisible ? 'text' : 'password'"
                     :append-inner-icon="isPasswordVisible ? 'bx-hide' : 'bx-show'"
+                    :rules="[rules.password]"
                     @click:append-inner="isPasswordVisible = !isPasswordVisible"
                   />
                 </v-col>
@@ -274,6 +320,7 @@
                     v-model="confirmPassword"
                     label="Confirm Password"
                     placeholder="············"
+                    :rules="[rules.confirmPassword]"
                     :type="isConfirmPasswordVisible ? 'text' : 'password'"
                     :append-inner-icon="isConfirmPasswordVisible ? 'bx-hide' : 'bx-show'"
                     @click:append-inner="isConfirmPasswordVisible = !isConfirmPasswordVisible"
@@ -434,6 +481,16 @@
             </v-card-actions>
           </v-card>
         </v-dialog>
+        <v-dialog v-model="emptyFieldErrorModal" max-width="600px">
+          <v-card>
+            <v-card-title class="text-h5 centered-text">Unable to create new user. <br> Please make sure you have filled in all the fields</v-card-title>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn color="blue-darken-1" variant="text" @click="emptyFieldErrorModal = false">Ok</v-btn>
+              <v-spacer></v-spacer>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
       <v-data-table
             v-model:items-per-page="itemsPerPage"
             :headers="headers"
@@ -474,5 +531,13 @@
 
 .capitalize {
   text-transform: capitalize;
+}
+
+.centered-text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
 }
 </style>
