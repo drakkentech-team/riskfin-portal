@@ -2,6 +2,9 @@
   import axios from 'axios';
 import { onMounted, ref } from 'vue';
 import { formatDate } from "../utils/common";
+import { useUserStore } from '../../store/user';
+import { useRouter } from 'vue-router';
+const router = useRouter()
 
   const apiBaseUrl = "http://localhost:9000";
   const bearerToken = "1HW94aH3Gu9BNxqw2QnY4y7zMa1xwlm_rg2ZiA9tt3fu";
@@ -393,6 +396,10 @@ import { formatDate } from "../utils/common";
   }
 
   onMounted(() => {
+    const userStore = useUserStore()
+    if (!userStore.userData){
+      return router.push({ path: '/login' })
+    }
     fetchMessage();
     fetchUser();
     getMessageTemplate();

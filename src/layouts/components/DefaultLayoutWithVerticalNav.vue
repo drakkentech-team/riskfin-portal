@@ -5,12 +5,26 @@ import upgradeBannerLight from '@images/pro/upgrade-banner-light.png'
 import VerticalNavLayout from '@layouts/components/VerticalNavLayout.vue'
 import VerticalNavLink from '@layouts/components/VerticalNavLink.vue'
 import { useTheme } from 'vuetify'
-
+import { useUserStore } from '../../store/user';
+import { useRouter } from 'vue-router';
+const router = useRouter()
 // Components
 import Footer from '@/layouts/components/Footer.vue'
 
 const vuetifyTheme = useTheme()
+const userStore = useUserStore()
+onMounted(() => {
+    const userStore = useUserStore()
+    if (!userStore.userData){
+      return router.push({ path: '/login' })
+    }
+  });
 
+const handleItemClick = (item) => {
+      if (item.title === 'Logout') {
+        userStore.clearUserData();
+      }
+    }
 const upgradeBanner = computed(() => {
   return vuetifyTheme.global.name.value === 'light' ? upgradeBannerLight : upgradeBannerDark
 })
@@ -65,12 +79,21 @@ const upgradeBanner = computed(() => {
         }"
       />
       <VerticalNavLink
+        v-if="userStore.userData && userStore.userData[0][1] === 1"
         :item="{
           title: 'User Management',
           icon: 'mdi-account-cog-outline',
           to: '/user-management',
         }"
       />  
+      <VerticalNavLink
+        @item-click="handleItemClick"
+        :item="{
+          title: 'Logout',
+          icon: 'bx-log-in',
+          to: '/login',
+        }"
+      />
       <!--<VerticalNavLink
         :item="{
           title: 'Login',

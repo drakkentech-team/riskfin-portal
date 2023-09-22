@@ -5,6 +5,8 @@ import 'vue-datepicker-ui/lib/vuedatepickerui.css';
 import { useUserStore } from '../store/user';
 import { formatDate } from "../utils/common";
 import config from "../utils/config";
+import { useRouter } from 'vue-router';
+const router = useRouter()
 
   const apiBaseUrl = "http://localhost:9000";
   const bearerToken = "1HW94aH3Gu9BNxqw2QnY4y7zMa1xwlm_rg2ZiA9tt3fu";
@@ -704,12 +706,15 @@ import config from "../utils/config";
   }
 
   onMounted(() => {
+    const userStore = useUserStore()
+    if (!userStore.userData){
+      return router.push({ path: '/login' })
+    }
     fetchMessage();
     fetchUser();
     getMessageTemplate();
     getPolicies()
-    const userStore = useUserStore()
-    console.log("This is data", userStore.userData)
+    
   });
 </script>
 
