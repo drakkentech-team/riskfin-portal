@@ -2,7 +2,7 @@
 import axios from 'axios';
 import { reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { useUserStore } from '../store/user'
+import { useUserStore } from '../store/user';
 
 const router = useRouter()
 
@@ -35,13 +35,8 @@ const handleLogin = async () => {
     } 
   } 
   catch (error) {
-    console.error('Error in login:', error); // Add this line
-    if (error.response && error.response.status === 404) {
-      errorMessage.value = 'This user does not exist'
-      return
-    }
-    else if (error.response && error.response.status === 401) {
-      errorMessage.value = 'Your password is incorrect'
+    if (error.response && error.response.status === 404 || error.response.status === 401) {
+      errorMessage.value = 'Oops. Something went wrong. Please try again'
       return
     }
     else if (error.request && error.request.status === 0) {
@@ -61,7 +56,7 @@ const submitForm = () => {
 
 <template>
   <div class="auth-wrapper d-flex align-center justify-center pa-4 centered-wrapper">
-    <v-card class="auth-card pa-4 pt-7" max-width="448">
+    <v-card class="auth-card pa-4 pt-1" max-width="448">
       <v-card-item class="justify-center">
         <template #prepend>
           <div class="d-flex">
@@ -74,15 +69,12 @@ const submitForm = () => {
             </div>
           </div>
         </template>
-        <v-card-title class="text-2xl font-weight-bold">
-          Riskfin
-        </v-card-title>
       </v-card-item>
-      <v-card-text class="pt-2">
-        <h5 class="text-h5 mb-1">
-          Welcome to Riskfin Portal!
+      <v-card-text class="mt-n4">
+        <h5 class="text-h5 mb-1 text-center">
+          Welcome to Riskfin App Admin Portal!
         </h5>
-        <p class="mb-0">
+        <p class="mb-0 pt-6">
           Please sign-in to your account
         </p>
       </v-card-text>
@@ -163,6 +155,6 @@ const submitForm = () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 100vh; /* Ensure the container covers the whole viewport */
+  min-block-size: 100vh; /* Ensure the container covers the whole viewport */
 }
 </style>

@@ -2,10 +2,9 @@
   import axios from 'axios';
 import { onMounted, ref } from 'vue';
 import 'vue-datepicker-ui/lib/vuedatepickerui.css';
-import { useUserStore } from '../store/user';
+import { useRouter } from 'vue-router';
 import { formatDate } from "../utils/common";
 import config from "../utils/config";
-import { useRouter } from 'vue-router';
 const router = useRouter()
 
   const apiBaseUrl = "http://localhost:9000";
@@ -104,7 +103,7 @@ const router = useRouter()
   const notificationHeaders = ref([
     { title: "Title", align: 'center', key: 'title', width: "250px"},
     { title: 'Message', align: 'left', key: 'body',width: "500px"},
-    { title: 'Date Sent', align: 'center', key: 'date_created',width: "200px"},
+    { title: 'Date Sent', align: 'center', key: 'date_sent',width: "200px"},
     { title: 'Pending', align: 'center', key: 'count_pending',width: "100px"},
     { title: 'Received', align: 'center', key: 'count_received',width: "100px"},
     { title: 'Opened', align: 'center', key: 'count_opened',width: "100px"},
@@ -113,6 +112,7 @@ const router = useRouter()
 
   const headers= ref([{ title: "Name", align: 'start', key: 'name'},
                       { title: 'Email', align: 'start', key: 'email' },
+                      { title: 'Date Sent', align: 'start', key: 'date_sent' },
                       { title: 'Message Status', align: 'start', key: 'messageStatus'},
                       { title: 'Received On', align: 'start', key: 'received'},
                       { title: 'Read On', align: 'start', key: 'read'},
@@ -123,17 +123,45 @@ const router = useRouter()
   const activeTab = ref("All")  
   const activeNotificationTabs = [
     { title: 'All', tab: 'All' },
-    { title: 'Personal', tab: 'Personal' },
+    { title: 'Manual', tab: 'Personal' },
     { title: 'Scheduled', tab: 'Scheduled' },
     { title: 'Automated', tab: 'Trigger' },
   ];
 
   const notificationModalTabs = [
-    { title: 'Personal', tab: 'Personal' },
+    { title: 'Manual', tab: 'Personal' },
     { title: 'Scheduled', tab: 'Scheduled' },
     { title: 'Automated', tab: 'Triggered' },
   ];
   
+  const editItem = (item) => {
+    console.log(item)
+    dialog.value = true
+    activeNotificationModalTab.value = "Scheduled"
+    title.value = item.title;
+    date.value = item.date_to_send;
+    lastName.value = item.last_name;
+    admin.value = item.admin;
+    if (item.active === "Yes")
+      active.value = "Active";
+    else{
+      active.value = "Deactivated";
+    }
+  }
+
+
+  watch(activeTab, (newTab) => {
+    if (newTab === 'Scheduled') {
+      notificationHeaders.value.splice(2, 0, { title: 'Date Created', align: 'center', key: 'date_created', width: "200px" });
+      notificationHeaders.value.push({ title: 'Actions', align: 'end', key: 'actions', sortable: false });
+    } else {
+      const index = notificationHeaders.value.findIndex(header => header.key === 'date_created');
+      if (index !== -1) {
+        notificationHeaders.value.splice(index, 1);
+      }
+    }
+  });
+
 
   /*Methods*/
   const handlePrevNotificationRowClick = (sid) => {
@@ -222,26 +250,6 @@ const router = useRouter()
     console.log(selectedPolicies.value)
   };
 
-  const handleAddAllUsers = () => {
-    allUsersCheckbox.value = !allUsersCheckbox.value
-    if (allUsersCheckbox.value === true) {
-      users.value.splice(0, users.value.length)
-      for (const user of userData.value) {
-        user.userSelected = true;
-        const userSid = String(user.sid_users);
-        users.value.push({ user_id: userSid });
-      }
-    } else if (allUsersCheckbox.value === false) {
-      for (const user of userData.value) {
-        user.userSelected = false;
-        const userSid = String(user.sid_users);
-        const index = users.value.findIndex((user) => user.user_id === userSid);
-        if (index !== -1) {
-          users.value.splice(index, 1);
-        }
-      }
-    }
-  }
 
   const addAllUsers = () => {
     allUsersCheckbox.value = !allUsersCheckbox.value
@@ -525,6 +533,7 @@ const router = useRouter()
 
             uniqueMessages[key].count++;
 
+
             if(message.received_date)
             {
               uniqueMessages[key].messageReceived.push(message.received_date)
@@ -567,16 +576,24 @@ const router = useRouter()
             else if (message.date_sent && message.received_date && 
             message.read_date && !message.closed_date){
                   uniqueMessages[key].messageStatus.push("Opened");
+                  uniqueMessages[key].count_received++;
                   uniqueMessages[key].count_opened++;
             }
             else if (message.date_sent && message.received_date && 
             message.read_date && message.closed_date){
                   uniqueMessages[key].messageStatus.push("Closed");
+                  uniqueMessages[key].count_received++;
+                  uniqueMessages[key].count_opened++;
                   uniqueMessages[key].count_closed++;
             }
           });
           
           const filteredMessages = Object.values(uniqueMessages);
+          filteredMessages.forEach(item => {
+            if (!item.date_sent) {
+              item.date_sent = "Not yet sent";
+            }
+          });
           messageArray.value = filteredMessages.filter(message => message.flag === 'message');
           scheduledMessageArray.value = filteredMessages.filter(message => message.flag === 'scheduled_message');
           triggerMessageArray.value = filteredMessages.filter(message => message.flag === 'automated_message');
@@ -617,9 +634,14 @@ const router = useRouter()
     displayMessageTitle.value = clickedItem.title
     displayMessage.value = clickedItem.body
     firstTableData.value = userData.value.filter(users => clickedItem.sids.includes(users.sid));
-    const { messageStatus, messageReceived, read, closed } = clickedItem;
+    
+    const { messageStatus, messageReceived, read, closed, date_sent, date_created } = clickedItem;
+    console.log(clickedItem)
+    console.log(date_sent)
     firstTableData.value.forEach((item, index) => {
       if (messageStatus[index]) {
+        item.dateSent = date_sent ? date_sent : "Not yet sent";
+        item.dateCreated = date_created;
         item.messageStatus = messageStatus[index];
         item.received = messageReceived[index];
         item.read = read[index];
@@ -628,6 +650,7 @@ const router = useRouter()
         item.messageStatus = "Unknown";
       }
     });
+    console.log(firstTableData)
   }
   const handleSaveNotification = async () => {
     var payload
@@ -706,10 +729,6 @@ const router = useRouter()
   }
 
   onMounted(() => {
-    const userStore = useUserStore()
-    if (!userStore.userData){
-      return router.push({ path: '/login' })
-    }
     fetchMessage();
     fetchUser();
     getMessageTemplate();
@@ -720,14 +739,14 @@ const router = useRouter()
 
 <template>
   <!--Notification main page-->
-  <VCard class="text-center text-sm-start pt-4">
+  <v-card class="text-center text-sm-start pt-4">
     <VRow no-gutters class="align-center justify-space-between">
       <VCol cols="auto">
         <VCardTitle class="text-md-h5 text-primary">
           Notifications
         </VCardTitle>
       </VCol>
-      <VCol cols="auto">
+      <VCol cols="auto pr-5">
         <v-btn color="primary" prepend-icon="ic:round-plus" @click="dialog=true"  >
           Add New Notification
         </v-btn>
@@ -1086,15 +1105,19 @@ const router = useRouter()
     <v-row justify="center"> 
       <v-dialog v-model="messageStatusModal" width="1200">
         <v-card>
-          <v-card-title>
-              <span class="text-h7">{{displayMessageTitle}}</span>
+          <v-card-title class="text-h7 pb-5">
+            <span class="text-h7 pb-3">Message Status</span>
           </v-card-title>
           <v-row>
-          
-              <v-col cols="12" sm="6" md="8" class="pl-9 pb-8">
-              <span >{{displayMessage}}</span>
+              <v-col cols="12" sm="6" md="8" class="pl-9">
+                <span class="text-h7"><strong>Title:</strong> {{displayMessageTitle}}</span>
               </v-col>
-            </v-row>
+          </v-row>
+          <v-row>
+              <v-col cols="12" sm="6" md="8" class="pl-9 pb-8 mt-n5">
+              <span ><strong>Message:</strong> {{displayMessage}}</span>
+              </v-col>
+          </v-row>
           <v-data-table
             v-model:items-per-page="itemsPerPage"
             :headers="headers"
@@ -1129,9 +1152,11 @@ const router = useRouter()
       </tr>
     </template>
     <template v-slot:item.count_pending="{ item }">
-      <tr>
-        <td><span style="cursor: pointer;" @click="handleFlagClick(item.selectable.id)">{{ item.selectable.count_pending }}/{{ item.selectable.count }}</span></td>
-      </tr>
+      <td>
+        <span style="cursor: pointer;" @click="handleFlagClick(item.selectable.id)">
+          {{ item.selectable.count_pending === 0 ? 'None' : item.selectable.count_pending + '/' + item.selectable.count }}
+        </span>
+      </td>
     </template>
     <template v-slot:item.count_received="{ item }">
       <tr>
@@ -1148,9 +1173,31 @@ const router = useRouter()
         <td><span style="cursor: pointer;" @click="handleFlagClick(item.selectable.id)">{{ item.selectable.count_closed }}/{{ item.selectable.count }}</span></td>
       </tr>
     </template>
+    <template v-slot:item.actions="{ item }">
+            <v-icon
+              size="small"
+              class="me-2"
+              @click="editItem(item.selectable)"
+            >
+              mdi-pencil
+            </v-icon>
+            <v-icon
+              size="small"
+              v-if="item.selectable.active === 'No'"
+            >
+              mdi-delete-off
+            </v-icon>
+            <v-icon
+              size="small"
+              @click="deleteItem(item.selectable.sid)"
+              v-else
+            >
+              mdi-delete
+            </v-icon>
+          </template>
     </v-data-table>
   </div>
-  </VCard>
+  </v-card>
 </template>
 
 <style lang="scss" scoped>

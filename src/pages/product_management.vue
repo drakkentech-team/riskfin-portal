@@ -2,7 +2,6 @@
   import axios from 'axios';
 import { reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { useUserStore } from '../store/user';
 const router = useRouter()
 
   const apiBaseUrl = "http://localhost:9000";
@@ -80,10 +79,7 @@ const router = useRouter()
   };
 
   onMounted(() => {
-    const userStore = useUserStore()
-    if (!userStore.userData){
-      return router.push({ path: '/login' })
-    }
+
     getPolicies();
   });
   

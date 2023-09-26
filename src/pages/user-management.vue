@@ -2,7 +2,6 @@
   import axios from 'axios';
 import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { useUserStore } from '../store/user';
 const router = useRouter()
   const apiBaseUrl = "http://localhost:9000";
   const bearerToken = "1HW94aH3Gu9BNxqw2QnY4y7zMa1xwlm_rg2ZiA9tt3fu";
@@ -301,10 +300,7 @@ const router = useRouter()
   }
 
   onMounted(() => {
-    const userStore = useUserStore()
-    if (!userStore.userData){
-      return router.push({ path: '/login' })
-    }
+
     fetchUsers();
   });
 </script>

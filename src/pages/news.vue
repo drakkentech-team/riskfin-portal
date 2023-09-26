@@ -1,9 +1,8 @@
 <script setup>
   import axios from 'axios';
 import { onMounted, ref } from 'vue';
-import { formatDate } from "../utils/common";
-import { useUserStore } from '../../store/user';
 import { useRouter } from 'vue-router';
+import { formatDate } from "../utils/common";
 const router = useRouter()
 
   const apiBaseUrl = "http://localhost:9000";
@@ -396,10 +395,6 @@ const router = useRouter()
   }
 
   onMounted(() => {
-    const userStore = useUserStore()
-    if (!userStore.userData){
-      return router.push({ path: '/login' })
-    }
     fetchMessage();
     fetchUser();
     getMessageTemplate();
