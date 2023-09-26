@@ -88,9 +88,7 @@ export default defineComponent({
   .layout-navbar {
     z-index: variables.$layout-vertical-nav-layout-navbar-z-index;
 
-    .navbar-content-container {
-      block-size: variables.$layout-vertical-nav-navbar-height;
-    }
+    
 
     @at-root {
       .layout-wrapper.layout-nav-type-vertical {
