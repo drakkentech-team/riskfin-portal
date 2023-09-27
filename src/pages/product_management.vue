@@ -142,28 +142,22 @@ const handleUpdateProduct = async () => {
 
 
 // Function to handle deleting a product
-const deleteProduct = async (item) => {
-  // if (confirm('Are you sure you want to delete this product?')) {
-  //       console.log(item)
-
+const disablePolicy = async () => {
   try {
-    const response = await axios.put(
-      `http://localhost:9000/update_policy_details?sid_policy_details=${item.sid_policy_details}`,
+    const response = await axios.put(`http://localhost:9000/update_policy_details?sid=${policyToBeDisabled.value}`, {
+      policy_detail_delete: 1
+    },
       {
-        policy_details_delete: 1,
+        headers: {
+          'Authorization': `Bearer ${bearerToken}`,
+          'Content-Type': 'application/json'
+        }
       });
 
     if (response && response.status === 200) {
-      // confirm('Product deleted successfully?')
-      
-
-      const index = data.value.findIndex(product => product.sid_policy_details === item.sid_policy_details);
-      if (index !== -1) {
-        data.value[index].policy_details_delete = 1;
-        deleteDialog.value = true;
-      }
-      availableProdList = availableProdList.filter(product => product.sid_policy_details !== item.sid_policy_details);
-      data.value = availableProdList;
+      policyToBeDisabled.value = null
+      getPolicies();
+      deletePolicyModal.value = false
     }
   } catch (error) {
     console.error('Error deleting product:', error);
