@@ -1,38 +1,106 @@
 <script setup>
 import axios from 'axios';
 import { reactive, ref } from 'vue';
+import { useRouter } from 'vue-router';
+const router = useRouter()
 
-  const showAlert = ref(false)
-  const dialog = ref(false)
-  const data = ref([])
+const apiBaseUrl = "http://localhost:9000";
+const bearerToken = "1HW94aH3Gu9BNxqw2QnY4y7zMa1xwlm_rg2ZiA9tt3fu";
 
-  const updateDialog = ref(false); 
-  const updateProductId = ref(null);
+const policyToBeDisabled = ref(null)
+/*TABS*/
+const activePolicyTab = ref('all')
+const policyTabs = [
+  { title: 'All', tab: 'all' },
+  { title: 'Available', tab: 'available' },
+  { title: 'Disabled', tab: 'disabled' },
+];
+
+
+const showAlert = ref(false)
+
+
+/*MODALS*/
+const addNewPolicyModal = ref(false)
+const deletePolicyModal = ref(false)
+
+/*METHODS*/
+const handleTabClick = (tabItem) => {
+  activePolicyTab.value = tabItem;
+  if (tabItem === 'all') {
+    data.value = responseData;
+  }
+  else if (tabItem === 'available') {
+    data.value = availableProdList;
+  }
+  else if (tabItem === 'disabled') {
+    data.value = deletedProdList;
+  }
+}
+
+const handleDeletePolicy = (item) => {
+
+  deletePolicyModal.value = true
+  policyToBeDisabled.value = item
+}
+
+const data = ref([])
+
+const updateDialog = ref(false);
+const updateProductId = ref(null);
+
+const validationError = ref('');
+const errorFields = reactive({
+  policy_name: false,
+  short_description: false,
+  long_description: false,
+  policy_premium: false,
+});
+
+const addValidationError = ref('');
+const addErrorFields = reactive({
+  policy_name: false,
+  short_description: false,
+  long_description: false,
+  policy_premium: false,
+});
+
 
 let availableProdList = [];
 let deletedProdList = [];
 let responseData = [];
 
-onMounted(async () => {
+const getPolicies = async () => {
   try {
-    const url = "http://localhost:9000/policy_details_get";
-    const datas = {
+    const response = await axios.post(`${apiBaseUrl}/policy_details_get`, {
       "user_id": 0,
       "flag": 0
-    };
-    const response = await axios.post(url, datas);
-    
+    },
+      {
+        headers: {
+          'Authorization': `Bearer ${bearerToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
     if (response && response.status === 200) {
       responseData = response.data;
-      availableProdList = responseData.filter(item => item.policy_details_delete === 0);
-      deletedProdList = responseData.filter(item => item.policy_details_delete === 1);
-
-      data.value = availableProdList; 
+      console.log(response.data)
+      availableProdList = responseData.filter(item => item.policy_detail_delete === 0);
+      deletedProdList = responseData.filter(item => item.policy_detail_delete === 1);
+      data.value = availableProdList;
     }
-  } catch (error) {
+  }
+  catch (error) {
     console.error('Failed to fetch policy details:', error);
   }
+};
+
+onMounted(() => {
+
+  getPolicies();
 });
+
 
 const showAvailableProducts = () => {
   data.value = availableProdList;
@@ -49,18 +117,22 @@ const showAllProducts = () => {
 const restoreProduct = async (item) => {
   try {
     const response = await axios.put(
-      `http://localhost:9000/update_policy_details?sid_policy_details=${item.sid_policy_details}`,
+      `http://localhost:9000/update_policy_details?sid=${item.sid}`,
       {
-        policy_details_delete: 0,
+        policy_detail_delete: 0,
+      }, {
+      headers: {
+        'Authorization': `Bearer ${bearerToken}`,
+        'Content-Type': 'application/json'
       }
-    );
+    });
 
     if (response && response.status === 200) {
-      const index = data.value.findIndex(product => product.sid_policy_details === item.sid_policy_details);
+      const index = data.value.findIndex(product => product.sid === item.sid);
       if (index !== -1) {
-        data.value[index].policy_details_delete = 0;
+        data.value[index].policy_detail_delete = 0;
       }
-      deletedProdList = deletedProdList.filter(product => product.sid_policy_details !== item.sid_policy_details);
+      deletedProdList = deletedProdList.filter(product => product.sid !== item.sid);
       data.value = deletedProdList;
     }
   } catch (error) {
@@ -77,24 +149,55 @@ const form = reactive({
   // premium_due_date: '',
 });
 
+
 const handleSaveProduct = async () => {
+
+  validationError.value = '';
+  for (const field in errorFields) {
+    errorFields[field] = false;
+  }
+
+  if (!forms.policy_name) {
+    errorFields.policy_name = true;
+  }
+  if (!forms.short_description) {
+    errorFields.short_description = true;
+  }
+  if (!forms.long_description) {
+    errorFields.long_description = true;
+  }
+  if (!forms.policy_premium) {
+    errorFields.policy_premium = true;
+  }
+
+  if (Object.values(errorFields).some(fieldError => fieldError)) {
+    validationError.value = 'Please fill in all required fields.';
+    return;
+  }
+
   try {
     const response = await axios.post(`http://localhost:9000/policy_details?`, {
       policy_name: form.policy_name,
       short_description: form.short_description,
       long_description: form.long_description,
       policy_premium: form.policy_premium,
-      // premium_due_date: form.premium_due_date,
+      premium_due_date: "2023-08-15",
+    }, {
+      headers: {
+        'Authorization': `Bearer ${bearerToken}`,
+        'Content-Type': 'application/json'
+      }
     });
     console.log(response);
     if (response && response.status === 200) {
-      showAlert.value = true;
+      showAlert.value = true
       setTimeout(() => {
         showAlert.value = false;
       }, 5000);
+      getPolicies();
     }
   } catch (error) {
-      console.error('Error adding product:', error);
+    console.error('Error adding product:', error);
   }
 };
 
@@ -105,7 +208,7 @@ const showUpdateDialog = (item) => {
   forms.policy_premium = item.policy_premium;
   // forms.premium_due_date = item.premium_due_date;
 
-  updateProductId.value = item.sid_policy_details;
+  updateProductId.value = item.sid;
 
   updateDialog.value = true;
 };
@@ -119,22 +222,53 @@ const forms = reactive({
   // premium_due_date: '',
 });
 
+
 // Function to handle updating the product
 const handleUpdateProduct = async () => {
+
+  validationError.value = '';
+  for (const field in errorFields) {
+    errorFields[field] = false;
+  }
+
+  if (!forms.policy_name) {
+    errorFields.policy_name = true;
+  }
+  if (!forms.short_description) {
+    errorFields.short_description = true;
+  }
+  if (!forms.long_description) {
+    errorFields.long_description = true;
+  }
+  if (!forms.policy_premium) {
+    errorFields.policy_premium = true;
+  }
+
+  if (Object.values(errorFields).some(fieldError => fieldError)) {
+    validationError.value = 'Please fill in all required fields.';
+    return;
+  }
+  console.log(forms.policy_premium)
   try {
-    const response = await axios.put(`http://localhost:9000/update_policy_details?sid_policy_details=${updateProductId.value}`, {
+    const response = await axios.put(`http://localhost:9000/update_policy_details?sid=${updateProductId.value}`, {
       policy_name: forms.policy_name,
       short_description: forms.short_description,
       long_description: forms.long_description,
       policy_premium: forms.policy_premium,
       // premium_due_date: forms.premium_due_date,
+    }, {
+      headers: {
+        'Authorization': `Bearer ${bearerToken}`,
+        'Content-Type': 'application/json'
+      }
     });
     if (response && response.status === 200) {
       showAlert.value = true;
       setTimeout(() => {
         showAlert.value = false;
       }, 5000);
-    }    
+      getPolicies();
+    }
   } catch (error) {
     console.error('Error updating product:', error);
   }
@@ -162,32 +296,36 @@ const disablePolicy = async () => {
   } catch (error) {
     console.error('Error deleting product:', error);
   }
-  // }
-  
+
 };
 
-// const deleteProduct = async (item) => {
-//   try {
-//     const response = await axios.put(
-//       `http://localhost:9000/update_policy_details?sid_policy_details=${item.sid_policy_details}`,
-//       {
-//         policy_details_delete: 1,
-//         // You can include other fields if needed
-//       }
-//     );
+const handleRowClick = (item) => {
+  if (item.policy_detail_delete === 0) {
+    // Open the update dialog for non-deleted items
+    showUpdateDialog(item);
+  }
+};
 
-//     if (response && response.status === 200) {
-//       // Update the data array to reflect the restored status
-//       const index = data.value.findIndex(product => product.sid_policy_details === item.sid_policy_details);
-//       if (index !== -1) {
-//         data.value[index].policy_details_delete = 1;
-//       }
-//     }
-//   } catch (error) {
-//     console.error('Error restoring product:', error);
-//   }
-// };
+const handleInputScroll = () => {
+  const textareaElement = document.querySelector('.scrollable-textarea');
+  if (textareaElement) {
+    textareaElement.classList.add('scrolled');
+  }
+};
 
+const handleInputFocus = () => {
+  const textareaElement = document.querySelector('.scrollable-textarea');
+  if (textareaElement) {
+    textareaElement.classList.remove('scrolled');
+  }
+};
+
+const handleInputBlur = () => {
+  const textareaElement = document.querySelector('.scrollable-textarea');
+  if (textareaElement && !textareaElement.value) {
+    textareaElement.classList.remove('scrolled');
+  }
+};
 </script>
 
 <template>
@@ -195,27 +333,26 @@ const disablePolicy = async () => {
     <VRow no-gutters class="align-center justify-space-between">
       <VCol cols="auto">
         <VCardTitle class="text-md-h5 text-primary">
-          Products
+          Policies
         </VCardTitle>
       </VCol>
       <VCol cols="auto">
-        <v-btn color="primary" @click="dialog=true" style="margin-right: 16px;">
-          Add <VIcon icon="bx-message-add" />
+        <v-btn color="primary" prepend-icon="ic:round-plus" @click="addNewPolicyModal = true" style="margin-right: 16px;">
+          Add New Policy
         </v-btn>
       </VCol>
     </VRow>
-     <v-row no-gutters>
+    <!--POLICY TABS-->
+    <VRow no-gutters class="pl-5">
+      <VTabs v-model="activePolicyTab" show-arrows class="custom-tabs">
+        <VTab v-for="item in policyTabs" :key="item.icon" :value="item.tab" @click="handleTabClick(item.tab)">
+          {{ item.title }}
+        </VTab>
+      </VTabs>
+    </VRow>
+    <!--END OF POLICY TABS-->
+    <!-- <v-row no-gutters>
       <v-col cols="12" sm="8" order="2" order-sm="1">
-        <!-- <v-card-item class="d-flex align-center">
-          <v-card-title class="text-md-h5 text-primary flex-grow-1">
-            Products
-          </v-card-title>
-          <v-btn color="primary" @click="dialog=true" >
-            Add Product <v-icon icon="bx-message-add" />
-          </v-btn>
-        </v-card-item> -->
-
-        <!---Delete filter Controls-->
         <v-btn variant="plain" @click="showAvailableProducts">
           Available Products
         </v-btn>
@@ -226,10 +363,10 @@ const disablePolicy = async () => {
           All Products
         </v-btn>
       </v-col>
-    </v-row>
+    </v-row> -->
 
     <!---New product fields-->
-    <v-dialog v-model="dialog" width="1024">
+    <v-dialog v-model="addNewPolicyModal" width="1024">
       <v-card>
         <v-card-title>
           <span class="text-h5">New Product</span>
@@ -237,50 +374,44 @@ const disablePolicy = async () => {
         <v-card-text>
           <v-container>
 
-              <v-row>
-                <v-col cols="12" sm="6" md="4">
-                  <v-text-field
-                    label="Policy Name* "
-                    required
-                    v-model="form.policy_name"
-                  />
-                </v-col>
-              
+            <v-row>
               <v-col cols="12" sm="6" md="4">
-                <v-text-field
-                  v-model="form.short_description"
-                  label="Short Description*"
-                  required
-                ></v-text-field>
+                <v-textarea label="Policy Name* " required v-model="form.policy_name" :error="addErrorFields.policy_name"
+                  @scroll="handleInputScroll" @focus="handleInputFocus" @blur="handleInputBlur" />
               </v-col>
 
               <v-col cols="12" sm="6" md="4">
-                <v-text-field
-                  v-model="form.long_description"
-                  label="Long Description*"
-                  required
-                ></v-text-field>
+                <v-textarea v-model="form.short_description" label="Short Description*" required
+                  :error="addErrorFields.short_description" @scroll="handleInputScroll" @focus="handleInputFocus"
+                  @blur="handleInputBlur"></v-textarea>
               </v-col>
 
               <v-col cols="12" sm="6" md="4">
-                <v-text-field
-                  v-model="form.policy_premium"
-                  label="Policy Premium*"
-                  required
-                ></v-text-field>
+                <v-textarea v-model="form.long_description" label="Long Description*" required
+                  :error="addErrorFields.long_description" @scroll="handleInputScroll" @focus="handleInputFocus"
+                  @blur="handleInputBlur"></v-textarea>
               </v-col>
 
-        <!-- <v-col cols="12" sm="6" md="4">
+              <v-col cols="12" sm="6" md="4">
+                <v-text-field v-model="form.policy_premium" label="Policy Premium*" required
+                  :error="addErrorFields.policy_premium" @scroll="handleInputScroll" @focus="handleInputFocus"
+                  @blur="handleInputBlur"></v-text-field>
+              </v-col>
+
+              <v-alert type="error" title="Error" v-if="addValidationError">
+                {{ addValidationError }}
+              </v-alert>
+              <!-- <v-col cols="12" sm="6" md="4">
           <v-date-picker v-model="forms.premium_due_date" label="Premium Due Date*" required></v-date-picker>
         </v-col> -->
-            <!-- <v-col cols="12" sm="6" md="4">
+              <!-- <v-col cols="12" sm="6" md="4">
               <v-date-picker
                 v-model="form.premium_due_date"
                 label="Premium Due Date*"
                 required
               ></v-date-picker>
             </v-col> -->
-<!-- <v-date-picker v-model="forms.premium_due_date" label="Premium Due Date*" required /> -->
+              <!-- <v-date-picker v-model="forms.premium_due_date" label="Premium Due Date*" required /> -->
               <!-- <v-col cols="12" sm="6" md="4">
                 <v-text-field
                   v-model="form.premium_due_date"
@@ -288,22 +419,18 @@ const disablePolicy = async () => {
                   required
                 ></v-text-field>
               </v-col> -->
-            
+
             </v-row>
             <v-row justify="center">
-              <v-alert
-                type="success"
-                title="Success"
-                text="New product has been successfully added!"
-                v-model="showAlert"
-              ></v-alert>  
+              <v-alert type="success" title="Success" text="New product has been successfully added!"
+                v-model="showAlert"></v-alert>
             </v-row>
           </v-container>
           <small>*indicates required field</small>
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="blue-darken-1" variant="text" @click="dialog = false">
+          <v-btn color="blue-darken-1" variant="text" @click="addNewPolicyModal = false">
             Close
           </v-btn>
           <v-btn color="blue-darken-1" variant="text" @click="handleSaveProduct">
@@ -314,71 +441,73 @@ const disablePolicy = async () => {
     </v-dialog>
 
     <v-table>
-    <thead>
-      <tr>
-        <th class="text-left">
-          Policy Name
-        </th>
-        <th class="text-left">
-          Short Description
-        </th>
-        <th class="text-left">
-          Long Description
-        </th>
-        <th class="text-left">
-          Policy Premium
-        </th>
-        <!-- <th class="text-left">
+      <thead>
+        <tr>
+          <th class="text-left">
+            Name
+          </th>
+          <th class="text-left">
+            Short Description
+          </th>
+          <th class="text-left">
+            Long Description
+          </th>
+          <th class="text-left">
+            Policy Premium
+          </th>
+          <!-- <th class="text-left">
           Premium Due Date
         </th> -->
-        <th class="text-left">
-          Action
-        </th>
-      </tr>
-    </thead>
-    <tbody v-if="data.length > 0">
-      <tr v-for="item in data" :key="item.sid_policy_details">
-        <td>{{ item.policy_name }}</td>
-        <td>{{ item.short_description }}</td>
-        <td>{{ item.long_description }}</td>
-        <td>{{ item.policy_premium }}</td>
-        <!-- <td>{{ item.premium_due_date }}</td> -->
-        <td>
-          <div class="button-container">
-          <!-- Restore Button -->
-          <button
-            v-if="item.policy_details_delete === 1"
-            @click="restoreProduct(item)"
-            class="btn btn-success"
-          >
-            Restore
-          </button>
-          <!-- Edit and Delete Buttons -->
-          <button
-            v-if="item.policy_details_delete === 0"
-            @click="showUpdateDialog(item)"
-            class="btn btn-danger"
-          >
-            Edit
-          </button>
-          <button
-            v-if="item.policy_details_delete === 0"
-            @click="deleteProduct(item)"
-            class="btn btn-danger"
-          >
-            Delete
-          </button>
-        </div>
-        </td>
-      </tr>
-    </tbody>
-    <tbody v-else>
-      <tr>
-        <td colspan="5">Loading...</td>
-      </tr>
+          <th class="text-left">
+            Action
+          </th>
+        </tr>
+      </thead>
+      <tbody v-if="data.length > 0">
+        <tr v-for="item in data" :key="item.sid">
+          <td @click="handleRowClick(item)">{{ item.policy_name }}</td>
+          <td @click="handleRowClick(item)">{{ item.short_description }}</td>
+          <td @click="handleRowClick(item)">{{ item.long_description }}</td>
+          <td @click="handleRowClick(item)">{{ item.policy_premium }}</td>
+          <!-- <td>{{ item.premium_due_date }}</td> -->
+          <td>
+            <div class="button-container">
+              <!-- Restore Button -->
+              <button v-if="item.policy_detail_delete === 1" @click="restoreProduct(item)" class="btn btn-success">
+                Restore
+              </button>
+              <!-- Edit and Delete Buttons -->
+              <!-- <button v-if="item.policy_detail_delete === 0" @click="showUpdateDialog(item)" class="btn btn-danger">
+                Edit
+              </button> -->
+              <button v-if="item.policy_detail_delete === 0" @click="handleDeletePolicy(item.sid)" class="btn btn-danger">
+                Delete
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+      <tbody v-else>
+        <tr>
+          <td colspan="5">Loading...</td>
+        </tr>
 
-    </tbody>
-  </v-table>
+      </tbody>
+    </v-table>
+
+    <!--DELETE POLICY POPUP-->
+    <v-dialog v-model="deletePolicyModal" max-width="600px">
+      <v-card>
+        <v-card-title class="text-h5">Are you sure you want to disable this policy?</v-card-title>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="blue-darken-1" variant="text" @click="deletePolicyModal = false">Cancel</v-btn>
+          <v-btn color="blue-darken-1" variant="text" @click="disablePolicy">OK</v-btn>
+          <v-spacer></v-spacer>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+    <!--END OF DELETE POLICY POPUP-->
 
     <!-- Update Product Dialog -->
     <v-dialog v-model="updateDialog" width="1024">
@@ -390,37 +519,31 @@ const disablePolicy = async () => {
           <v-container>
             <v-row>
               <v-col cols="12" sm="6" md="4">
-                  <v-text-field
-                    label="Policy Name* "
-                    required
-                    v-model="forms.policy_name"
-                  />
-                </v-col>
-              
-              <v-col cols="12" sm="6" md="4">
-                <v-text-field
-                  v-model="forms.short_description"
-                  label="Short Description*"
-                  required
-                ></v-text-field>
+                <v-textarea label="Policy Name* " required v-model="forms.policy_name" :error="errorFields.policy_name"
+                  @scroll="handleTextareaScroll" @focus="handleTextareaFocus" @blur="handleTextareaBlur" />
               </v-col>
 
               <v-col cols="12" sm="6" md="4">
-                <v-text-field
-                  v-model="forms.long_description"
-                  label="Long Description*"
-                  required
-                ></v-text-field>
+                <v-textarea v-model="forms.short_description" label="Short Description*" required
+                  :error="errorFields.short_description" @scroll="handleTextareaScroll" @focus="handleTextareaFocus"
+                  @blur="handleTextareaBlur"></v-textarea>
               </v-col>
 
               <v-col cols="12" sm="6" md="4">
-                <v-text-field
-                  v-model="forms.policy_premium"
-                  label="Policy Premium*"
-                  required
-                ></v-text-field>
+                <v-textarea v-model="forms.long_description" label="Long Description*" required
+                  :error="errorFields.long_description" @scroll="handleTextareaScroll" @focus="handleTextareaFocus"
+                  @blur="handleTextareaBlur"></v-textarea>
               </v-col>
 
+              <v-col cols="12" sm="6" md="4">
+                <v-text-field v-model="forms.policy_premium" label="Policy Premium*" required
+                  :error="errorFields.policy_premium" @scroll="handleTextareaScroll" @focus="handleTextareaFocus"
+                  @blur="handleTextareaBlur"></v-text-field>
+              </v-col>
+
+              <v-alert type="error" title="Error" v-if="validationError">
+                {{ validationError }}
+              </v-alert>
               <!-- <v-col cols="12" sm="6" md="4">
                 <v-text-field
                   v-model="forms.premium_due_date"
@@ -430,12 +553,8 @@ const disablePolicy = async () => {
               </v-col> -->
             </v-row>
             <v-row justify="center">
-              <v-alert
-                type="success"
-                title="Success"
-                text="Product has been successfully updated!"
-                v-model="showAlert"
-              ></v-alert>
+              <v-alert type="success" title="Success" text="Product has been successfully updated!"
+                v-model="showAlert"></v-alert>
             </v-row>
           </v-container>
           <small>*indicates required field</small>
@@ -451,79 +570,6 @@ const disablePolicy = async () => {
         </v-card-actions>
       </v-card>
     </v-dialog>
-
-     <!-- Delete Product Dialog -->
-    <!-- <v-dialog v-model="deleteDialog" width="1024">
-      <v-card> -->
-        <!-- <v-card-title>
-          <span class="text-h5">Update Product</span>
-        </v-card-title> -->
-        <!-- <v-card-text>
-          <v-container> -->
-            <!-- <v-row>
-              <v-col cols="12" sm="6" md="4">
-                  <v-text-field
-                    label="Policy Name* "
-                    required
-                    v-model="forms.policy_name"
-                  />
-                </v-col> -->
-              
-              <!-- <v-col cols="12" sm="6" md="4">
-                <v-text-field
-                  v-model="forms.short_description"
-                  label="Short Description*"
-                  required
-                ></v-text-field>
-              </v-col> -->
-
-              <!-- <v-col cols="12" sm="6" md="4">
-                <v-text-field
-                  v-model="forms.long_description"
-                  label="Long Description*"
-                  required
-                ></v-text-field>
-              </v-col> -->
-
-              <!-- <v-col cols="12" sm="6" md="4">
-                <v-text-field
-                  v-model="forms.policy_premium"
-                  label="Policy Premium*"
-                  required
-                ></v-text-field>
-              </v-col> -->
-
-              <!-- <v-col cols="12" sm="6" md="4">
-                <v-text-field
-                  v-model="forms.premium_due_date"
-                  label="Premium Due Date*"
-                  required
-                ></v-text-field>
-              </v-col> -->
-            <!-- </v-row> -->
-            <!-- <v-row justify="center">
-              <v-alert
-                type="success"
-                title="Success"
-                text="Product has been successfully deleted!"
-                v-model="showAlert"
-              ></v-alert>
-            </v-row>
-          </v-container> -->
-          <!-- <small>*indicates required field</small> -->
-        <!-- </v-card-text>
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn color="blue-darken-1" variant="text" @click="updateDialog = false">
-            Close
-          </v-btn> -->
-          <!-- <v-btn color="blue-darken-1" variant="text" @click="handleUpdateProduct">
-            Update Product
-          </v-btn> -->
-        <!-- </v-card-actions>
-      </v-card>
-    </v-dialog> -->
-
   </VCard>
 </template>
 
@@ -533,4 +579,14 @@ const disablePolicy = async () => {
   flex-wrap: wrap;
   gap: 0.5rem;
 }
+
+.scrollable-textarea-label {
+  display: none;
+}
+
+.scrollable-textarea::placeholder,
+.scrollable-textarea:focus::placeholder {
+  opacity: 0;
+}
 </style>
+
