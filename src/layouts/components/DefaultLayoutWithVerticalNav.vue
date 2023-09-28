@@ -4,51 +4,32 @@ import upgradeBannerDark from '@images/pro/upgrade-banner-dark.png'
 import upgradeBannerLight from '@images/pro/upgrade-banner-light.png'
 import VerticalNavLayout from '@layouts/components/VerticalNavLayout.vue'
 import VerticalNavLink from '@layouts/components/VerticalNavLink.vue'
+import { useRouter } from 'vue-router'
 import { useTheme } from 'vuetify'
-
+import { useUserStore } from '../../store/user'
+const router = useRouter()
 // Components
 import Footer from '@/layouts/components/Footer.vue'
-
 const vuetifyTheme = useTheme()
-
+const userStore = useUserStore()
+onMounted(() => {
+    const userStore = useUserStore()
+    if (!userStore.userData){
+      return router.push({ path: '/login' })
+    }
+  });
+const handleItemClick = (item) => {
+      if (item.title === 'Logout') {
+        userStore.clearUserData();
+      }
+    }
 const upgradeBanner = computed(() => {
   return vuetifyTheme.global.name.value === 'light' ? upgradeBannerLight : upgradeBannerDark
 })
 </script>
-
 <template>
   <VerticalNavLayout>
-    <!-- 👉 navbar -->
-    <template #navbar="{ toggleVerticalOverlayNavActive }">
-      <div class="d-flex h-100 align-center">
-        <!-- 👉 Vertical nav toggle in overlay mode -->
-        <IconBtn
-          class="ms-n3 d-lg-none"
-          @click="toggleVerticalOverlayNavActive(true)"
-        >
-          <VIcon icon="bx-menu" />
-        </IconBtn>
-
-        <!-- 👉 Search -->
-        <div
-          class="d-flex align-center cursor-pointer"
-          style="user-select: none;"
-        >
-          <!-- 👉 Search Trigger button -->
-          <IconBtn>
-            <VIcon icon="bx-search" />
-          </IconBtn>
-
-          <span class="d-none d-md-flex align-center text-disabled">
-            <span class="me-3">Search</span>
-            <span class="meta-key">&#8984;K</span>
-          </span>
-        </div>
-
-        <VSpacer />
-      </div>
-    </template>
-
+    <!-- :point_right: navbar -->
     <template #vertical-nav-content>
       <!-- <VerticalNavLink
         :item="{
@@ -64,8 +45,7 @@ const upgradeBanner = computed(() => {
           to: '/account-settings',
         }"
       />-->
-
-      <!-- 👉 Pages -->
+      <!-- :point_right: Pages -->
       <VerticalNavSectionTitle
         :item="{
           heading: 'Pages',
@@ -80,18 +60,34 @@ const upgradeBanner = computed(() => {
       />
       <VerticalNavLink
         :item="{
-          title: 'Products',
-          icon: 'healthicons:money-bag-outline',
+          title: 'Policies',
+          icon: 'bx-book-content',
           to: '/product_management',
         }"
       />
       <VerticalNavLink
         :item="{
+          title: 'News',
+          icon: 'bx-news',
+          to: '/news',
+        }"
+      />
+      <VerticalNavLink
+     
+        :item="{
           title: 'User Management',
           icon: 'mdi-account-cog-outline',
           to: '/user-management',
         }"
-      />  
+      />
+      <VerticalNavLink
+        @item-click="handleItemClick"
+        :item="{
+          title: 'Logout',
+          icon: 'bx-log-in',
+          to: '/login',
+        }"
+      />
       <!--<VerticalNavLink
         :item="{
           title: 'Login',
@@ -120,8 +116,7 @@ const upgradeBanner = computed(() => {
           to: '/no-existence',
         }"
       />-->
-
-      <!-- 👉 User Interface -->
+      <!-- :point_right: User Interface -->
       <!--<VerticalNavSectionTitle
         :item="{
           heading: 'User Interface',
@@ -163,29 +158,24 @@ const upgradeBanner = computed(() => {
         }"
       />-->
     </template>
-
     <template #after-vertical-nav-items>
-      <!-- 👉 illustration -->
+      <!-- :point_right: illustration -->
       <a
         href="https://themeselection.com/item/sneat-vuetify-vuejs-admin-template"
         target="_blank"
         rel="noopener noreferrer"
         style="margin-left: 7px;"
       >
-        
       </a>
     </template>
-
-    <!-- 👉 Pages -->
+    <!-- :point_right: Pages -->
     <slot />
-
-    <!-- 👉 Footer -->
+    <!-- :point_right: Footer -->
     <template #footer>
       <Footer />
     </template>
   </VerticalNavLayout>
 </template>
-
 <style lang="scss" scoped>
 .meta-key {
   border: thin solid rgba(var(--v-border-color), var(--v-border-opacity));

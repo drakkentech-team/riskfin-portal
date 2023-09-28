@@ -1,5 +1,5 @@
 <script setup>
-import axios from 'axios';
+  import axios from 'axios';
 import { reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
 const router = useRouter()
@@ -268,7 +268,7 @@ const handleUpdateProduct = async () => {
         showAlert.value = false;
       }, 5000);
       getPolicies();
-    }
+    }    
   } catch (error) {
     console.error('Error updating product:', error);
   }
@@ -326,6 +326,9 @@ const handleInputBlur = () => {
     textareaElement.classList.remove('scrolled');
   }
 };
+
+
+
 </script>
 
 <template>
@@ -419,7 +422,6 @@ const handleInputBlur = () => {
                   required
                 ></v-text-field>
               </v-col> -->
-
             </v-row>
             <v-row justify="center">
               <v-alert type="success" title="Success" text="New product has been successfully added!"
@@ -589,4 +591,3 @@ const handleInputBlur = () => {
   opacity: 0;
 }
 </style>
-

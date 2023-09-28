@@ -11,6 +11,7 @@ const props = defineProps({
   <li
     class="nav-link"
     :class="{ disabled: item.disable }"
+    @click="$emit('item-click', item)"
   >
     <Component
       :is="item.to ? 'RouterLink' : 'a'"
