@@ -5,8 +5,10 @@ import 'vue-datepicker-ui/lib/vuedatepickerui.css';
 import { useRouter } from 'vue-router';
 import { formatDate } from "../utils/common";
 import config from "../utils/config";
-const router = useRouter()
+import Placeholders from '../layouts/components/Placeholders.vue';
 
+const router = useRouter()
+  
   const apiBaseUrl = "http://localhost:9000";
   const bearerToken = "1HW94aH3Gu9BNxqw2QnY4y7zMa1xwlm_rg2ZiA9tt3fu";
   const showAlert = ref(false)
@@ -133,9 +135,12 @@ const router = useRouter()
     { title: 'Scheduled', tab: 'Scheduled' },
     { title: 'Automated', tab: 'Triggered' },
   ];
+
+  const editDateModal = ref(false)
   
   const editItem = (item) => {
     console.log(item)
+    editDateModal.value = true
     dialog.value = true
     activeNotificationModalTab.value = "Scheduled"
     title.value = item.title;
@@ -291,7 +296,7 @@ const router = useRouter()
 
   /*Functions*/
   const isSendButtonDisabled = computed(() => {
-    return !title.value.length || !message.value.length || !selectedUsers.value.length || !date.value;
+    return !title.value.length || !message.value.length || !selectedUsers.value.length
   });
 
   const selectedData = computed(() => {
@@ -735,6 +740,23 @@ const router = useRouter()
     getPolicies()
     
   });
+
+  const titleRef = ref(null)
+
+  const updateTitle = (updatedTitle) => {
+    title.value = updatedTitle
+  }
+  const updateMessage = (updatedMessage) => {
+    message.value = updatedMessage
+  }
+
+  const titleText = ref(null)
+  watch(title, (newValue, oldValue) => {
+    const textField = titleText.value; // Get the reference to the text field
+    const cursorPosition = textField.selectionStart;
+
+  });
+
 </script>
 
 <template>
@@ -781,32 +803,18 @@ const router = useRouter()
                       <v-text-field 
                         label="Add Title" 
                         v-model="title" 
-                        variant="underlined" 
+                        variant="underlined"
+                        ref="titleText" 
                       />
                     </v-card-title>
                   </v-col>
                   <v-col class=" pt-10" cols="12" sm="6" md="2">
-            <v-menu >
-              <template v-slot:activator="{ props }">
-                <v-btn 
-                variant="text"
-                v-bind="props"
-                prepend-icon="ic:round-plus"
-              >
-                Add field to title
-              </v-btn>
-            </template>
-        <v-list >
-          <v-list-item
-            v-for="(item, index) in titleDropdownList"
-            :key="index"
-            :value="index"
-            @click="insertValueTitle(item.value)"
-          >
-            <v-list-item-title>{{ item.title }}</v-list-item-title>
-          </v-list-item>
-        </v-list>
-      </v-menu>
+            <Placeholders 
+              @placeholder="updateTitle" 
+              :text="'Add field to title'" 
+              :body="title" 
+              :setRef="titleText"
+            />
         </v-col>
                   
               </v-row>   
@@ -868,6 +876,7 @@ const router = useRouter()
       <v-row class="pl-8 my-n3"  v-if="activeNotificationModalTab === 'Scheduled'">
         <v-col cols="12" sm="6" md="4">
           <Datepicker 
+            ref="datepickerRef"
             circle
             lang="en"
             v-model="date" 
@@ -926,27 +935,7 @@ const router = useRouter()
         </v-btn>
         </v-col>
         <v-col cols="12" sm="6" md="4">
-            <v-menu>
-              <template v-slot:activator="{ props }">
-                <v-btn
-                variant="text"
-                v-bind="props"
-                prepend-icon="ic:round-plus"
-              >
-                Add field to message
-              </v-btn>
-            </template>
-        <v-list>
-          <v-list-item
-            v-for="(item, index) in items"
-            :key="index"
-            :value="index"
-            @click="insertValue(item.value)"
-          >
-            <v-list-item-title>{{ item.title }}</v-list-item-title>
-          </v-list-item>
-        </v-list>
-      </v-menu>
+          <Placeholders @placeholder="updateMessage" :text="'Add field to message'" :body="message" />
         </v-col>
       </v-row>
       <v-container fluid>

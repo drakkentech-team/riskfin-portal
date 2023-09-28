@@ -68,8 +68,8 @@ const router = useRouter()
       if (response && response.status === 200) {
         responseData = response.data;
         console.log(response.data)
-        availableProdList = responseData.filter(item => item.policy_detail_delete === 0);
-        deletedProdList = responseData.filter(item => item.policy_detail_delete === 1);
+        availableProdList = responseData.filter(item => item.policy_detail_delete === 1);
+        deletedProdList = responseData.filter(item => item.policy_detail_delete === 0);
         data.value = availableProdList; 
       }
     } 
@@ -101,7 +101,7 @@ const restoreProduct = async (item) => {
     const response = await axios.put(
       `http://localhost:9000/update_policy_details?sid=${item.sid}`,
       {
-        policy_detail_delete: 0,
+        policy_detail_delete: 1,
       }
     );
 
@@ -208,7 +208,7 @@ const handleUpdateProduct = async () => {
 const disablePolicy = async () => {
   try {
     const response = await axios.put(`http://localhost:9000/update_policy_details?sid=${policyToBeDisabled.value}`,{
-      policy_detail_delete: 1
+      policy_detail_delete: 0
     },
     {
       headers: {

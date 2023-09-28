@@ -23,6 +23,7 @@ onMounted(() => {
 const handleItemClick = (item) => {
       if (item.title === 'Logout') {
         userStore.clearUserData();
+        return router.push({ path: '/login' })
       }
     }
 const upgradeBanner = computed(() => {

@@ -81,7 +81,7 @@ const router = useRouter()
                       { title: 'Email', align: 'start', key: 'email' },
                       { title: 'User type', align: 'start', key: 'admin'},
                       { title: 'Active', align: 'start', key: 'active'},
-                      { title: 'Actions', align: 'end', key: 'actions', sortable: false }
+                      { title: '', align: 'end', key: 'actions', sortable: false }
                     ])
 
   const activeUserTabs = [
@@ -567,14 +567,32 @@ const router = useRouter()
             item-value="first_name"
             class="elevation-1 pt-2 pl-5 pr-5"
           >
+          <template v-slot:item.first_name="{ item }">
+      <tr>
+        <td><span style="cursor: pointer;" @click="editItem(item.selectable)">{{ item.columns.first_name }}</span></td>
+        </tr>
+    </template>
+    <template v-slot:item.last_name="{ item }">
+      <tr>
+        <td><span style="cursor: pointer;" @click="editItem(item.selectable)">{{ item.columns.last_name }}</span></td>
+        </tr>
+    </template>
+    <template v-slot:item.email="{ item }">
+      <tr>
+        <td><span style="cursor: pointer;" @click="editItem(item.selectable)">{{ item.columns.email }}</span></td>
+        </tr>
+    </template>
+    <template v-slot:item.admin="{ item }">
+      <tr>
+        <td><span style="cursor: pointer;" @click="editItem(item.selectable)">{{ item.columns.admin }}</span></td>
+        </tr>
+    </template>
+    <template v-slot:item.active="{ item }">
+      <tr>
+        <td><span style="cursor: pointer;" @click="editItem(item.selectable)">{{ item.columns.active }}</span></td>
+        </tr>
+    </template>
           <template v-slot:item.actions="{ item }">
-            <v-icon
-              size="small"
-              class="me-2"
-              @click="editItem(item.selectable)"
-            >
-              mdi-pencil
-            </v-icon>
             <v-icon
               size="small"
               v-if="item.selectable.active === 'No'"

@@ -12,6 +12,8 @@ import { createPinia } from 'pinia'
 import { createApp } from 'vue'
 import VueDatepickerUi from 'vue-datepicker-ui'
 import 'vue-datepicker-ui/lib/vuedatepickerui.css'
+import VCalendar from 'v-calendar';
+import 'v-calendar/style.css';
 
 loadFonts()
 
@@ -22,8 +24,10 @@ const pinia = createPinia()
 
 // Use plugins
 app.use(vuetify)
+app.use(VCalendar, {})
 app.use(pinia)
 app.use(router)
+
 
 
 // Mount vue app

@@ -8,6 +8,8 @@ const router = useRouter()
   const apiBaseUrl = "http://localhost:9000";
   const bearerToken = "1HW94aH3Gu9BNxqw2QnY4y7zMa1xwlm_rg2ZiA9tt3fu";
   const selectedUsers = ref([]);
+  const updatingSid = ref(null);
+  const dialogDelete = ref(false);
   /*RULES*/
   const rules = {
     required: value => !!value || 'Required.',
@@ -77,6 +79,7 @@ const router = useRouter()
   const data = ref([]);
   
   const dialog = ref(false);
+  const editNewsModal = ref(false);
   const messageStatusModal = ref(false);
   const displayMessageTitle = ref("");
   const displayMessage = ref("");
@@ -85,9 +88,11 @@ const router = useRouter()
   const notificationsPerPage = ref(10);
   const textareaValue = ref("")
   const notificationHeaders = ref([
-    { title: "Title", align: 'center', key: 'title', width: '300px'},
-    { title: 'Content', align: 'left', key: 'content' },
-    { title: 'Date Sent', align: 'center', key: 'date_sent', width: '200px' },
+    { title: "Title", align: 'left', key: 'title', width: '250px'},
+    { title: 'Content', align: 'left', key: 'content', width: '500px' },
+    { title: 'Date Sent', align: 'center', key: 'date_sent', width: '100px' },
+    { title: 'Last Modified On', align: 'center', key: 'last_modified', width: '100px' },
+    { title: 'Actions', align: 'center', key: 'actions', width: '100px' },
   ])
 
   const headers= ref([{ title: "Name", align: 'start', key: 'name'},
@@ -131,6 +136,14 @@ const router = useRouter()
     }
   }
 
+  const editItem = (item) => {
+    console.log(item)
+    editNewsModal.value = true
+    title.value = item.title;
+    news.value = item.content;
+    updatingSid.value = item.template_fk
+  }
+
   const handleCheckboxChange = (item) => {
     const userSid = item.raw.sid
     if (selectedUsers.value.includes(userSid)) 
@@ -161,6 +174,11 @@ const router = useRouter()
     }
   };
 
+  const deleteItem = (item) => {
+    dialogDelete.value = true
+    updatingSid.value = item
+  }
+
   const handleAddAllUsers = () => {
     allUsersCheckbox.value = !allUsersCheckbox.value
     if (allUsersCheckbox.value === true) 
@@ -183,6 +201,10 @@ const router = useRouter()
   /*Functions*/
   const isSendButtonDisabled = computed(() => {
     return !title.value.length || !news.value.length || !selectedUsers.value.length;
+  });
+
+  const isUpdateButtonDisabled = computed(() => {
+    return !title.value.length || !news.value.length
   });
 
   const userText = computed(() => {
@@ -328,6 +350,30 @@ const router = useRouter()
     }
   };
 
+
+  const deleteConfirm = async () => {
+    try {
+      const deleteResponse = await axios.put(`http://127.0.0.1:9000/update-news?sid=${updatingSid.value}`,{
+        active: 0,
+        last_modified: formatDate(),
+      }, {
+        headers: {
+          'Authorization': `Bearer ${bearerToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      if (deleteResponse && deleteResponse.status === 200) {
+        console.log(deleteResponse)
+        updatingSid.value = null
+        fetchMessage();
+        dialogDelete.value = false
+
+      }
+    } catch (error) {
+      console.error('Failed to fetch messages:', error);
+    }
+  };
+
   const fetchUser = async () => {
     try {
       const response = await axios.get(`${apiBaseUrl}/all_user_profile`,{
@@ -378,7 +424,39 @@ const router = useRouter()
         content: news.value,
         date: formatDate(),
         user_sid: formattedUserIds,
-      })
+      },{
+        headers: {
+          'Authorization': `Bearer ${bearerToken}`,
+          'Content-Type': 'application/json'
+        }})
+      if (response && response.status === 200) {
+        saveNotificationSnackbar.value = true
+        fetchMessage();
+      } 
+    } 
+    catch (error) {
+      if (error.response && error.response.status === 404) {
+        errorMessage.value = 'This user does not exist'
+      }
+      else if (error.response && error.response.status === 401) {
+        errorMessage.value = 'Your password is incorrect'
+      }
+    } 
+  }
+
+
+
+  const handleUpdateNews = async () => {
+    try {   
+      const response = await axios.put(`http://localhost:9000/update-news?sid=${updatingSid.value}`, {
+        title: title.value,
+        content: news.value,
+        last_modified: formatDate(),
+      },{
+        headers: {
+          'Authorization': `Bearer ${bearerToken}`,
+          'Content-Type': 'application/json'
+        }})
       if (response && response.status === 200) {
         saveNotificationSnackbar.value = true
         fetchMessage();
@@ -428,6 +506,9 @@ const router = useRouter()
                     label="Add Title" 
                     v-model="title" 
                     variant="underlined" 
+                    multiline
+                    rows="4"
+                    auto-grow
                   />
                 </v-card-title>
               </v-col>
@@ -487,7 +568,71 @@ const router = useRouter()
         </v-dialog>
       </v-row>
 
+
+      <v-row justify="center"> 
+        <v-dialog v-model="editNewsModal" @click:outside="handleCloseNewNotificationModal" width="1024">
+          <v-card>
+            <v-row class="pl-4 pt-3">
+              <v-col cols="12" sm="6" md="5">
+                <v-card-title>
+                  <v-text-field 
+                    label="Add Title" 
+                    v-model="title" 
+                    variant="underlined" 
+                    multiline
+                    rows="4"
+                    auto-grow
+                  />
+                </v-card-title>
+              </v-col>
+            </v-row>             
+      
+      <v-container fluid>
+        <v-textarea 
+          class="pl-5 custom-textarea my-n4"
+          name="input-7-1"
+          variant="filled"
+          label="Content"
+          auto-grow
+          model-value=""
+          v-model="news"
+          @input="handleTextareaInput($event)"
+        />
+      </v-container>
+          <v-card-actions>
+            <v-spacer/>
+              <v-btn
+                color="blue-darken-1"
+                variant="text"
+                @click="handleCloseNewNotificationModal"
+              >
+                Close
+              </v-btn>
+              <v-btn
+                color="blue-darken-1"
+                variant="text"
+                @click="handleUpdateNews"
+                :disabled="isUpdateButtonDisabled"
+              >
+                Update
+              </v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+      </v-row>
+
     
+      <v-dialog v-model="dialogDelete" max-width="650px">
+          <v-card>
+            <v-card-title class="text-h5">Are you sure you want to remove this news article?</v-card-title>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn color="blue-darken-1" variant="text" @click="dialogDelete = false">Cancel</v-btn>
+              <v-btn color="blue-darken-1" variant="text" @click="deleteConfirm">OK</v-btn>
+              <v-spacer></v-spacer>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
 
     <!--Add Users Modal-->
     <v-row justify="center"> 
@@ -583,15 +728,37 @@ const router = useRouter()
         </tr>
     </template>
     <template v-slot:item.content="{ item }">
-  <tr>
-    <td v-html="extractURL(item.columns.content)"></td>
-  </tr>
-</template>
+      <tr>
+        <td><span style="cursor: pointer;" @click="handleFlagClick(item.selectable.id)">{{ item.columns.content }}</span></td>
+        </tr>
+    </template>
     <template v-slot:item.date_sent="{ item }">
       <tr>
         <td><span style="cursor: pointer;" @click="handleFlagClick(item.selectable.id)">{{ item.columns.date_sent }}</span></td>
       </tr>
     </template>
+    <template v-slot:item.actions="{ item }">
+            <v-icon
+              size="small"
+              class="me-2"
+              @click="editItem(item.selectable)"
+            >
+              mdi-pencil
+            </v-icon>
+            <v-icon
+              size="small"
+              v-if="item.selectable.active === 'No'"
+            >
+              mdi-delete-off
+            </v-icon>
+            <v-icon
+              size="small"
+              @click="deleteItem(item.selectable.template_fk)"
+              v-else
+            >
+              mdi-delete
+            </v-icon>
+          </template>
     </v-data-table>
   </VCard>
 </template>
@@ -615,5 +782,9 @@ const router = useRouter()
 
 .dark-bg {
   background-color: #333; /* Adjust this value to your desired darkness */
+}
+
+.v-data-table {
+  overflow-x: auto;
 }
 </style>
