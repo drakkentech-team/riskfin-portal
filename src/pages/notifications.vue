@@ -5,7 +5,7 @@ import 'vue-datepicker-ui/lib/vuedatepickerui.css';
 import { useRouter } from 'vue-router';
 import { formatDate } from "../utils/common";
 import config from "../utils/config";
-import Placeholders from '../layouts/components/Placeholders.vue';
+import Placeholder from '../layouts/components/Placeholder.vue';
 
 const router = useRouter()
   
@@ -751,11 +751,7 @@ const router = useRouter()
   }
 
   const titleText = ref(null)
-  watch(title, (newValue, oldValue) => {
-    const textField = titleText.value; // Get the reference to the text field
-    const cursorPosition = textField.selectionStart;
-
-  });
+  const messageText = ref(null)
 
 </script>
 
@@ -809,7 +805,7 @@ const router = useRouter()
                     </v-card-title>
                   </v-col>
                   <v-col class=" pt-10" cols="12" sm="6" md="2">
-            <Placeholders 
+            <Placeholder
               @placeholder="updateTitle" 
               :text="'Add field to title'" 
               :body="title" 
@@ -935,7 +931,12 @@ const router = useRouter()
         </v-btn>
         </v-col>
         <v-col cols="12" sm="6" md="4">
-          <Placeholders @placeholder="updateMessage" :text="'Add field to message'" :body="message" />
+          <Placeholder
+              @placeholder="updateMessage" 
+              :text="'Add field to message'" 
+              :body="message" 
+              :setRef="messageText"
+            />
         </v-col>
       </v-row>
       <v-container fluid>
@@ -943,6 +944,7 @@ const router = useRouter()
           name="input-7-1"
           variant="filled"
           label="Message"
+          ref="messageText" 
           auto-grow
           model-value=""
           v-model="message"

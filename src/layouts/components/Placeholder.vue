@@ -17,7 +17,7 @@
         :value="index"
         @click="insertPlaceholder(item.value)"
       >
-        <v-list-item-title>{{ item.heading }}</v-list-item-title>
+        <v-list-item-title>{{ item.title }}</v-list-item-title>
       </v-list-item>
     </v-list>
   </v-menu>
@@ -53,14 +53,20 @@ export default {
   },
   methods: {
     insertPlaceholder(placeholder) {
-      console.log('this is body', this.setRef)
       let updatedText;
-      const lastCharacter = this.body.slice(-1);
-      if (lastCharacter === ' ') {
-        updatedText = this.body + placeholder;
-      } else {
-        updatedText = this.body + ' ' + placeholder;
-      }
+      const cursorPosition = this.setRef.selectionStart;
+      const beforeCursor = this.body.substring(0, cursorPosition);
+      const afterCursor = this.body.substring(cursorPosition);
+      const addSpaceBefore = beforeCursor && !beforeCursor.endsWith(' ');
+      const addSpaceAfter = afterCursor && !afterCursor.startsWith(' ');
+      
+      updatedText = beforeCursor + (addSpaceBefore ? ' ' : '') +
+                    placeholder + (addSpaceAfter ? ' ' : '') +
+                    afterCursor;
+
+      const newCursorPosition = cursorPosition + placeholder.length + (addSpaceBefore ? 1 : 0);
+      this.setRef.setSelectionRange(newCursorPosition, newCursorPosition);
+
       this.$emit('placeholder', updatedText);
     }
   }
