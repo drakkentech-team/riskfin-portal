@@ -26,17 +26,15 @@ const handleItemClick = (item) => {
         return router.push({ path: '/login' })
       }
     }
-const upgradeBanner = computed(() => {
-  return vuetifyTheme.global.name.value === 'light' ? upgradeBannerLight : upgradeBannerDark
-})
+
 </script>
 
 <template>
-  <VerticalNavLayout>
+  <VerticalNavLayout >
     <!-- 👉 navbar -->
 
 
-    <template #vertical-nav-content>
+    <template #vertical-nav-content >
       <!-- <VerticalNavLink
         :item="{
           title: 'Dashboard',
@@ -52,13 +50,7 @@ const upgradeBanner = computed(() => {
         }"
       />-->
 
-      <!-- 👉 Pages -->
-      <VerticalNavSectionTitle
-        :item="{
-          heading: 'Pages',
-        }"
-      />
-      <VerticalNavLink
+      <VerticalNavLink class="pt-5"
         :item="{
           title: 'Notifications',
           icon: 'bx-bell',

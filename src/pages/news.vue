@@ -31,7 +31,7 @@ const router = useRouter()
   const users = ref([]);
 
   /*Snackbar*/
-  const saveNotificationSnackbar = ref(false)
+  const showAlert = ref(false)
   const snackbarText = ref('News successfully sent');
   const snackbarTimeout = ref(5000)
 
@@ -430,7 +430,14 @@ const router = useRouter()
           'Content-Type': 'application/json'
         }})
       if (response && response.status === 200) {
-        saveNotificationSnackbar.value = true
+        dialog.value = false
+        showAlert.value = true
+        title.value = ""
+        news.value = ""
+        user_sid.value = null
+        setTimeout(() => {
+          showAlert.value = false;
+        }, 5000);
         fetchMessage();
       } 
     } 
@@ -458,7 +465,13 @@ const router = useRouter()
           'Content-Type': 'application/json'
         }})
       if (response && response.status === 200) {
-        saveNotificationSnackbar.value = true
+        editNewsModal.value = false
+        showAlert.value = true
+        title.value = ""
+        news.value = ""
+        setTimeout(() => {
+          showAlert.value = false;
+        }, 5000);
         fetchMessage();
       } 
     } 
@@ -671,26 +684,14 @@ const router = useRouter()
       </v-row>
     <!--End of Add Users Modal-->
 
-    <!--Snackbar-->
-      <div class="text-center">
-        <v-snackbar
-          v-model="saveNotificationSnackbar"
-          :timeout="snackbarTimeout"
-        >
-          {{ snackbarText }}
-          <template v-slot:actions>
-            <v-btn
-              color="blue"
-              variant="text"
-              @click="saveNotificationSnackbar = false"
-              
-            >
-              Close
-            </v-btn>
-          </template>
-        </v-snackbar>
-      </div>
-    <!--End of Snackbar-->  
+    <v-row justify="center">
+              <v-alert
+                type="success"
+                title="Success"
+                text="News/updated has been successfully sent!"
+                v-model="showAlert"
+              ></v-alert>
+            </v-row>
 
     <!--Flag status modal-->
     <v-row justify="center"> 

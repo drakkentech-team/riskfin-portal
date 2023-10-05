@@ -1,7 +1,22 @@
 <script setup>
 import { PerfectScrollbar } from 'vue3-perfect-scrollbar'
 import { useDisplay } from 'vuetify'
-import logo from '@images/logo.svg?raw'
+import { useUserStore } from '../../store/user'
+
+const userStore = useUserStore()
+const organisation = userStore.userData[0][3]
+var orgText, orgPic
+
+if (organisation === 1) {
+  orgText = "Riskfin"
+  orgPic = "/riskfin-logo.png"
+}
+else if (organisation === 2) {
+  orgText = "Econo Funeral Services"
+  orgPic = "/econo-funeral-services.jpeg"
+}
+
+const words = orgText.split(' ');
 
 const props = defineProps({
   tag: {
@@ -62,14 +77,16 @@ const handleNavScroll = evt => {
             class="d-flex"
           >
           <img
-                src="/riskfin-logo.png"
+            :src="orgPic"
                 alt="description"
                 style="height: 50px;"
               >
             </div>
 
           <h1 class="leading-normal">
-            riskfin
+            <span v-for="word in words" :key="word" style="display: block;">
+              {{ word }}
+            </span>
           </h1>
         </RouterLink>
       </slot>

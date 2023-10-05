@@ -191,7 +191,7 @@ const router = useRouter()
     if (!firstName.value || !lastName.value ||
         !email.value || !password.value || 
         !confirmPassword.value ||
-        !admin.value || !active.value) 
+        !admin.value || !active.value || !organisation.value) 
     {
       return emptyFieldErrorModal.value = true;
     }
@@ -199,13 +199,14 @@ const router = useRouter()
       try {
         var adminValue
         var activeValue
-        admin.value === 'Admin' ? adminValue = 1 : adminValue = 0
-        active.value === 'Active' ? activeValue = 1 : activeValue = 0
+        admin.value === 'admin' ? adminValue = 1 : adminValue = 0
+        active.value === 'active' ? activeValue = 1 : activeValue = 0
         const response = await axios.post(`${apiBaseUrl}/web_register`, {
           name: firstName.value,
           surname: lastName.value,
           email: email.value,
           password: password.value,
+          organisation: organisation.value,
           admin: adminValue,
           active: activeValue,
         },{
@@ -222,6 +223,7 @@ const router = useRouter()
            email.value = ""
            password.value = ""
            confirmPassword.value = ""
+           organisation.value = ""
            admin.value = "Admin"
            active.value = "Active"
           setTimeout(() => {
@@ -303,6 +305,10 @@ const router = useRouter()
 
     fetchUsers();
   });
+
+  const adminRadioButton = ref("admin")
+  const activeRadioButton = ref("active")
+  const organisation = ref("Riskfin")
 </script>
 
 <template>
@@ -314,8 +320,8 @@ const router = useRouter()
         </VCardTitle>
       </VCol>
       <VCol cols="auto">
-        <v-btn color="primary" @click="addUserModal=true" @click:outside="handleCloseNewNotificationModal" style="margin-right: 16px;">
-          Add New User <VIcon icon="bx-message-add" />
+        <v-btn color="primary" prepend-icon="ic:round-plus" @click="addUserModal=true" @click:outside="handleCloseNewNotificationModal" style="margin-right: 16px;">
+          Add New User
         </v-btn>
       </VCol>
     </VRow>
@@ -396,19 +402,43 @@ const router = useRouter()
               <v-row>
                 <v-col cols="12" sm="6" md="6">
                   <v-select
-                    :items="['Admin', 'Standard']"
-                    label="User type"
+                    :items="['Riskfin', 'Econo Funerals']"
+                    label="Organisation"
                     required
-                    v-model="admin"
+                    v-model="organisation"
                   />
                 </v-col>
-                <v-col cols="12" sm="6" md="6">
-                  <v-select
-                    :items="['Active', 'Deactivated']"
-                    label="Account status"
-                    required
-                    v-model="active"
-                  />
+              </v-row>
+              <v-row class="pl-1">
+                <v-col>
+                  <v-radio-group
+                    v-model="adminRadioButton"
+                    inline
+                  >
+                    <v-radio
+                      label="Admin"
+                      value="admin"
+                    ></v-radio>
+                    <v-radio class="pl-5"
+                      label="Standard"
+                      value="standard"
+                    ></v-radio>
+                  </v-radio-group>
+                </v-col>
+                <v-col>
+                  <v-radio-group
+                    v-model="activeRadioButton"
+                    inline
+                  >
+                    <v-radio
+                      label="Active"
+                      value="active"
+                    ></v-radio>
+                    <v-radio class="pl-5"
+                      label="Deactivated"
+                      value="deactivated"
+                    ></v-radio>
+                  </v-radio-group>
                 </v-col>
               </v-row>
             </v-container>
@@ -492,19 +522,43 @@ const router = useRouter()
               <v-row>
                 <v-col cols="12" sm="6" md="6">
                   <v-select
-                    :items="['Admin', 'Standard']"
-                    label="User type"
+                    :items="['Riskfin', 'Econo Funerals']"
+                    label="Organisation"
                     required
-                    v-model="admin"
+                    v-model="organisation"
                   />
                 </v-col>
-                <v-col cols="12" sm="6" md="6">
-                  <v-select
-                    :items="['Active', 'Deactivated']"
-                    label="Account status"
-                    required
-                    v-model="active"
-                  />
+              </v-row>
+              <v-row class="pl-1">
+                <v-col>
+                  <v-radio-group
+                    v-model="adminRadioButton"
+                    inline
+                  >
+                    <v-radio
+                      label="Admin"
+                      value="admin"
+                    ></v-radio>
+                    <v-radio class="pl-5"
+                      label="Standard"
+                      value="standard"
+                    ></v-radio>
+                  </v-radio-group>
+                </v-col>
+                <v-col>
+                  <v-radio-group
+                    v-model="activeRadioButton"
+                    inline
+                  >
+                    <v-radio
+                      label="Active"
+                      value="active"
+                    ></v-radio>
+                    <v-radio class="pl-5"
+                      label="Deactivated"
+                      value="deactivated"
+                    ></v-radio>
+                  </v-radio-group>
                 </v-col>
               </v-row>
             </v-container>
@@ -522,7 +576,7 @@ const router = useRouter()
                 variant="text"
                 @click="handleUpdateUser"
               >
-                Send
+                Save
               </v-btn>
             </v-card-actions>
           </v-card>

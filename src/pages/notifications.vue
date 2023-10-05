@@ -3,15 +3,16 @@
 import { onMounted, ref } from 'vue';
 import 'vue-datepicker-ui/lib/vuedatepickerui.css';
 import { useRouter } from 'vue-router';
+import FilterDrawer from '../layouts/components/FilterDrawer.vue';
+import Placeholder from '../layouts/components/Placeholder.vue';
 import { formatDate } from "../utils/common";
 import config from "../utils/config";
-import Placeholder from '../layouts/components/Placeholder.vue';
 
 const router = useRouter()
   
   const apiBaseUrl = "http://localhost:9000";
   const bearerToken = "1HW94aH3Gu9BNxqw2QnY4y7zMa1xwlm_rg2ZiA9tt3fu";
-  const showAlert = ref(false)
+  
   const messageDueDays = ref(1);
   const date = ref(null)
   /*RULES*/
@@ -23,7 +24,7 @@ const router = useRouter()
       return pattern.test(value) || 'Invalid e-mail.'
     },
   }
-
+  const showAlert = ref(false)
   /*New Notification Fields*/
   const title = ref("");
   const message = ref("");
@@ -145,27 +146,32 @@ const router = useRouter()
     activeNotificationModalTab.value = "Scheduled"
     title.value = item.title;
     date.value = item.date_to_send;
-    lastName.value = item.last_name;
-    admin.value = item.admin;
-    if (item.active === "Yes")
-      active.value = "Active";
-    else{
-      active.value = "Deactivated";
-    }
+    message.value = item.body;
   }
 
 
   watch(activeTab, (newTab) => {
-    if (newTab === 'Scheduled') {
+  const dateCreatedIndex = notificationHeaders.value.findIndex(header => header.key === 'date_created');
+  const actionsIndex = notificationHeaders.value.findIndex(header => header.key === 'actions');
+
+  if (newTab === 'Scheduled') {
+    if (dateCreatedIndex === -1) {
       notificationHeaders.value.splice(2, 0, { title: 'Date Created', align: 'center', key: 'date_created', width: "200px" });
-      notificationHeaders.value.push({ title: 'Actions', align: 'end', key: 'actions', sortable: false });
-    } else {
-      const index = notificationHeaders.value.findIndex(header => header.key === 'date_created');
-      if (index !== -1) {
-        notificationHeaders.value.splice(index, 1);
-      }
     }
-  });
+    if (actionsIndex === -1) {
+      notificationHeaders.value.push({ title: 'Actions', align: 'end', key: 'actions', sortable: false });
+    }
+  } else {
+    if (dateCreatedIndex !== -1) {
+      notificationHeaders.value.splice(dateCreatedIndex, 1);
+    }
+    // Find the actions index again as it might have changed after the previous splice
+    const newActionsIndex = notificationHeaders.value.findIndex(header => header.key === 'actions');
+    if (newActionsIndex !== -1) {
+      notificationHeaders.value.splice(newActionsIndex, 1);
+    }
+  }
+});
 
 
   /*Methods*/
@@ -454,32 +460,6 @@ const router = useRouter()
   };
 
 
-
-
-      const handleTextareaInput = (event) => {
-        const cursorPosition = event.target.selectionStart;
-        for (const item of items) {
-          if (
-            cursorPosition >= item.value.length &&
-            event.target.value.substr(cursorPosition - item.value.length, item.value.length) === item.value
-          ) {
-            message.value = event.target.value.substr(0, cursorPosition - item.value.length) + event.target.value.substr(cursorPosition);
-            break;
-          }
-        }
-      };
-
-  const insertValue = (m) => {
-    const lastCharacter = message.value.slice(-1);
-      if (lastCharacter === ' ') {
-        message.value += m; // Append the new value without a space
-      } else {
-        message.value += ' ' + m; // Append the new value with a space
-      }
-  }
-
-  
-
   const insertNumber = (m) => {
     daysOverdue.value = m
   }
@@ -750,13 +730,159 @@ const router = useRouter()
     message.value = updatedMessage
   }
 
+  const placeHolders = ref([])
+  const getPlaceholders = (value) => {
+    placeHolders.value = value
+    console.log(placeHolders.value)
+  }
+
   const titleText = ref(null)
   const messageText = ref(null)
+
+  const textBox = ref([])
+
+  const addChipToTitle = (placeholder) =>{
+    const inputElement = titleText.value // Get the input element from the ref
+    const cursorPosition = inputElement.selectionStart; // Get the cursor position
+
+    // Insert the chip text at the cursor position
+    const beforeCursor = title.value.substring(0, cursorPosition);
+    const afterCursor = title.value.substring(cursorPosition);
+    if (title.value.length){
+      title.value = `${beforeCursor}{${placeholder}}${afterCursor}`;
+    }
+    else {
+      title.value = `{${placeholder}} `;
+    }
+
+    // Update the cursor position to be right after the inserted chip
+    const newCursorPosition = cursorPosition + placeholder.length + 2; // +2 for the brackets
+    inputElement.selectionStart = newCursorPosition;
+    inputElement.selectionEnd = newCursorPosition;
+  }
+
+  const handleKeydown = (event) => {
+    const inputElement = titleText.value;
+    const cursorPosition = inputElement.selectionStart;
+
+    const beforeCursor = title.value.substring(0, cursorPosition);
+    const afterCursor = title.value.substring(cursorPosition);
+
+    // Check if the cursor is within a placeholder or at the end of a placeholder
+    const withinPlaceholder = /{[^}]*$/.test(beforeCursor) && /^[^}]*}/.test(afterCursor);
+    const atEndOfPlaceholder = /}$/.test(beforeCursor) && !/^{/.test(afterCursor);
+
+    if (withinPlaceholder || (event.key === 'Backspace' && atEndOfPlaceholder)) {
+      event.preventDefault(); // Prevent the default behavior
+
+      const startPos = beforeCursor.lastIndexOf('{');
+      const endPos = cursorPosition + (withinPlaceholder ? afterCursor.indexOf('}') + 1 : 0);
+
+      title.value = title.value.substring(0, startPos) + title.value.substring(endPos);
+      inputElement.selectionStart = startPos;
+      inputElement.selectionEnd = startPos;
+    }
+    // If left arrow key is pressed and cursor is within or at the end of a placeholder
+    else if (event.key === 'ArrowLeft' && (withinPlaceholder || atEndOfPlaceholder)) {
+      event.preventDefault(); // Prevent the default behavior
+
+      const startPos = beforeCursor.lastIndexOf('{');
+      inputElement.selectionStart = startPos;
+      inputElement.selectionEnd = startPos;
+    }
+    // If right arrow key is pressed and cursor is within a placeholder
+    else if (event.key === 'ArrowRight' && withinPlaceholder) {
+      event.preventDefault(); // Prevent the default behavior
+
+      const endPos = cursorPosition + afterCursor.indexOf('}') + 1;
+      inputElement.selectionStart = endPos;
+      inputElement.selectionEnd = endPos;
+    }
+    // For other keys, prevent editing within the placeholder
+    else if (withinPlaceholder) {
+      event.preventDefault();
+    }
+}
+
+
+
+
+
+const addChipToMessage = (placeholder) =>{
+  console.log(placeholder)
+    const inputElement = messageText.value // Get the input element from the ref
+    const cursorPosition = inputElement.selectionStart; // Get the cursor position
+
+    // Insert the chip text at the cursor position
+    const beforeCursor = message.value.substring(0, cursorPosition);
+    const afterCursor = message.value.substring(cursorPosition);
+    message.value = `${beforeCursor}{${placeholder}}${afterCursor}`;
+
+    // Update the cursor position to be right after the inserted chip
+    const newCursorPosition = cursorPosition + placeholder.length + 2; // +2 for the brackets
+    inputElement.selectionStart = newCursorPosition;
+    inputElement.selectionEnd = newCursorPosition;
+  }
+
+  const handleKeydownMessage = (event) => {
+    const inputElement = messageText.value;
+    const cursorPosition = inputElement.selectionStart;
+
+    const beforeCursor = message.value.substring(0, cursorPosition);
+    const afterCursor = message.value.substring(cursorPosition);
+
+    // Check if the cursor is within a placeholder or at the end of a placeholder
+    const withinPlaceholder = /{[^}]*$/.test(beforeCursor) && /^[^}]*}/.test(afterCursor);
+    const atEndOfPlaceholder = /}$/.test(beforeCursor) && !/^{/.test(afterCursor);
+
+    if (withinPlaceholder || (event.key === 'Backspace' && atEndOfPlaceholder)) {
+      event.preventDefault(); // Prevent the default behavior
+
+      const startPos = beforeCursor.lastIndexOf('{');
+      const endPos = cursorPosition + (withinPlaceholder ? afterCursor.indexOf('}') + 1 : 0);
+
+      message.value = message.value.substring(0, startPos) + message.value.substring(endPos);
+      inputElement.selectionStart = startPos;
+      inputElement.selectionEnd = startPos;
+    }
+    // If left arrow key is pressed and cursor is within or at the end of a placeholder
+    else if (event.key === 'ArrowLeft' && (withinPlaceholder || atEndOfPlaceholder)) {
+      event.preventDefault(); // Prevent the default behavior
+
+      const startPos = beforeCursor.lastIndexOf('{');
+      inputElement.selectionStart = startPos;
+      inputElement.selectionEnd = startPos;
+    }
+    // If right arrow key is pressed and cursor is within a placeholder
+    else if (event.key === 'ArrowRight' && withinPlaceholder) {
+      event.preventDefault(); // Prevent the default behavior
+
+      const endPos = cursorPosition + afterCursor.indexOf('}') + 1;
+      inputElement.selectionStart = endPos;
+      inputElement.selectionEnd = endPos;
+    }
+    // For other keys, prevent editing within the placeholder
+    else if (withinPlaceholder) {
+      event.preventDefault();
+    }
+}
+
+
+const showFilters = ref(false)
+
+const dateRecurring = [
+        { title: 'Click Me' },
+        { title: 'Click Me' },
+        { title: 'Click Me' },
+        { title: 'Click Me 2' },
+      ]
 
 </script>
 
 <template>
-  <!--Notification main page-->
+  <v-row>
+    
+    <v-col :cols="showFilters ? '9' : '12'">
   <v-card class="text-center text-sm-start pt-4">
     <VRow no-gutters class="align-center justify-space-between">
       <VCol cols="auto">
@@ -770,9 +896,11 @@ const router = useRouter()
         </v-btn>
       </VCol>
     </VRow>
+    
 
     <!--NOTIFICATION TABS-->
       <VRow no-gutters class="pl-5">
+        <VCols>
         <VTabs
           v-model="activeTab"
           show-arrows
@@ -786,34 +914,43 @@ const router = useRouter()
             {{ item.title }}
           </VTab>
         </VTabs>
+        </VCols>
+        <VCol class="d-flex justify-end pr-1">
+          <v-btn color="primary" variant="text" prepend-icon="bx-filter" @click="showFilters = !showFilters">
+            {{ showFilters ? 'Hide Filters' : 'Show Filters' }}
+          </v-btn>
+      </VCol>
       </VRow>
-    <!--END OF NOTIFICATION TABS-->
-
+    
+      
     <!--New Notification Modal-->
       <v-row justify="center"> 
         <v-dialog v-model="dialog" @click:outside="handleCloseNewNotificationModal" width="1024">
           <v-card>
             <v-row class="pl-13 pt-3">
-                  <v-col cols="12" sm="6" md="5">
-                    <v-card-title>
-                      <v-text-field 
-                        label="Add Title" 
-                        v-model="title" 
-                        variant="underlined"
-                        ref="titleText" 
-                      />
-                    </v-card-title>
-                  </v-col>
-                  <v-col class=" pt-10" cols="12" sm="6" md="2">
-            <Placeholder
-              @placeholder="updateTitle" 
-              :text="'Add field to title'" 
-              :body="title" 
-              :setRef="titleText"
-            />
-        </v-col>
-                  
-              </v-row>   
+              <v-col cols="12" sm="6" md="5">
+                <v-card-title>
+                  <v-text-field 
+                    label="Add Title" 
+                    v-model="title" 
+                    variant="underlined"
+                    ref="titleText"
+                    @keydown="handleKeydown"
+                  >
+                  </v-text-field >
+                </v-card-title>
+              </v-col>
+              <v-col class=" pt-10" cols="12" sm="6" md="2">
+                <Placeholder
+                  @selectedPlaceholder="addChipToTitle"
+                  @placeholderFields="getPlaceholders"
+                  :text="'Add field to title'" 
+                  :body="title" 
+                  :setRef="titleText"
+                />
+              </v-col>    
+            </v-row> 
+            
                 
             
             <!--NOTIFICATION TABS-->
@@ -831,6 +968,7 @@ const router = useRouter()
             {{ item.title }}
           </VTab>
         </VTabs>
+        
       </VRow>
     <!--END OF NOTIFICATION TABS-->
 
@@ -884,6 +1022,14 @@ const router = useRouter()
           />
         </v-col>
       </v-row>
+      <v-row class="pl-8 my-n3" v-if="activeNotificationModalTab === 'Scheduled'">
+        <v-col cols="12" sm="6" md="4">
+          <v-select
+              label="Recurring"
+              :items="['Every day', 'Every second day', 'Weekly', 'Monthly']"
+            ></v-select>
+          </v-col>
+        </v-row>
       <v-row class="my-n2">
         <v-col class="pl-10" cols="12" sm="6" md="4">
           <v-btn
@@ -932,7 +1078,8 @@ const router = useRouter()
         </v-col>
         <v-col cols="12" sm="6" md="4">
           <Placeholder
-              @placeholder="updateMessage" 
+              @selectedPlaceholder="addChipToMessage" 
+              @placeholderFields="getPlaceholders"
               :text="'Add field to message'" 
               :body="message" 
               :setRef="messageText"
@@ -946,9 +1093,8 @@ const router = useRouter()
           label="Message"
           ref="messageText" 
           auto-grow
-          model-value=""
           v-model="message"
-          @input="handleTextareaInput($event)"
+          @keydown="handleKeydownMessage"
         />
       </v-container>
           <v-card-actions>
@@ -1189,6 +1335,13 @@ const router = useRouter()
     </v-data-table>
   </div>
   </v-card>
+</v-col>
+<v-col cols="3">
+      <FilterDrawer 
+        :show.sync="showFilters"
+      />
+    </v-col>
+  </v-row>
 </template>
 
 <style lang="scss" scoped>
