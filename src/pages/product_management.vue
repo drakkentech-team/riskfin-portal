@@ -1,6 +1,6 @@
 <script setup>
-  import axios from 'axios';
-import { reactive, ref } from 'vue';
+import axios from 'axios';
+import { reactive, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 const router = useRouter()
 
@@ -18,6 +18,7 @@ const policyTabs = [
 
 
 const showAlert = ref(false)
+const isFormFieldFocused = ref(false);
 
 
 /*MODALS*/
@@ -31,7 +32,9 @@ const handleTabClick = (tabItem) => {
     data.value = responseData;
   }
   else if (tabItem === 'available') {
-    data.value = availableProdList;
+    // data.value = availableProdList; 
+    getPolicies();
+
   }
   else if (tabItem === 'disabled') {
     data.value = deletedProdList;
@@ -44,10 +47,28 @@ const handleDeletePolicy = (item) => {
   policyToBeDisabled.value = item
 }
 
+
 const data = ref([])
 
 const updateDialog = ref(false);
 const updateProductId = ref(null);
+
+const rules = {
+  policy_name: [(v) => !!v || 'Policy Name is required.'],
+  short_description: [(v) => !!v || 'Short Description is required.'],
+  long_description: [(v) => !!v || 'Long Description is required.'],
+  policy_premium: [
+    (v) => !!v || 'Policy Premium is required.',
+    (v) => /^\d+(\.\d+)?$/.test(v) || 'Policy Premium must be a numeric value.',
+  ],
+  // policy_premium: [(v) => !!v || 'Policy Premium is required.'],
+  // premium: value => {
+  //   const pattern = value?.length > 1 && /[0-9-]+/.test(value)
+  //   return pattern.test(value) || 'Premium needs to be a numerical value.'
+  // },
+};
+
+
 
 const validationError = ref('');
 const errorFields = reactive({
@@ -133,12 +154,17 @@ const restoreProduct = async (item) => {
         data.value[index].policy_detail_delete = 0;
       }
       deletedProdList = deletedProdList.filter(product => product.sid !== item.sid);
+      // getPolicies();
       data.value = deletedProdList;
+      // getPolicies();
+
     }
   } catch (error) {
     console.error('Error restoring product:', error);
   }
 };
+
+
 
 
 const form = reactive({
@@ -152,28 +178,29 @@ const form = reactive({
 
 const handleSaveProduct = async () => {
 
-  validationError.value = '';
-  for (const field in errorFields) {
-    errorFields[field] = false;
+  addValidationError.value = '';
+  for (const field in addErrorFields) {
+    addErrorFields[field] = false;
   }
 
-  if (!forms.policy_name) {
-    errorFields.policy_name = true;
+  if (!form.policy_name) {
+    addErrorFields.policy_name = true;
   }
-  if (!forms.short_description) {
-    errorFields.short_description = true;
+  if (!form.short_description) {
+    addErrorFields.short_description = true;
   }
-  if (!forms.long_description) {
-    errorFields.long_description = true;
+  if (!form.long_description) {
+    addErrorFields.long_description = true;
   }
-  if (!forms.policy_premium) {
-    errorFields.policy_premium = true;
+  if (!form.policy_premium) {
+    addErrorFields.policy_premium = true;
   }
 
-  if (Object.values(errorFields).some(fieldError => fieldError)) {
-    validationError.value = 'Please fill in all required fields.';
+  if (Object.values(addErrorFields).some(fieldError => fieldError)) {
+    addValidationError.value = 'Please fill in all required fields.';
     return;
   }
+
 
   try {
     const response = await axios.post(`http://localhost:9000/policy_details?`, {
@@ -194,11 +221,19 @@ const handleSaveProduct = async () => {
       setTimeout(() => {
         showAlert.value = false;
       }, 5000);
+
+      form.policy_name = null;
+      form.short_description = null;
+      form.long_description = null;
+      form.policy_premium = null;
+
       getPolicies();
+
     }
   } catch (error) {
     console.error('Error adding product:', error);
   }
+  // }
 };
 
 const showUpdateDialog = (item) => {
@@ -248,7 +283,7 @@ const handleUpdateProduct = async () => {
     validationError.value = 'Please fill in all required fields.';
     return;
   }
-  console.log(forms.policy_premium)
+  // console.log(forms.policy_premium)
   try {
     const response = await axios.put(`http://localhost:9000/update_policy_details?sid=${updateProductId.value}`, {
       policy_name: forms.policy_name,
@@ -268,7 +303,7 @@ const handleUpdateProduct = async () => {
         showAlert.value = false;
       }, 5000);
       getPolicies();
-    }    
+    }
   } catch (error) {
     console.error('Error updating product:', error);
   }
@@ -315,6 +350,7 @@ const handleInputScroll = () => {
 
 const handleInputFocus = () => {
   const textareaElement = document.querySelector('.scrollable-textarea');
+  isFormFieldFocused.value = true;
   if (textareaElement) {
     textareaElement.classList.remove('scrolled');
   }
@@ -322,13 +358,19 @@ const handleInputFocus = () => {
 
 const handleInputBlur = () => {
   const textareaElement = document.querySelector('.scrollable-textarea');
+  isFormFieldFocused.value = false;
   if (textareaElement && !textareaElement.value) {
     textareaElement.classList.remove('scrolled');
   }
 };
 
+watch(isFormFieldFocused, (newValue) => {
 
-
+  if (newValue) {
+    addValidationError.value = '';
+    validationError.value = '';
+  }
+});
 </script>
 
 <template>
@@ -379,31 +421,32 @@ const handleInputBlur = () => {
 
             <v-row>
               <v-col cols="12" sm="6" md="4">
-                <v-textarea label="Policy Name* " required v-model="form.policy_name" :error="addErrorFields.policy_name"
+                <v-textarea label="Policy Name* " v-model="form.policy_name" :rules="rules.policy_name"
                   @scroll="handleInputScroll" @focus="handleInputFocus" @blur="handleInputBlur" />
               </v-col>
 
               <v-col cols="12" sm="6" md="4">
-                <v-textarea v-model="form.short_description" label="Short Description*" required
-                  :error="addErrorFields.short_description" @scroll="handleInputScroll" @focus="handleInputFocus"
-                  @blur="handleInputBlur"></v-textarea>
+                <v-textarea v-model="form.short_description" label="Short Description*" :rules="rules.short_description"
+                  @scroll="handleInputScroll" @focus="handleInputFocus" @blur="handleInputBlur"></v-textarea>
               </v-col>
 
               <v-col cols="12" sm="6" md="4">
-                <v-textarea v-model="form.long_description" label="Long Description*" required
-                  :error="addErrorFields.long_description" @scroll="handleInputScroll" @focus="handleInputFocus"
-                  @blur="handleInputBlur"></v-textarea>
+                <v-textarea v-model="form.long_description" label="Long Description*" :rules="rules.long_description"
+                  @scroll="handleInputScroll" @focus="handleInputFocus" @blur="handleInputBlur"></v-textarea>
               </v-col>
 
               <v-col cols="12" sm="6" md="4">
-                <v-text-field v-model="form.policy_premium" label="Policy Premium*" required
-                  :error="addErrorFields.policy_premium" @scroll="handleInputScroll" @focus="handleInputFocus"
-                  @blur="handleInputBlur"></v-text-field>
+                <v-text-field v-model="form.policy_premium" label="Policy Premium*" :rules="rules.policy_premium"
+                  @scroll="handleInputScroll" @focus="handleInputFocus" @blur="handleInputBlur"></v-text-field>
               </v-col>
 
-              <v-alert type="error" title="Error" v-if="addValidationError">
+              <v-alert type="error" title="Error" v-if="!isFormFieldFocused && addValidationError">
                 {{ addValidationError }}
               </v-alert>
+
+              <!-- <v-alert type="error" title="Error" v-if="!isFormFieldFocused && addValidationError">
+                {{ addValidationError }}
+              </v-alert> -->
               <!-- <v-col cols="12" sm="6" md="4">
           <v-date-picker v-model="forms.premium_due_date" label="Premium Due Date*" required></v-date-picker>
         </v-col> -->
@@ -466,7 +509,7 @@ const handleInputBlur = () => {
         </tr>
       </thead>
       <tbody v-if="data.length > 0">
-        <tr v-for="item in data" :key="item.sid">
+        <tr v-for="item in data" :key="item.sid" class="clickable-row">
           <td @click="handleRowClick(item)">{{ item.policy_name }}</td>
           <td @click="handleRowClick(item)">{{ item.short_description }}</td>
           <td @click="handleRowClick(item)">{{ item.long_description }}</td>
@@ -521,29 +564,29 @@ const handleInputBlur = () => {
           <v-container>
             <v-row>
               <v-col cols="12" sm="6" md="4">
-                <v-textarea label="Policy Name* " required v-model="forms.policy_name" :error="errorFields.policy_name"
-                  @scroll="handleTextareaScroll" @focus="handleTextareaFocus" @blur="handleTextareaBlur" />
+                <v-textarea label="Policy Name* " required v-model="forms.policy_name" :rules="rules.policy_name"
+                  @scroll="handleInputScroll" @focus="handleInputFocus" @blur="handleInputBlur" />
               </v-col>
 
               <v-col cols="12" sm="6" md="4">
                 <v-textarea v-model="forms.short_description" label="Short Description*" required
-                  :error="errorFields.short_description" @scroll="handleTextareaScroll" @focus="handleTextareaFocus"
-                  @blur="handleTextareaBlur"></v-textarea>
+                  :rules="rules.short_description" @scroll="handleInputScroll" @focus="handleInputFocus"
+                  @blur="handleInputBlur"></v-textarea>
               </v-col>
 
               <v-col cols="12" sm="6" md="4">
                 <v-textarea v-model="forms.long_description" label="Long Description*" required
-                  :error="errorFields.long_description" @scroll="handleTextareaScroll" @focus="handleTextareaFocus"
-                  @blur="handleTextareaBlur"></v-textarea>
+                  :rules="rules.long_description" @scroll="handleInputScroll" @focus="handleInputFocus"
+                  @blur="handleInputBlur"></v-textarea>
               </v-col>
 
               <v-col cols="12" sm="6" md="4">
                 <v-text-field v-model="forms.policy_premium" label="Policy Premium*" required
-                  :error="errorFields.policy_premium" @scroll="handleTextareaScroll" @focus="handleTextareaFocus"
-                  @blur="handleTextareaBlur"></v-text-field>
+                  :rules="rules.policy_premium" @scroll="handleInputScroll" @focus="handleInputFocus"
+                  @blur="handleInputBlur"></v-text-field>
               </v-col>
 
-              <v-alert type="error" title="Error" v-if="validationError">
+              <v-alert type="error" title="Error" v-if="!isFormFieldFocused && validationError">
                 {{ validationError }}
               </v-alert>
               <!-- <v-col cols="12" sm="6" md="4">
@@ -576,6 +619,10 @@ const handleInputBlur = () => {
 </template>
 
 <style>
+tr.clickable-row {
+  cursor: pointer;
+}
+
 .button-container {
   display: flex;
   flex-wrap: wrap;
