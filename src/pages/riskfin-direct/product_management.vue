@@ -1,7 +1,9 @@
 <script setup>
 import axios from 'axios';
-import { reactive, ref, watch } from 'vue';
+import { useField, useForm } from 'vee-validate';
+import { reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
+
 const router = useRouter()
 
 const apiBaseUrl = "http://localhost:9000";
@@ -47,44 +49,85 @@ const handleDeletePolicy = (item) => {
   policyToBeDisabled.value = item
 }
 
-
 const data = ref([])
 
 const updateDialog = ref(false);
 const updateProductId = ref(null);
 
-const rules = {
-  policy_name: [(v) => !!v || 'Policy Name is required.'],
-  short_description: [(v) => !!v || 'Short Description is required.'],
-  long_description: [(v) => !!v || 'Long Description is required.'],
-  policy_premium: [
-    (v) => !!v || 'Policy Premium is required.',
-    (v) => /^\d+(\.\d+)?$/.test(v) || 'Policy Premium must be a numeric value.',
-  ],
-  // policy_premium: [(v) => !!v || 'Policy Premium is required.'],
-  // premium: value => {
-  //   const pattern = value?.length > 1 && /[0-9-]+/.test(value)
-  //   return pattern.test(value) || 'Premium needs to be a numerical value.'
-  // },
-};
+const { handleSubmit, handleReset } = useForm({
+  validationSchema: {
+    policy_name(value) {
+      if (value?.length >= 2) return true
+
+      return 'Policy name needs to be at least 2 characters.'
+    },
+    short_description(value) {
+      if (value?.length >= 2) return true
+
+      return 'Short description needs to be at least 2 characters.'
+    },
+    long_description(value) {
+      if (value?.length >= 2) return true
+
+      return 'Long description needs to be at least 2 characters.'
+    },
+    policy_premium(value) {
+      if (value?.length > 1 && /[0-9-]+/.test(value)) return true
+
+      return 'Policy premium number needs to be at least 1 digits.'
+    },
+    // checkbox(value) {
+    //   if (value === '1') return true
+
+    //   return 'Must be checked.'
+    // },
+  },
+})
+const policy_name = useField('policy_name')
+const short_description = useField('short_description')
+const long_description = useField('long_description')
+const policy_premium = useField('policy_premium')
+// const checkbox = useField('checkbox')
+
+
+// const submit = handleSubmit(values => {
+//   alert(JSON.stringify(values, null, 2))
+// })
+
+// const rules = [
+//   (value) => {
+//     if (value) return true;
+//     return 'This field is required.';
+//   },
+// ];
+
+// const rules = {
+//   policy_name: [(v) => !!v || 'Policy Name is required.'],
+//   short_description: [(v) => !!v || 'Short Description is required.'],
+//   long_description: [(v) => !!v || 'Long Description is required.'],
+//   policy_premium: [(v) => !!v || 'Policy Premium is required.'],
+// };
+
+// const validationErrorMessage = ref(false);
+// const addValidationErrorMessage = ref(false);
 
 
 
-const validationError = ref('');
-const errorFields = reactive({
-  policy_name: false,
-  short_description: false,
-  long_description: false,
-  policy_premium: false,
-});
+// const validationError = ref('');
+// const errorFields = reactive({
+//   policy_name: false,
+//   short_description: false,
+//   long_description: false,
+//   policy_premium: false,
+// });
 
-const addValidationError = ref('');
-const addErrorFields = reactive({
-  policy_name: false,
-  short_description: false,
-  long_description: false,
-  policy_premium: false,
-});
+// const addValidationError = ref('');
+// const addErrorFields = reactive({
+//   policy_name: false,
+//   short_description: false,
+//   long_description: false,
+//   policy_premium: false,
+// });
 
 
 let availableProdList = [];
@@ -176,39 +219,56 @@ const form = reactive({
 });
 
 
+// const v$ = useVuelidate(rules, form);
+
 const handleSaveProduct = async () => {
+  // if (!policy_name.v || !short_description.v ||
+  //   !long_description.v || !policy_premium.v) {
+  //   return addValidationError.value = true;
+  // }
+  // else {
 
-  addValidationError.value = '';
-  for (const field in addErrorFields) {
-    addErrorFields[field] = false;
-  }
+  // addValidationError.value = '';
+  // for (const field in addErrorFields) {
+  //   addErrorFields[field] = false;
+  // }
 
-  if (!form.policy_name) {
-    addErrorFields.policy_name = true;
-  }
-  if (!form.short_description) {
-    addErrorFields.short_description = true;
-  }
-  if (!form.long_description) {
-    addErrorFields.long_description = true;
-  }
-  if (!form.policy_premium) {
-    addErrorFields.policy_premium = true;
-  }
+  // if (!form.policy_name) {
+  //   addErrorFields.policy_name = true;
+  // }
+  // if (!form.short_description) {
+  //   addErrorFields.short_description = true;
+  // }
+  // if (!form.long_description) {
+  //   addErrorFields.long_description = true;
+  // }
+  // if (!form.policy_premium) {
+  //   addErrorFields.policy_premium = true;
+  // }
 
-  if (Object.values(addErrorFields).some(fieldError => fieldError)) {
-    addValidationError.value = 'Please fill in all required fields.';
-    return;
-  }
+  // if (Object.values(addErrorFields).some(fieldError => fieldError)) {
+  //   addValidationError.v = 'Please fill in all required fields.';
+  //   return;
+  // }
 
+  // const isValid = await $refs.form.validate();
+  // if (isValid) {
+
+  // v$.$touch(); // Mark all fields as touched to trigger validation
+
+  // if (v$.$error) {
+  //   // Validation failed
+  //   return;
+  // }
 
   try {
     const response = await axios.post(`http://localhost:9000/policy_details?`, {
-      policy_name: form.policy_name,
-      short_description: form.short_description,
-      long_description: form.long_description,
-      policy_premium: form.policy_premium,
-      premium_due_date: "2023-08-15",
+      // policy_name: form.policy_name,
+      // short_description: form.short_description,
+      // long_description: form.long_description,
+      // policy_premium: form.policy_premium,
+      // premium_due_date: "2023-08-15",
+      values
     }, {
       headers: {
         'Authorization': `Bearer ${bearerToken}`,
@@ -221,14 +281,7 @@ const handleSaveProduct = async () => {
       setTimeout(() => {
         showAlert.value = false;
       }, 5000);
-
-      form.policy_name = null;
-      form.short_description = null;
-      form.long_description = null;
-      form.policy_premium = null;
-
       getPolicies();
-
     }
   } catch (error) {
     console.error('Error adding product:', error);
@@ -261,29 +314,29 @@ const forms = reactive({
 // Function to handle updating the product
 const handleUpdateProduct = async () => {
 
-  validationError.value = '';
-  for (const field in errorFields) {
-    errorFields[field] = false;
-  }
+  // validationError.value = '';
+  // for (const field in errorFields) {
+  //   errorFields[field] = false;
+  // }
 
-  if (!forms.policy_name) {
-    errorFields.policy_name = true;
-  }
-  if (!forms.short_description) {
-    errorFields.short_description = true;
-  }
-  if (!forms.long_description) {
-    errorFields.long_description = true;
-  }
-  if (!forms.policy_premium) {
-    errorFields.policy_premium = true;
-  }
+  // if (!forms.policy_name) {
+  //   errorFields.policy_name = true;
+  // }
+  // if (!forms.short_description) {
+  //   errorFields.short_description = true;
+  // }
+  // if (!forms.long_description) {
+  //   errorFields.long_description = true;
+  // }
+  // if (!forms.policy_premium) {
+  //   errorFields.policy_premium = true;
+  // }
 
-  if (Object.values(errorFields).some(fieldError => fieldError)) {
-    validationError.value = 'Please fill in all required fields.';
-    return;
-  }
-  // console.log(forms.policy_premium)
+  // if (Object.values(errorFields).some(fieldError => fieldError)) {
+  //   validationError.value = 'Please fill in all required fields.';
+  //   return;
+  // }
+  console.log(forms.policy_premium)
   try {
     const response = await axios.put(`http://localhost:9000/update_policy_details?sid=${updateProductId.value}`, {
       policy_name: forms.policy_name,
@@ -353,6 +406,8 @@ const handleInputFocus = () => {
   isFormFieldFocused.value = true;
   if (textareaElement) {
     textareaElement.classList.remove('scrolled');
+    textareaElement.style.borderColor = 'rgba(0, 0, 0, 0.12) !important';
+
   }
 };
 
@@ -364,13 +419,7 @@ const handleInputBlur = () => {
   }
 };
 
-watch(isFormFieldFocused, (newValue) => {
 
-  if (newValue) {
-    addValidationError.value = '';
-    validationError.value = '';
-  }
-});
 </script>
 
 <template>
@@ -421,28 +470,29 @@ watch(isFormFieldFocused, (newValue) => {
 
             <v-row>
               <v-col cols="12" sm="6" md="4">
-                <v-textarea label="Policy Name* " v-model="form.policy_name" :rules="rules.policy_name"
-                  @scroll="handleInputScroll" @focus="handleInputFocus" @blur="handleInputBlur" />
+                <v-textarea label="Policy Name* " v-model="policy_name.value.value"
+                  :error-messages="name.errorMessage.value" :counter="10" />
+
               </v-col>
 
               <v-col cols="12" sm="6" md="4">
-                <v-textarea v-model="form.short_description" label="Short Description*" :rules="rules.short_description"
-                  @scroll="handleInputScroll" @focus="handleInputFocus" @blur="handleInputBlur"></v-textarea>
+                <v-textarea v-model="short_description.value.value" label="Short Description*"
+                  :error-messages="name.errorMessage.value"></v-textarea>
               </v-col>
 
               <v-col cols="12" sm="6" md="4">
-                <v-textarea v-model="form.long_description" label="Long Description*" :rules="rules.long_description"
-                  @scroll="handleInputScroll" @focus="handleInputFocus" @blur="handleInputBlur"></v-textarea>
+                <v-textarea v-model="long_description.value.value" label="Long Description*"
+                  :error-messages="name.errorMessage.value"></v-textarea>
               </v-col>
 
               <v-col cols="12" sm="6" md="4">
-                <v-text-field v-model="form.policy_premium" label="Policy Premium*" :rules="rules.policy_premium"
-                  @scroll="handleInputScroll" @focus="handleInputFocus" @blur="handleInputBlur"></v-text-field>
+                <v-text-field v-model="policy_premium.value.value" label="Policy Premium*"
+                  :error-messages="name.errorMessage.value" :counter="7"></v-text-field>
               </v-col>
 
-              <v-alert type="error" title="Error" v-if="!isFormFieldFocused && addValidationError">
+              <!-- <v-alert type="error" title="Error" v-if="!isFormFieldFocused && addValidationError">
                 {{ addValidationError }}
-              </v-alert>
+              </v-alert> -->
 
               <!-- <v-alert type="error" title="Error" v-if="!isFormFieldFocused && addValidationError">
                 {{ addValidationError }}
@@ -564,26 +614,34 @@ watch(isFormFieldFocused, (newValue) => {
           <v-container>
             <v-row>
               <v-col cols="12" sm="6" md="4">
-                <v-textarea label="Policy Name* " required v-model="forms.policy_name" :rules="rules.policy_name"
-                  @scroll="handleInputScroll" @focus="handleInputFocus" @blur="handleInputBlur" />
+                <textarea label="Policy Name* " required v-model="forms.policy_name"></textarea>
+                <p v-if="hasError" class="error-text">Textarea is required.</p>
+                <!-- <v-textarea label="Policy Name* " required v-model="forms.policy_name" :error="errorFields.policy_name"
+                  @scroll="handleInputScroll" @focus="handleInputFocus" @blur="handleInputBlur" /> -->
               </v-col>
 
               <v-col cols="12" sm="6" md="4">
-                <v-textarea v-model="forms.short_description" label="Short Description*" required
-                  :rules="rules.short_description" @scroll="handleInputScroll" @focus="handleInputFocus"
-                  @blur="handleInputBlur"></v-textarea>
+                <textarea v-model="forms.short_description" label="Short Description*"></textarea>
+                <p v-if="hasError" class="error-text">Textarea is required.</p>
+                <!-- <v-textarea v-model="forms.short_description" label="Short Description*" required
+                  :error="errorFields.short_description" @scroll="handleInputScroll" @focus="handleInputFocus"
+                  @blur="handleInputBlur"></v-textarea> -->
               </v-col>
 
               <v-col cols="12" sm="6" md="4">
-                <v-textarea v-model="forms.long_description" label="Long Description*" required
-                  :rules="rules.long_description" @scroll="handleInputScroll" @focus="handleInputFocus"
-                  @blur="handleInputBlur"></v-textarea>
+                <textarea v-model="forms.long_description" label="Long Description*"></textarea>
+                <p v-if="hasError" class="error-text">Textarea is required.</p>
+                <!-- <v-textarea v-model="forms.long_description" label="Long Description*" required
+                  :error="errorFields.long_description" @scroll="handleInputScroll" @focus="handleInputFocus"
+                  @blur="handleInputBlur"></v-textarea> -->
               </v-col>
 
               <v-col cols="12" sm="6" md="4">
-                <v-text-field v-model="forms.policy_premium" label="Policy Premium*" required
-                  :rules="rules.policy_premium" @scroll="handleInputScroll" @focus="handleInputFocus"
-                  @blur="handleInputBlur"></v-text-field>
+                <textarea v-model="forms.policy_premium" label="Policy Premium*"></textarea>
+                <p v-if="hasError" class="error-text">Textarea is required.</p>
+                <!-- <v-text-field v-model="forms.policy_premium" label="Policy Premium*" required
+                  :error="errorFields.policy_premium" @scroll="handleInputScroll" @focus="handleInputFocus"
+                  @blur="handleInputBlur"></v-text-field> -->
               </v-col>
 
               <v-alert type="error" title="Error" v-if="!isFormFieldFocused && validationError">
@@ -622,3 +680,19 @@ watch(isFormFieldFocused, (newValue) => {
 tr.clickable-row {
   cursor: pointer;
 }
+
+.button-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.scrollable-textarea-label {
+  display: none;
+}
+
+.scrollable-textarea::placeholder,
+.scrollable-textarea:focus::placeholder {
+  opacity: 0;
+}
+</style>

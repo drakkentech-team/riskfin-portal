@@ -10,10 +10,12 @@ import '@mdi/font/css/materialdesignicons.css'
 import '@styles/styles.scss'
 import { createPinia } from 'pinia'
 import { createApp } from 'vue'
+import 'vuetify/dist/vuetify.css'
+import store from './store'
 // import '@mdi/font/css/materialdesignicons.css';
 
-import VueDatepickerUi from 'vue-datepicker-ui'
-import 'vue-datepicker-ui/lib/vuedatepickerui.css'
+// import VueDatepickerUi from 'vue-datepicker-ui'
+// import 'vue-datepicker-ui/lib/vuedatepickerui.css'
 
 loadFonts()
 
@@ -26,8 +28,9 @@ const pinia = createPinia()
 app.use(vuetify)
 app.use(pinia)
 app.use(router)
+app.use(store)
 
 
 // Mount vue app
 app.mount('#app')
-app.component('Datepicker', VueDatepickerUi)
+// app.component('Datepicker', VueDatepickerUi)
