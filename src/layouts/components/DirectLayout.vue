@@ -28,7 +28,7 @@
         </template> -->
     <!-- </VerticalNavLayout> -->
     <!-- position: absolute; right: 0; bottom: 0; left: 0; -->
-    <footer style=" display: flex; justify-content: space-between; border: solid 2px black; margin-top: 0.5rem; background-color: #98142c;">
+    <footer style=" display: flex; justify-content: space-between; border: solid 2px black; margin-top: 0.5rem; background-color: #98142c; position: absolute; right: 0; bottom: 0; left: 0; ">
       <img src="/../riskfin-logo.png" alt="Riskfin Logo" style="width: 6%; margin-top: 0.5rem; background-color: white;" />
       <div>
         <div style=" padding-bottom: 2rem;text-align: center;">

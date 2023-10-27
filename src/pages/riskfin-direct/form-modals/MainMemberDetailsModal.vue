@@ -87,7 +87,7 @@
 
                     <div class="col-lg-8 d-flex align-items-center" style="margin-top: 0.5rem;">
                       <div class="col-lg-4" style="padding-right: 2.2rem;">
-                        <label for="Known As">KnownAs</label>
+                        <label for="KnownAs">Known As</label>
                       </div>
                       <!-- <div class="col-lg-8"> -->
                       <input tabindex="1" type="text" id="KnownAs" class="form-control" name="KnownAs"
@@ -102,7 +102,7 @@
 
                     <div class="col-lg-8 d-flex align-items-center" style="margin-top: 0.5rem;">
                       <div class="col-lg-4" style="padding-right: 5rem;">
-                        <label for="Type of Identity Document">Type of Identity <br> Document </label>
+                        <label for="TOD">Type of Identity <br> Document </label>
                       </div>
                       <!-- <div class="col-lg-8"> -->
                       <select class="form-control" id="TOD" name="TOD">
@@ -328,11 +328,19 @@
                   <p class="text-danger"> </p>
                   <p class=".bg-danger"> </p>
                   <br>
-                  <input type="button" style="background-color: #90162a;color: white;" id="btn_newRegInfoContinue"
+
+                  <input type="submit" style="background-color: #90162a; color: white;" id="btn_newRegInfoContinue"
+                    name="btn_newRegInfoContinue" class="btn btn-default" value="Edit" @click="startEditing" />
+
+                  <input type="button" style="background-color: #90162a; color: white;" id="btnCancel" name="btnCancel"
+                    class="btn btn-default" value="Save" @click="goBack" :disabled="!isEditing" />
+
+
+                  <!-- <input type="button" style="background-color: #90162a;color: white;" id="btn_newRegInfoContinue"
                     name="btn_newRegInfoContinue" class="btn btn-default" @click="toggleEditMode" :disabled="!editMode"
                     value="Edit">
                   <input type="button" style="background-color: #90162a;color: white;" id="btnCancel" name="btnCancel"
-                    class="btn btn-default" :disabled="!editMode" value="Save" @click="closeModal">
+                    class="btn btn-default" :disabled="!editMode" value="Save" @click="closeModal"> -->
                 </div>
               </div>
               <input type="hidden" id="hdn_newRegInfo" name="hdn_newRegInfo" value="">
@@ -377,7 +385,10 @@ export default {
       // Handle form submission logic here, e.g., updating userData
       // this.updateUserData(this.modalUserData); // Update user data using Vuex action
       // this.closeModal(); // Close the modal after form submission
-    }
+    },
+    startEditing() {
+      this.isEditing = true;
+    },
   },
   components: {
     Modal,

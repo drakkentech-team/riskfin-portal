@@ -316,6 +316,7 @@ export default {
         surname: this.storedData.Surname,
         idNumber: this.storedData.ID,
         date_of_birth: this.storedData.date_of_birth,
+        age: this.storedData.age,
       };
       console.log(childData);
       this.$store.dispatch('addChild', childData);

@@ -22,7 +22,7 @@
                       <!-- <input tabindex="1" type="text" id="FirstName" class="form-control" name="FirstName" value={{
                     $route.query.firstNames }}> -->
                       <input tabindex="1" type="text" id="firstNames" class="form-control" name="firstNames"
-                        v-model="modalSpouseData.name" />
+                        v-model="modalSpouseData.first_name" />
                       <div style="margin-left: 10px; color: red; font-size: 20px;" class="star" id="star" name="star">
                         <b>*</b>
                       </div>
@@ -78,7 +78,8 @@
                         <label for="BirthDate">Date of<br> Birth </label>
                       </div>
                       <!-- <div class="col-lg-8"> -->
-                      <input type="hidden" id="BirthDate" class="form-control" name="BirthDate" value="">
+                      <input type="hidden" id="BirthDate" class="form-control" name="BirthDate"
+                        v-model="modalSpouseData.date_of_birth">
                       <input style="width: 70px;margin-right: 10px;" type="text" id="Year" class="form-control"
                         name="Year" value="YYYY"> <input style="width: 50px;margin-right: 10px;" type="text" id="Month"
                         class="form-control" name="Month" value="MM"> <input style="width: 50px;" type="text" id="Date"
@@ -94,7 +95,7 @@
                         <label for="Age">Age </label>
                       </div>
                       <!-- <div class="col-lg-8"> -->
-                      <input type="text" id="Age" class="form-control" name="Age" value="">
+                      <input type="text" id="Age" class="form-control" name="Age" v-model="modalSpouseData.age">
                       <div style="clear: both;"></div>
                       <p class="text-danger"> </p>
                       <p class=".bg-danger">

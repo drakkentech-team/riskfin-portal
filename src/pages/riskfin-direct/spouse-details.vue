@@ -130,7 +130,7 @@
                     <label for="Age">Age </label>
                   </div>
                   <!-- <div class="col-lg-8"> -->
-                  <input type="text" id="Age" class="form-control" name="Age" value="">
+                  <input type="text" id="Age" class="form-control" name="Age" v-model="storedData.Age">
                   <div style="clear: both;"></div>
                   <p class="text-danger"> </p>
                   <p class=".bg-danger">
@@ -234,6 +234,7 @@ export default {
         year: '',
         month: '',
         date: '',
+        Age: '',
 
       },
     };
@@ -305,6 +306,7 @@ export default {
           type_of_identity_document: this.storedData.type_of_identity_document,
           riskfin_direct_user_fk: "1",
           date_of_birth: this.storedData.date_of_birth,
+          age: this.storedData.Age,
         };
 
         // Dispatch an action to update the Vuex store with the spouse data
@@ -317,6 +319,7 @@ export default {
           id: this.storedData.ID,
           riskfin_direct_user_fk: "1",
           date_of_birth: this.storedData.date_of_birth,
+          age: this.storedData.Age,
         };
 
         // Send a POST request using Axios

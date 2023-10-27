@@ -62,7 +62,7 @@
       <div style="max-width: 90%; margin: 0 10% 1rem;">
         <!-- <h1 style="margin-top: 2rem; margin-bottom: 10px; color: #262626; text-align: center;">Please Enter Main Member
       Details</h1> -->
-        <form @submit.prevent="nextPage" action="./spouse-details" method="POST">
+        <form @submit.prevent="" action="" method="POST">
           <fieldset>
 
             <div class="form-group">
@@ -74,12 +74,12 @@
                   <div class="row align-items-center">
                     <div class="col-lg-8 d-flex align-items-center" style="margin-top: 0.5rem;">
                       <div class="col-lg-4" style="padding-right: 3rem;">
-                        <label for="First Names">First <br> Names</label>
+                        <label for="firstNames">First <br> Names</label>
                       </div>
                       <!-- <input tabindex="1" type="text" id="FirstName" class="form-control" name="FirstName" value={{
                     $route.query.firstNames }}> -->
                       <input tabindex="1" type="text" id="firstNames" class="form-control" name="firstNames"
-                        v-model="modalUserData.name" />
+                        v-model="modalUserData.first_name" />
                       <div style="margin-left: 10px; color: red; font-size: 20px;" class="star" id="star" name="star">
                         <b>*</b>
                       </div>
@@ -87,10 +87,11 @@
 
                     <div class="col-lg-8 d-flex align-items-center" style="margin-top: 0.5rem;">
                       <div class="col-lg-4" style="padding-right: 2.2rem;">
-                        <label for="Known As">KnownAs</label>
+                        <label for="KnownAs">KnownAs</label>
                       </div>
                       <!-- <div class="col-lg-8"> -->
-                      <input tabindex="1" type="text" id="KnownAs" class="form-control" name="KnownAs" value="">
+                      <input tabindex="1" type="text" id="KnownAs" class="form-control" name="KnownAs"
+                        v-model="modalUserData.known_as">
                       <div style=" padding-left: 10px; margin-left: 5px; color: red;float: inline-start; font-size: 20px;"
                         class="star" id="star" name="star"><b>*</b></div>
                       <div style="clear: both;"></div>
@@ -99,23 +100,41 @@
                       </p>
                     </div>
 
-                    <div class="col-lg-8 d-flex align-items-center" style="margin-top: 0.5rem;">
+                    <!-- <div class="col-lg-8 d-flex align-items-center" style="margin-top: 0.5rem;">
                       <div class="col-lg-4" style="padding-right: 5rem;">
                         <label for="Type of Identity Document">Type of Identity <br> Document </label>
                       </div>
-                      <!-- <div class="col-lg-8"> -->
-                      <select class="form-control" id="TOD" name="TOD">
-                        <option value="-1">Type Of Doc</option>
-                        <option selected="" value="0">RSA</option>
-                        <option value="1">Passport</option>
-                        <option value="2">Other</option>
+                      -- <div class="col-lg-8"> --
+                    <select class="form-control" id="TOD" name="TOD">
+                      <option value="-1">Type Of Doc</option>
+                      <option selected="" value="0">RSA</option>
+                      <option value="1">Passport</option>
+                      <option value="2">Other</option>
+                    </select>
+                    <div style=" padding-left: 10px; margin-left: 5px; color: red;float: inline-start; font-size: 20px;"
+                      id="star" class="star" name="star"><b>*</b></div>
+                    <div style="clear: both;"></div>
+                    <p class="text-danger"> </p>
+                    <p class=".bg-danger">
+                    </p>
+                  </div> -->
+
+                    <div class="col-lg-8 d-flex align-items-center" style="margin-top: 0.5rem;">
+                      <div class="col-lg-4" style="padding-right: 5rem;">
+                        <label for="type_of_identity_document">Type of Identity <br> Document</label>
+                      </div>
+                      <select class="form-control" id="type_of_identity_document" name="type_of_identity_document"
+                        required v-model="modalUserData.type_of_identity_document">
+                        <option value="">Select Type Of Document</option>
+                        <option value="RSA">RSA</option>
+                        <option value="Passport">Passport</option>
+                        <option value="Other">Other</option>
                       </select>
-                      <div style=" padding-left: 10px; margin-left: 5px; color: red;float: inline-start; font-size: 20px;"
+                      <div style="padding-left: 10px; margin-left: 5px; color: red; float: inline-start; font-size: 20px;"
                         id="star" class="star" name="star"><b>*</b></div>
                       <div style="clear: both;"></div>
-                      <p class="text-danger"> </p>
-                      <p class=".bg-danger">
-                      </p>
+                      <p class="text-danger"></p>
+                      <p class=".bg-danger"></p>
                     </div>
 
                     <div class="col-lg-8 d-flex align-items-center" style="margin-top: 0.5rem;">
@@ -143,13 +162,14 @@
                     </div>
                   </div>
 
-                  <div class="row">
+                  <!-- <div class="row">
                     <div class="col-lg-8 d-flex align-items-center" style="margin-top: 0.5rem;">
                       <div class="col-lg-4" style=" padding-right: 3.3rem;">
                         <label for="BirthDate">Date of<br> Birth </label>
                       </div>
-                      <!-- <div class="col-lg-8"> -->
-                      <input type="hidden" id="BirthDate" class="form-control" name="BirthDate" value="">
+                      -- <div class="col-lg-8"> --
+                      <input type="hidden" id="BirthDate" class="form-control" name="BirthDate"
+                        v-model="modalUserData.date_of_birth">
                       <input style="width: 70px;margin-right: 10px;" type="text" id="Year" class="form-control"
                         name="Year" value="YYYY"> <input style="width: 50px;margin-right: 10px;" type="text" id="Month"
                         class="form-control" name="Month" value="MM"> <input style="width: 50px;" type="text" id="Date"
@@ -158,14 +178,36 @@
                       <p class="text-danger"> </p>
                       <p class=".bg-danger">
                       </p>
+                    </div> -->
+
+
+                  <div class="row">
+                    <div class="col-lg-8 d-flex align-items-center" style="margin-top: 0.5rem;">
+                      <div class="col-lg-4" style=" padding-right: 4.5rem;">
+                        <label for="date_of_birth">Date of<br> Birth </label>
+                      </div>
+                      <input type="hidden" id="date_of_birth" class="form-control" name="date_of_birth"
+                        v-model="modalUserData.date_of_birth">
+                      <input style="width: 70px; margin-right: 10px;" type="text" id="Year" class="form-control"
+                        name="Year" v-model="modalUserData.year" placeholder="YYYY">
+                      <input style="width: 50px; margin-right: 10px;" type="text" id="Month" class="form-control"
+                        name="Month" v-model="modalUserData.month" placeholder="MM">
+                      <input style="width: 50px;" type="text" id="Date" class="form-control" name="Date"
+                        v-model="modalUserData.date" placeholder="DD">
+
+                      <div style="clear: both;"></div>
+                      <p class="text-danger"> </p>
+                      <p class=".bg-danger">
+                      </p>
                     </div>
+
 
                     <div class="col-lg-8 d-flex align-items-center" style="margin-top: 0.7rem;">
                       <div class="col-lg-4" style=" padding-right: 4.5rem;">
                         <label for="Age">Age </label>
                       </div>
                       <!-- <div class="col-lg-8"> -->
-                      <input type="text" id="Age" class="form-control" name="Age" value="">
+                      <input type="text" id="Age" class="form-control" name="Age" v-model="modalUserData.age">
                       <div style="clear: both;"></div>
                       <p class="text-danger"> </p>
                       <p class=".bg-danger">
@@ -232,7 +274,8 @@
                         <label for="H_Adr1">Address</label>
                       </div>
                       <!-- <div class="col-lg-8"> -->
-                      <input type="text" id="H_Adr1" class="form-control" name="H_Adr1" value="">
+                      <input type="text" id="H_Adr1" class="form-control" name="H_Adr1"
+                        v-model="modalUserData.address_line_1">
                       <div style="clear: both;"></div>
                       <p class="text-danger"> </p>
                       <p class=".bg-danger">
@@ -245,7 +288,8 @@
                         <!-- <label for="H_Adr1">Address Line 2</label> -->
                       </div>
                       <!-- <div class="col-lg-8"> -->
-                      <input type="text" id="H_Adr2" class="form-control" name="H_Adr2" value="">
+                      <input type="text" id="H_Adr2" class="form-control" name="H_Adr2"
+                        v-model="modalUserData.address_line_2">
                       <div style="clear: both;"></div>
                       <p class="text-danger"> </p>
                       <p class=".bg-danger">
@@ -258,7 +302,8 @@
                         <!-- <label for="H_Adr1">Address Line 3</label> -->
                       </div>
                       <!-- <div class="col-lg-8"> -->
-                      <input type="text" id="H_Adr3" class="form-control" name="H_Adr3" value="">
+                      <input type="text" id="H_Adr3" class="form-control" name="H_Adr3"
+                        v-model="modalUserData.address_line_3">
                       <div style="clear: both;"></div>
                       <p class="text-danger"> </p>
                       <p class=".bg-danger">
@@ -273,7 +318,7 @@
                         <label for="City">City </label>
                       </div>
                       <!-- <div class="col-lg-8"> -->
-                      <input type="text" id="P_Adr1" class="form-control" name="P_Adr1" value="">
+                      <input type="text" id="P_Adr1" class="form-control" name="P_Adr1" v-model="modalUserData.city">
                       <div style=" padding-left: 10px; margin-left: 5px; color: red;float: inline-start; font-size: 20px;"
                         class="star" id="star" name="star"><b>*</b></div>
                       <div style="clear: both;"></div>
@@ -309,10 +354,17 @@
                   <p class="text-danger"> </p>
                   <p class=".bg-danger"> </p>
                   <br>
-                  <input type="submit" style="background-color: #90162a;color: white;" id="btn_newRegInfoContinue"
+
+                  <input type="submit" style="background-color: #90162a; color: white;" id="btn_newRegInfoContinue"
+                    name="btn_newRegInfoContinue" class="btn btn-default" value="Edit" @click="startEditing" />
+                  <input type="button" style="background-color: #90162a; color: white;" id="btnCancel" name="btnCancel"
+                    class="btn btn-default" value="Save" @click="saveData" :disabled="!isEditing" />
+
+
+                  <!-- <input type="submit" style="background-color: #90162a;color: white;" id="btn_newRegInfoContinue"
                     name="btn_newRegInfoContinue" class="btn btn-default" value="Edit">
                   <input type="button" style="background-color: #90162a;color: white;" id="btnCancel" name="btnCancel"
-                    class="btn btn-default" value="Save" @click="goBack">
+                    class="btn btn-default" value="Save" @click="goBack"> -->
                 </div>
               </div>
               <input type="hidden" id="hdn_newRegInfo" name="hdn_newRegInfo" value="">
@@ -327,9 +379,10 @@
 </template>
 
 <script>
+import axios from 'axios';
 import { mapActions, mapGetters } from 'vuex';
 import Modal from '../help-modal.vue';
-
+const bearerToken = "1HW94aH3Gu9BNxqw2QnY4y7zMa1xwlm_rg2ZiA9tt3fu";
 
 export default {
   computed: {
@@ -338,6 +391,7 @@ export default {
   },
   data() {
     return {
+      isEditing: false,
       modalUserData: {},  // Initialize with the prop value
     };
   },
@@ -353,6 +407,61 @@ export default {
       // Handle form submission logic here, e.g., updating userData
       // After saving, you can emit another event to close the modal
       // this.$emit('close');
+    },
+    startEditing() {
+      this.isEditing = true;
+
+    },
+    async saveData(item) {
+
+      const postData = {
+
+        address_line_1: this.modalUserData.address_line_1,
+        address_line_2: this.modalUserData.address_line_2,
+        address_line_3: this.modalUserData.address_line_3,
+        age: this.modalUserData.age,
+        city: this.modalUserData.city,
+        date_of_birth: this.modalUserData.date_of_birth,
+        email: this.modalUserData.email,
+        first_name: this.modalUserData.first_name,
+        id: this.modalUserData.id,
+        known_as: this.modalUserData.known_as,
+        mobile_number: this.modalUserData.mobile_number,
+        // riskfin_direct_user_fk: "1",
+        surname: this.modalUserData.surname,
+        type_of_identity_document: this.modalUserData.type_of_identity_document,
+
+      };
+      console.log("in here");
+      console.log("modal data = ", this.modalUserData);
+      console.log("post data = ", this.postData);
+      try {
+        const response = await axios.put(`http://localhost:9000/update_riskfin_direct_user_details?sid=${item.sid}`, this.modalUserData, {
+          headers: {
+            'Authorization': `Bearer ${bearerToken}`,
+            'Content-Type': 'application/json',
+          },
+        });
+        // try {
+
+        //   const response = await fetch(`http://localhost:9000/update_riskfin_direct_user_details?sid=${item.sid}`, {
+        //     method: 'POST',
+        //     headers: {
+        //       'Content-Type': 'application/json',
+        //     },
+        //     body: JSON.stringify(this.modalUserData),
+        //   });
+
+        if (response.ok) {
+          // Database update was successful
+          this.isEditing = false;
+          this.modalUserData = { ...this.getUserData };
+        } else {
+          console.error('Database update failed.');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+      }
     },
   },
   components: {
