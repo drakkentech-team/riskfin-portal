@@ -120,7 +120,7 @@
                   </div> -->
 
                     <div class="col-lg-8 d-flex align-items-center" style="margin-top: 0.5rem;">
-                      <div class="col-lg-4" style="padding-right: 5rem;">
+                      <div class="col-lg-4" style="padding-right: 2rem;">
                         <label for="type_of_identity_document">Type of Identity <br> Document</label>
                       </div>
                       <select class="form-control" id="type_of_identity_document" name="type_of_identity_document"
@@ -355,10 +355,11 @@
                   <p class=".bg-danger"> </p>
                   <br>
 
-                  <input type="submit" style="background-color: #90162a; color: white;" id="btn_newRegInfoContinue"
+                  <input type="button" style="background-color: #90162a; color: white;" id="btn_newRegInfoContinue"
                     name="btn_newRegInfoContinue" class="btn btn-default" value="Edit" @click="startEditing" />
                   <input type="button" style="background-color: #90162a; color: white;" id="btnCancel" name="btnCancel"
-                    class="btn btn-default" value="Save" @click="saveData" :disabled="!isEditing" />
+                    class="btn btn-default" value="Save" @click="saveData" disabled :disabled="!isEditing" />
+                  <!-- <button type="button" style="background-color: #90162a; color: white;" class="btn btn-default" id="btnCancel" disabled>Save</button> -->
 
 
                   <!-- <input type="submit" style="background-color: #90162a;color: white;" id="btn_newRegInfoContinue"
@@ -395,21 +396,47 @@ export default {
       modalUserData: {},  // Initialize with the prop value
     };
   },
+
   props: {
     // userData: Object, // Accept userData as a prop
     isOpen: Boolean, // Control whether the modal is open or not
   },
   methods: {
-    closeModal() {
-      this.$emit('close'); // Emit a custom event to close the modal
-    },
+    // closeModal() {
+    //   this.$emit('close'); // Emit a custom event to close the modal
+    // },
     submitForm() {
       // Handle form submission logic here, e.g., updating userData
       // After saving, you can emit another event to close the modal
       // this.$emit('close');
     },
-    startEditing() {
+    async startEditing() {
       this.isEditing = true;
+      try {
+        const response = await axios.get(`http://localhost:9000/riskfin_direct_user_infomration`, {
+          headers: {
+            'Authorization': `Bearer ${bearerToken}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (response && response.status === 200) {
+          console.log(response.data)
+          console.log(response.data.user_data)
+          console.log(response.data.user_data)
+
+          const user_data = response.data.user_data
+          // const sids = user_data.map(item => item.sid);
+          // console.log(sids);
+          // Database update was successful
+          this.isEditing = false;
+        } else {
+          console.error('Database update failed.');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+      }
+
 
     },
     async saveData(item) {
@@ -477,6 +504,10 @@ export default {
 <style lang="scss">
 input {
   inline-size: 5vw;
+}
+
+select {
+  inline-size: 10vw;
 }
 
 .scrollable-content {

@@ -72,7 +72,7 @@
     </v-card>
   </v-dialog>
 </template>
-  
+
 <script>
 import { mapActions, mapGetters } from 'vuex';
 
@@ -103,4 +103,3 @@ export default {
   },
 };
 </script>
-  

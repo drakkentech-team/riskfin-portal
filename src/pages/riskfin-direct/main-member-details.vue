@@ -75,7 +75,7 @@
                 </div> -->
 
                 <div class="col-lg-8 d-flex align-items-center" style="margin-top: 0.5rem;">
-                  <div class="col-lg-4" style="padding-right: 5rem;">
+                  <div class="col-lg-4" style="padding-right: 3.6rem;">
                     <label for="type_of_identity_document">Type of Identity <br> Document</label>
                   </div>
                   <select class="form-control" id="type_of_identity_document" name="type_of_identity_document" required
@@ -355,12 +355,37 @@ export default {
     };
   },
 
+  //  watch: {
+  //   idNumber(newValue) {
+  //     // Call a method to extract the date from the ID number
+  //     const extractedDate = this.extractDateFromID(newValue);
+
+  //     if (extractedDate) {
+  //       // Split the date into year, month, and day
+  //       const dateParts = extractedDate.split('-');
+
+  //       // Update the date fields with the extracted values
+  //       this.storedData.date_of_birth = extractedDate;
+  //       this.storedData.year = dateParts[0];
+  //       this.storedData.month = dateParts[1];
+  //       this.storedData.date = dateParts[2];
+  //     }
+  //   }
+  // },
+
   methods: {
 
     updateDateOfBirth() {
       this.storedData.date_of_birth = `${this.storedData.year}-${this.storedData.month}-${this.storedData.date}`;
     },
 
+    // extractDateFromID(idNumber) {
+    //   // Implement your logic to extract the date from the ID number
+    //   // and return it in the 'YYYY-MM-DD' format.
+    //   // Replace this with your actual extraction logic.
+    //   return 'YYYY-MM-DD';
+    // }
+    // }
 
     async nextPage() {
       this.storedData.first_name = this.getUserData.name;
@@ -727,7 +752,8 @@ export default {
   content: " ";
 }
 
-input {
+input,
+select {
   padding: 4px;
   border: 0.2px solid #ccc;
   border-radius: 4px;

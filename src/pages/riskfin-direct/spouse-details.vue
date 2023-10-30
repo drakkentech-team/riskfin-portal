@@ -54,7 +54,7 @@
                 </div> -->
 
                 <div class="col-lg-8 d-flex align-items-center" style="margin-top: 0.5rem;">
-                  <div class="col-lg-4" style="padding-right: 5rem;">
+                  <div class="col-lg-4" style="padding-right: 3.6rem;">
                     <label for="type_of_identity_document">Type of Identity <br> Document</label>
                   </div>
                   <select class="form-control" id="type_of_identity_document" name="type_of_identity_document" required
@@ -376,7 +376,8 @@ export default {
   content: " ";
 }
 
-input {
+input,
+select {
   padding: 4px;
   border: 0.2px solid #ccc;
   border-radius: 4px;

@@ -329,11 +329,11 @@
                   <p class=".bg-danger"> </p>
                   <br>
 
-                  <input type="submit" style="background-color: #90162a; color: white;" id="btn_newRegInfoContinue"
-                    name="btn_newRegInfoContinue" class="btn btn-default" value="Edit" @click="startEditing" />
+                  <input type="button" style="background-color: #90162a; color: white;" class="btn btn-default"
+                    value="Edit" @click="startEditing" />
 
-                  <input type="button" style="background-color: #90162a; color: white;" id="btnCancel" name="btnCancel"
-                    class="btn btn-default" value="Save" @click="goBack" :disabled="!isEditing" />
+                  <input type="button" style="background-color: #90162a; color: white;" class="btn btn-default"
+                    value="Save" @click="goBack" :disabled="!isEditing" />
 
 
                   <!-- <input type="button" style="background-color: #90162a;color: white;" id="btn_newRegInfoContinue"
