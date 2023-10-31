@@ -21,15 +21,15 @@ const handleSaveNotification = async () => {
       message: form.message,
       user_id: form.user_id,
     })
-    
-    
+
+
     if (response && response.status === 200) {
       showAlert.value = true
       setTimeout(() => {
         showAlert.value = false;
       }, 5000);
-    } 
-  } 
+    }
+  }
   catch (error) {
     if (error.response && error.response.status === 404) {
       errorMessage.value = 'This user does not exist'
@@ -37,7 +37,7 @@ const handleSaveNotification = async () => {
     else if (error.response && error.response.status === 401) {
       errorMessage.value = 'Your password is incorrect'
     }
-  } 
+  }
 }
 </script>
 

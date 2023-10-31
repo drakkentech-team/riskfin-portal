@@ -1,105 +1,107 @@
 <template>
-  <v-dialog v-model="isOpen" max-width="500">
-    <v-card>
-      <v-card-title class="text-h2 text-center">Main Member Details</v-card-title>
-      <v-card-text>
-        <v-form @submit.prevent="saveData">
-          <v-row>
-            <v-col cols="6">
-              <v-text-field v-model="modalUserData.first_name" label="First Names" required></v-text-field>
-            </v-col>
-            <v-col cols="6">
-              <v-text-field v-model="modalUserData.known_as" label="Known As" required></v-text-field>
-            </v-col>
-            <v-col cols="6">
-              <v-select v-model="modalUserData.type_of_identity_document" label="Type of Identity Document"
-                :items="['RSA', 'Passport', 'Other']" required></v-select>
-            </v-col>
-            <v-col cols="6">
-              <v-text-field v-model="modalUserData.id" label="Identity Number" required></v-text-field>
-            </v-col>
-            <v-col cols="12">
-              <v-row>
-                <v-col cols="4">
-                  <v-text-field v-model="modalUserData.year" label="Year" placeholder="YYYY"></v-text-field>
-                </v-col>
-                <v-col cols="4">
-                  <v-text-field v-model="modalUserData.month" label="Month" placeholder="MM"></v-text-field>
-                </v-col>
-                <v-col cols="4">
-                  <v-text-field v-model="modalUserData.date" label="Date" placeholder="DD"></v-text-field>
-                </v-col>
-              </v-row>
-            </v-col>
-            <v-col cols="6">
-              <v-text-field v-model="modalUserData.age" label="Age"></v-text-field>
-            </v-col>
-            <v-col cols="6">
-              <v-text-field v-model="modalUserData.mobile_number" label="Contact Phone Number" required></v-text-field>
-            </v-col>
-            <v-col cols="6">
-              <v-text-field v-model="modalUserData.email" label="Email Address" required></v-text-field>
-            </v-col>
-            <v-col cols="6">
-              <v-text-field v-model="modalUserData.surname" label="Surname" required></v-text-field>
-            </v-col>
-            <v-col cols="6">
-              <v-text-field v-model="modalUserData.address_line_1" label="Address"></v-text-field>
-            </v-col>
-            <v-col cols="6">
-              <v-text-field v-model="modalUserData.address_line_2" label="Address Line 2"></v-text-field>
-            </v-col>
-            <v-col cols="6">
-              <v-text-field v-model="modalUserData.address_line_3" label="Address Line 3"></v-text-field>
-            </v-col>
-            <v-col cols="6">
-              <v-text-field v-model="modalUserData.city" label="City" required></v-text-field>
-            </v-col>
-          </v-row>
-          <p class="text-red">* Indicates Mandatory fields</p>
-          <v-row>
-            <v-col cols="12" class="text-center">
-              <v-btn color="red" dark @click="startEditing" v-if="!isEditing">
-                Edit
-              </v-btn>
-              <v-btn color="red" dark @click="saveData" :disabled="!isEditing">
-                Save
-              </v-btn>
-            </v-col>
-          </v-row>
-        </v-form>
-      </v-card-text>
-    </v-card>
-  </v-dialog>
-</template>
-
-<script>
-import { mapActions, mapGetters } from 'vuex';
-
-export default {
-  computed: {
-    ...mapGetters(['getUserData']),
-    ...mapActions(['updateUserData']),
-  },
-  data() {
-    return {
-      isEditing: false,
-      modalUserData: {},
-    };
-  },
-  props: {
-    isOpen: Boolean,
-  },
-  methods: {
-    async startEditing() {
-      this.isEditing = true;
-      // Fetch the user data and populate modalUserData here
+    <v-container>
+      <!-- Progress Bar -->
+      <div class="progress-bar">
+        <div class="step" v-for="(step, index) in steps" :key="index">
+          {{ step }}
+          <div class="step-indicator" :class="{ done: index < currentStep }"></div>
+        </div>
+      </div>
+  
+      <!-- Loading Progress -->
+      <div id="progress" style="width: 100%; border: 2px solid rgb(204, 204, 204); display: none;">
+        <div class="progress-bar progress-bar-striped active" role="progressbar" id="progressBar" aria-valuenow="100"
+             aria-valuemin="0" aria-valuemax="100" style="width: 100%; display: none;">
+          Loading ...
+        </div>
+      </div>
+  
+      <!-- Policy Details Form -->
+      <div style="max-width: 90%; margin: 0 10%;">
+        <h1 style="margin-top: 2rem; margin-bottom: 10px; color: #262626; text-align: center;">Policy Details</h1>
+        <form @submit.prevent="nextPage" action="./debit-order-details" method="POST">
+          <!-- Form Content Goes Here -->
+        </form>
+      </div>
+    </v-container>
+  </template>
+  
+  <script>
+  import { mapGetters } from 'vuex';
+  import MainMemberDetailsModal from './form-modals/MainMemberDetailsModal.vue';
+  import ChildDetailsModal from './form-modals/ChildModal.vue';
+  import SpouseDetailsModal from './form-modals/SpouseModal.vue';
+  
+  export default {
+    computed: {
+      ...mapGetters(['getUserData', 'getSpouseData', 'getChildData', 'getSelectedPremium', 'getSelectedCover']),
+      totalPremium() {
+        const premiumValue = parseFloat(this.getSelectedPremium);
+        const administrationValue = 10.00;
+        const total = premiumValue + administrationValue;
+        return total.toFixed(2);
+      }
     },
-    async saveData() {
-      // Save the modalUserData to the server
-      // Update this.modalUserData after a successful save
-      // Set this.isEditing = false
+    data() {
+      return {
+        currentStep: 4,
+        steps: ["Step 1", "Step 2", "Step 3", "Step 4", "Step 5", "Done"],
+        isMainMemberDetailsModalOpen: false,
+        isChildDetailsModalOpen: false,
+        isSpouseDetailsModalOpen: false,
+      };
     },
-  },
-};
-</script>
+    methods: {
+      nextPage() {
+        this.$router.push('./debit-order-details');
+      },
+      goBack() {
+        this.$router.go(-1);
+      },
+      openMainMemberDetailsModal() {
+        this.isMainMemberDetailsModalOpen = true;
+      },
+      editMemberData(userData) {
+        this.isMainMemberDetailsModalOpen = true;
+      },
+      openChildDetailsModal() {
+        this.isChildDetailsModalOpen = true;
+      },
+      editChildData(child) {
+        this.isChildDetailsModalOpen = true;
+      },
+      openSpouseDetailsModal() {
+        this.isSpouseDetailsModalOpen = true;
+      },
+      editSpouseData(spouseData) {
+        this.isSpouseDetailsModalOpen = true;
+      },
+      closeMainMemberDetailsModal() {
+        this.isMainMemberDetailsModalOpen = false;
+      },
+      closeChildDetailsModal() {
+        this.isChildDetailsModalOpen = false;
+      },
+      closeSpouseDetailsModal() {
+        this.isSpouseDetailsModalOpen = false;
+      },
+    },
+    components: {
+      MainMemberDetailsModal,
+      SpouseDetailsModal,
+      ChildDetailsModal,
+    },
+    created() {
+      this.userData = this.getUserData;
+      this.spouseData = this.getSpouseData;
+      this.childData = this.getChildData;
+      this.selectedCover = this.getSelectedCover;
+      this.selectedPremium = this.getSelectedPremium;
+    },
+  };
+  </script>
+  
+  <style lang="scss">
+  /* Your SCSS styles go here */
+  </style>
+  
