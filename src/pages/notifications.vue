@@ -3,18 +3,24 @@
 import { onMounted, ref } from 'vue';
 import 'vue-datepicker-ui/lib/vuedatepickerui.css';
 import { useRouter } from 'vue-router';
-import FilterDrawer from '../layouts/components/FilterDrawer.vue';
 import Placeholder from '../layouts/components/Placeholder.vue';
 import { formatDate } from "../utils/common";
 import config from "../utils/config";
+import VueDatePicker from '@vuepic/vue-datepicker';
+import '@vuepic/vue-datepicker/dist/main.css'
 
 const router = useRouter()
+
+const overlay = ref(false)
   
   const apiBaseUrl = "http://localhost:9000";
   const bearerToken = "1HW94aH3Gu9BNxqw2QnY4y7zMa1xwlm_rg2ZiA9tt3fu";
   
   const messageDueDays = ref(1);
   const date = ref(null)
+  const filterDate = ref()
+  const filterStartDate = ref()
+  const filterEndDate = ref()
   /*RULES*/
   const rules = {
     required: value => !!value || 'Required.',
@@ -93,6 +99,11 @@ const router = useRouter()
     { title: 'Selected', align: 'start', key: 'policySelected' },
   ])
 
+  const filterPolicyHeaders = ref([
+    { title: "Name", align: 'start', key: 'policy_name' , width: "350px"},
+    { title: 'Selected', align: 'start', key: 'policySelected' },
+  ])
+
   const data = ref([]);
   
   const dialog = ref(false);
@@ -101,7 +112,7 @@ const router = useRouter()
   const displayMessage = ref("");
   const firstTableData = ref([]);
   const itemsPerPage = ref(5);
-  const notificationsPerPage = ref(10);
+  const notificationsPerPage = ref(5);
   const textareaValue = ref("")
   const notificationHeaders = ref([
     { title: "Title", align: 'center', key: 'title', width: "250px"},
@@ -115,7 +126,6 @@ const router = useRouter()
 
   const headers= ref([{ title: "Name", align: 'start', key: 'name'},
                       { title: 'Email', align: 'start', key: 'email' },
-                      { title: 'Date Sent', align: 'start', key: 'date_sent' },
                       { title: 'Message Status', align: 'start', key: 'messageStatus'},
                       { title: 'Received On', align: 'start', key: 'received'},
                       { title: 'Read On', align: 'start', key: 'read'},
@@ -326,7 +336,7 @@ const router = useRouter()
       selectedPolicies.value.forEach(sid => {
         const policy = policyData.value.find(policy => policy.sid === sid);
         if (policy) {
-          userFkArrays.push(policy.user_fk);
+          userFkArrays.push(policy.user_detail_fk);
         }
       });
       const matchingUsers = [];
@@ -432,18 +442,18 @@ const router = useRouter()
       });
       if (response && response.status === 200) {
         const combinedPolicies = response.data.reduce((result, policy) => {
-          const key = `${policy.policy_name}-${policy.date_policy_details}`;
+          const key = `${policy.name}-${policy.date}`;
           if (!result[key]) {
             result[key] = {
-              sid: policy.sid_policy_details,
-              policy_name: policy.policy_name,
+              sid: policy.sid,
+              policy_name: policy.name,
               short_description: policy.short_description,
-              date_policy_details: policy.date_policy_details,
+              date_policy_details: policy.date,
               premium_due_date: policy.premium_due_date,
-              user_fk: [policy.user_fk],
+              user_detail_fk: [policy.user_detail_fk],
             };
           } else {
-            result[key].user_fk.push(policy.user_fk);
+            result[key].user_detail_fk.push(policy.user_detail_fk);
           }
           return result;
         }, {});
@@ -547,7 +557,7 @@ const router = useRouter()
             }
 
 
-            uniqueMessages[key].sids.push(message.user_fk);
+            uniqueMessages[key].sids.push(message.user_detail_fk);
             if (message.date_sent && !message.received_date &&
                 !message.read_date && !message.closed_date){
               uniqueMessages[key].messageStatus.push("Pending");
@@ -613,7 +623,7 @@ const router = useRouter()
   };
 
   const handleFlagClick = (id) => {
-    
+
     messageStatusModal.value = true;
     const clickedItem = data.value.find(item => item.id === id);
     displayMessageTitle.value = clickedItem.title
@@ -713,12 +723,149 @@ const router = useRouter()
     } 
   }
 
+
+
+
+  const filterData = async () => {
+    const format = (date) => {
+      const day = date.getDate();
+      const month = date.getMonth() + 1;
+      const year = date.getFullYear();
+
+      return `${year}-${month}-${day}`;
+    }
+    let policy = selectedPolicies.value;
+    let users = selectedUsers.value
+    var finalDate = []
+    if (filterStartDate.value && filterEndDate.value){
+      finalDate = [format(filterStartDate.value), format(filterEndDate.value)]
+    }
+    const payload = {
+      date_created: finalDate,
+      policy_fk: policy.map(String),
+      user_detail_fk: users.map(String),
+    }
+    try {
+      const response = await axios.post(`${config.local}/filter_messages`, payload, {
+        headers: {
+          'Authorization': `Bearer ${bearerToken}`,
+          'Content-Type': 'application/json'
+        }
+      })
+      if (response && response.status === 200) {
+        if (response.data) {
+          console.log(response.data.data)
+          const uniqueMessages = {};
+          let idCounter = 1;
+          response.data.data.forEach((message) => {
+            const key = message.template_fk;
+
+            if (!uniqueMessages[key]) {
+              uniqueMessages[key] = {
+                ...message,
+                count: 0,
+                sids: [],
+                messageStatus: [],
+                messageReceived:[],
+                read: [],
+                closed: [],
+                id: idCounter,
+                count_pending:0,
+                count_received:0,
+                count_opened:0,
+                count_closed:0
+              };
+              idCounter++;
+            }
+
+            uniqueMessages[key].count++;
+
+
+            if(message.received_date)
+            {
+              uniqueMessages[key].messageReceived.push(message.received_date)
+            }
+            else
+            {
+              uniqueMessages[key].messageReceived.push("Not yet received");
+            }
+
+            if(message.read_date)
+            {
+              uniqueMessages[key].read.push(message.read_date)
+            }
+            else
+            {
+              uniqueMessages[key].read.push("Not yet read");
+            }
+
+            if(message.closed_date)
+            {
+              uniqueMessages[key].closed.push(message.closed_date)
+            }
+            else
+            {
+              uniqueMessages[key].closed.push("Not yet closed");
+            }
+
+
+            uniqueMessages[key].sids.push(message.user_detail_fk);
+            if (message.date_sent && !message.received_date &&
+                !message.read_date && !message.closed_date){
+              uniqueMessages[key].messageStatus.push("Pending");
+              uniqueMessages[key].count_pending++;
+            }
+            else if (message.date_sent && message.received_date &&
+                !message.read_date && !message.closed_date){
+                  uniqueMessages[key].messageStatus.push("Received");
+                  uniqueMessages[key].count_received++;
+            }
+            else if (message.date_sent && message.received_date && 
+            message.read_date && !message.closed_date){
+                  uniqueMessages[key].messageStatus.push("Opened");
+                  uniqueMessages[key].count_received++;
+                  uniqueMessages[key].count_opened++;
+            }
+            else if (message.date_sent && message.received_date && 
+            message.read_date && message.closed_date){
+                  uniqueMessages[key].messageStatus.push("Closed");
+                  uniqueMessages[key].count_received++;
+                  uniqueMessages[key].count_opened++;
+                  uniqueMessages[key].count_closed++;
+            }
+          });
+          
+          const filteredMessages = Object.values(uniqueMessages);
+          filteredMessages.forEach(item => {
+            if (!item.date_sent) {
+              item.date_sent = "Not yet sent";
+            }
+          });
+          messageArray.value = filteredMessages.filter(message => message.flag === 'message');
+          scheduledMessageArray.value = filteredMessages.filter(message => message.flag === 'scheduled_message');
+          triggerMessageArray.value = filteredMessages.filter(message => message.flag === 'automated_message');
+          data.value = filteredMessages;
+          showFilters.value = false
+          console.log(data.value)
+        }
+      } 
+    } 
+    catch (error) {
+      if (error.response && error.response.status === 404) {
+        errorMessage.value = 'This user does not exist'
+      }
+      else if (error.response && error.response.status === 401) {
+        errorMessage.value = 'Your password is incorrect'
+      }
+    } 
+  }
+  
+
   onMounted(() => {
     fetchMessage();
     fetchUser();
     getMessageTemplate();
     getPolicies()
-    
   });
 
   const titleRef = ref(null)
@@ -877,12 +1024,43 @@ const dateRecurring = [
         { title: 'Click Me 2' },
       ]
 
+const filterItems = [
+    { text: 'Date', icon: 'mdi-calendar' },
+    { text: 'Notification', icon: 'mdi-email' },
+    { text: 'Organisation', icon:' heroicons:building-office-2' },
+    { text: 'Policy', icon: 'mdi-document' },
+    { text: 'User', icon: 'mdi-account' },
+  ]
+
+const search = ref("")
+const selectedFilter = ref('Date')
+console.log(selectedFilter)
+const handleFilterClick = (item) => {
+  selectedFilter.value = item.text;
+}
+
+watch(selectedFilter, (newValue, oldValue) => {
+  console.log(newValue)
+})
+
+const clearFilters = () => {
+  selectedPolicies.value = []
+  selectedUsers.value = []
+  fetchMessage();
+}
+
+const openDialog = () => {
+  selectedPolicies.value = []
+  selectedUsers.value = []
+  dialog.value = true;
+  
+}
 </script>
 
 <template>
   <v-row>
     
-    <v-col :cols="showFilters ? '9' : '12'">
+    <v-col cols="12">
   <v-card class="text-center text-sm-start pt-4">
     <VRow no-gutters class="align-center justify-space-between">
       <VCol cols="auto">
@@ -890,8 +1068,22 @@ const dateRecurring = [
           Notifications
         </VCardTitle>
       </VCol>
-      <VCol cols="auto pr-5">
-        <v-btn color="primary" prepend-icon="ic:round-plus" @click="dialog=true"  >
+
+      <VCol cols="12" sm="6" md="3" class="d-flex justify-end">
+        
+      </VCol>
+
+      <VCol cols="12" sm="8" md="6" lg="4" class="d-flex justify-end pr-5">
+        <v-text-field
+        v-model="search"
+        class="pr-5"
+        density="compact"
+        prepend-inner-icon="mdi-magnify"
+        label="Type to search"
+        single-line
+        hide-details
+      ></v-text-field>
+        <v-btn color="primary" prepend-icon="ic:round-plus" @click="openDialog"  >
           Add New Notification
         </v-btn>
       </VCol>
@@ -899,28 +1091,25 @@ const dateRecurring = [
     
 
     <!--NOTIFICATION TABS-->
-      <VRow no-gutters class="pl-5">
-        <VCols>
-        <VTabs
-          v-model="activeTab"
-          show-arrows
-          class="custom-tabs"
-        >
-          <VTab
-            v-for="item in activeNotificationTabs"
-            :key="item.icon"
-            :value="item.tab"
-          >
+    <VRow no-gutters class="pl-5">
+      <v-col cols="12" sm="6" md="8" lg="8">
+        <VTabs v-model="activeTab" show-arrows class="custom-tabs">
+          <VTab v-for="item in activeNotificationTabs" :key="item.icon" :value="item.tab">
             {{ item.title }}
           </VTab>
         </VTabs>
-        </VCols>
-        <VCol class="d-flex justify-end pr-1">
-          <v-btn color="primary" variant="text" prepend-icon="bx-filter" @click="showFilters = !showFilters">
-            {{ showFilters ? 'Hide Filters' : 'Show Filters' }}
-          </v-btn>
+      </v-col>
+      <VCol cols="12" sm="6" md="2" lg="2" class="d-flex justify-end"> <!-- Notice md="1" for 1/12 of the grid -->
+        <v-btn color="primary" variant="text" prepend-icon="bx-filter" @click="showFilters = !showFilters">
+          {{ showFilters ? 'Hide Filters' : 'Show Filters' }}
+        </v-btn>
       </VCol>
-      </VRow>
+      <VCol cols="12" sm="6" md="2" class="d-flex justify-end pr-1"> <!-- Again, md="1" for 1/12 of the grid -->
+        <v-btn color="primary" variant="text" @click="clearFilters">
+          Clear Filters
+        </v-btn>
+      </VCol>
+    </VRow>
     
       
     <!--New Notification Modal-->
@@ -1199,6 +1388,109 @@ const dateRecurring = [
         </v-dialog>
       </v-row>
     <!--End of Add Users Modal-->
+    
+
+
+
+    
+
+    <v-row justify="center"> 
+        <v-dialog v-model="s" width="800">
+          <v-card>
+            <v-container fluid>
+              <v-row>
+              <v-col cols="4">
+                <v-navigation-drawer
+                  permanent
+                  location="left"
+                >
+              
+              <v-list density="compact" nav>
+                <v-list-item
+                  v-for="(item, i) in filterItems"
+                  :key="i"
+                  :value="item"
+                  color="primary"
+                  rounded="xl"
+                  @click="handleFilterClick(item)"
+                  :active-class="selectedFilter"
+                >
+
+                  <template v-slot:prepend>
+                    <v-icon :icon="item.icon"></v-icon>
+                  </template>
+
+                  <v-list-item-title v-text="item.text"></v-list-item-title>
+                </v-list-item>
+              </v-list>
+            </v-navigation-drawer>
+            
+          
+            <v-main style=" width: 500px;height: 550px;"></v-main>
+          </v-col>
+          <v-col cols="8" md="4" class="d-flex flex-column align-start">
+            <div v-if="selectedFilter === 'Date'">
+              <v-card-title class="pb-7">
+                <span class="text-h7 ">Select a date range</span>
+            </v-card-title>
+            
+              <span class="text-h7 pb-5 pl-6">Start Date:</span>
+              <VueDatePicker 
+                class="pl-6 pb-6"
+                v-model="filterStartDate"
+                auto-apply
+                placeholder="Select start date"
+                :enable-time-picker="false"
+                />
+                <span class="text-h7 pl-6">End Date:</span>
+              <VueDatePicker 
+              class="pl-6"
+              v-model="filterEndDate"
+              placeholder="Select end date"
+              auto-apply
+              :min-date="filterStartDate"
+              :enable-time-picker="false"
+              ></VueDatePicker>
+              </div>
+              <div v-if="selectedFilter === 'Policy'">
+                <v-data-table
+              v-model:items-per-page="itemsPerPage"
+              :headers="filterPolicyHeaders"
+              :items="policyData"
+              item-value="name"
+              class="elevation-1"
+            >
+              <template v-slot:item.policySelected="{ item }">
+                <v-checkbox-btn
+                  v-model="item.columns.policySelected"
+                  @change="handlePolicyCheckbox(item)"
+                ></v-checkbox-btn>
+              </template>
+            </v-data-table>
+              </div>
+          </v-col>
+          <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn color="blue-darken-1" variant="text" @click="">Cancel</v-btn>
+              <v-btn color="blue-darken-1" variant="text" @click="filterData">Apply Filters</v-btn>
+              <v-spacer></v-spacer>
+            </v-card-actions>
+        </v-row>
+        
+          </v-container>
+        </v-card>
+      </v-dialog>
+    </v-row>
+
+
+
+
+
+
+
+
+
+
 
     <!--Add Users Modal-->
     <v-row justify="center"> 
@@ -1255,6 +1547,7 @@ const dateRecurring = [
               <span ><strong>Message:</strong> {{displayMessage}}</span>
               </v-col>
           </v-row>
+          
           <v-data-table
             v-model:items-per-page="itemsPerPage"
             :headers="headers"
@@ -1271,6 +1564,7 @@ const dateRecurring = [
       :headers="notificationHeaders"
       :items="selectedData"
       item-value="title"
+      :search="search"
       class="elevation-1 pt-5 pl-5 pr-5 "
     >
     <template v-slot:item.title="{ item }">
@@ -1336,15 +1630,85 @@ const dateRecurring = [
   </div>
   </v-card>
 </v-col>
-<v-col cols="3">
-      <FilterDrawer 
-        :show.sync="showFilters"
-      />
-    </v-col>
+  <v-overlay v-model="showFilters">
+    <v-card width="400" class="test">
+      <v-card-title class="pb-7">
+        <span class="text-h7 ">Filters</span>
+      </v-card-title>  
+      <v-row>
+        <v-col cols="12" md="8">
+          <span class="text-h7 pb-5 pl-6">Start Date:</span>
+          <VueDatePicker 
+            class="pl-6"
+            v-model="filterStartDate"
+            auto-apply
+            placeholder="Select start date"
+            :enable-time-picker="false"
+          />
+        </v-col>
+      </v-row>  
+
+      <v-row>
+        <v-col cols="12" md="8">
+          <span class="text-h7 pb-5 pl-6">End Date:</span>
+          <VueDatePicker 
+            class="pl-6"
+            v-model="filterEndDate"
+            placeholder="Select end date"
+            auto-apply
+            :min-date="filterStartDate"
+            :enable-time-picker="false"
+          />
+        </v-col>
+      </v-row>  
+
+      <v-row>
+        <v-col cols="12" md="8">
+          <v-btn
+            class="pl-7"
+            variant="text"
+            @click="addPolicyModal=true"
+            prepend-icon="bx-book-content"
+          >
+            Filter by policy
+          </v-btn>
+        </v-col>
+      </v-row>  
+
+      <v-row class="">
+        <v-col cols="12" md="8">
+          <v-btn
+            class="pl-7 pt-n4"
+            variant="text"
+            @click="addUsersModal=true"
+            prepend-icon="ph:users-bold"
+          >
+            Filter by user
+          </v-btn>
+        </v-col>
+      </v-row>  
+
+      <v-row>
+        <v-col cols="12" md="12">
+          <v-btn class="pl-6" color="blue-darken-1" variant="text" @click="filterData">Apply Filters</v-btn>
+        </v-col>
+      </v-row>  
+      
+    </v-card>
+  </v-overlay>
   </v-row>
 </template>
 
 <style lang="scss" scoped>
+.test {
+  position: relative;
+  block-size: 100vh;
+  inline-size: 500px;
+  inset-block-start: 0;
+  inset-inline-end: 0;
+  overflow-y: auto;
+}
+
 .clickable-cell {
   cursor: pointer;
 }
@@ -1369,6 +1733,14 @@ const dateRecurring = [
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.custom-overlay-card {
+  block-size: 100vh;
+  inline-size: 800px;
+  inset-block-start: 0;
+  inset-inline-end: 0;
+  overflow-y: auto; /* For scrolling if content overflows */
 }
 
 </style>

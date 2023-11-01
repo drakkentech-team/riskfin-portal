@@ -4,6 +4,7 @@ import { useDisplay } from 'vuetify'
 import { useUserStore } from '../../store/user'
 
 const userStore = useUserStore()
+console.log(userStore.userData[0])
 const organisation = userStore.userData[0][3]
 var orgText, orgPic
 
@@ -17,6 +18,7 @@ else if (organisation === 2) {
 }
 
 const words = orgText.split(' ');
+// const words = orgText
 
 const props = defineProps({
   tag: {

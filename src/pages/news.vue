@@ -87,12 +87,19 @@ const router = useRouter()
   const itemsPerPage = ref(5);
   const notificationsPerPage = ref(10);
   const textareaValue = ref("")
+  // const notificationHeaders = ref([
+  //   { title: "Title", align: 'left', key: 'title', width: '250px'},
+  //   { title: 'Content', align: 'left', key: 'content', width: '500px' },
+  //   { title: 'Date Sent', align: 'center', key: 'date_sent', width: '100px' },
+  //   { title: 'Last Modified On', align: 'center', key: 'last_modified', width: '100px' },
+  //   { title: 'Actions', align: 'center', key: 'actions', width: '100px' },
+  // ])
+
+
   const notificationHeaders = ref([
     { title: "Title", align: 'left', key: 'title', width: '250px'},
     { title: 'Content', align: 'left', key: 'content', width: '500px' },
-    { title: 'Date Sent', align: 'center', key: 'date_sent', width: '100px' },
-    { title: 'Last Modified On', align: 'center', key: 'last_modified', width: '100px' },
-    { title: 'Actions', align: 'center', key: 'actions', width: '100px' },
+    { title: 'Date Sent', align: 'center', key: 'date_sent', width: '110px' },
   ])
 
   const headers= ref([{ title: "Name", align: 'start', key: 'name'},
@@ -128,6 +135,16 @@ const router = useRouter()
 
   const handleCloseNewNotificationModal = () => {
     dialog.value = false
+    title.value = ""
+    news.value = ""
+    users.value = []
+    for (const user of userData.value) {
+      user.userSelected = false;
+    }
+  }
+
+  const handleCloseEditModal = () => {
+    editNewsModal.value = false
     title.value = ""
     news.value = ""
     users.value = []
@@ -432,13 +449,14 @@ const router = useRouter()
       if (response && response.status === 200) {
         dialog.value = false
         showAlert.value = true
+        fetchMessage();
         title.value = ""
         news.value = ""
         user_sid.value = null
         setTimeout(() => {
           showAlert.value = false;
-        }, 5000);
-        fetchMessage();
+        }, 1000);
+        
       } 
     } 
     catch (error) {
@@ -617,7 +635,7 @@ const router = useRouter()
               <v-btn
                 color="blue-darken-1"
                 variant="text"
-                @click="handleCloseNewNotificationModal"
+                @click="handleCloseEditModal"
               >
                 Close
               </v-btn>
@@ -738,7 +756,7 @@ const router = useRouter()
         <td><span style="cursor: pointer;" @click="handleFlagClick(item.selectable.id)">{{ item.columns.date_sent }}</span></td>
       </tr>
     </template>
-    <template v-slot:item.actions="{ item }">
+    <!-- <template v-slot:item.actions="{ item }">
             <v-icon
               size="small"
               class="me-2"
@@ -759,7 +777,7 @@ const router = useRouter()
             >
               mdi-delete
             </v-icon>
-          </template>
+          </template> -->
     </v-data-table>
   </VCard>
 </template>

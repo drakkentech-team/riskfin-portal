@@ -14,6 +14,7 @@ import VueDatepickerUi from 'vue-datepicker-ui'
 import 'vue-datepicker-ui/lib/vuedatepickerui.css'
 import VCalendar from 'v-calendar';
 import 'v-calendar/style.css';
+import '@vuepic/vue-datepicker/dist/main.css'
 
 loadFonts()
 
@@ -33,3 +34,4 @@ app.use(router)
 // Mount vue app
 app.mount('#app')
 app.component('Datepicker', VueDatepickerUi)
+app.component('VueDatePicker', VueDatePicker);
