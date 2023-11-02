@@ -3,43 +3,44 @@
     <v-container>
       <div style="max-width: 90%; margin: 2rem;">
         <h1>Welcome {{ $route.query.firstNames }}</h1><br>
-        <p>Thank you for your interest. <br>
-          Please confirm your contact details below and click Next to continue or Back to change it.</p>
+        <v-text>Thank you for your interest. <br>
+          please confirm your contact details below and click Next to continue or Back to change it.</v-text>
       </div>
-      <div style="margin-bottom: 1rem; margin-left: 35%;">
-        <p>First Names </p>
-        <p class="right">: {{ $route.query.firstNames }}</p>
-        <p>Surname </p>
-        <p class="right">: {{ $route.query.surname }}</p>
-        <p>Identity Number </p>
-        <p class="right">: {{ $route.query.idNumber }}</p>
-        <p>Email </p>
-        <p class="right">: {{ $route.query.email }}</p>
-        <p>Contact Phone Number </p>
-        <p class="right">: {{ $route.query.contactPhoneNumber }}</p>
-
-        <div style="padding-bottom: 2rem; margin-left: 50%;">
-          <v-btn @click="sendEmailAndGoToThankYou" color="#98142c"
-            style="padding: 3px 12px; border: solid 1px #39f; border-radius: 4px; margin-right: 10px; background-color: #98142c; color: #fff; cursor: pointer;">Next</v-btn>
-          <v-btn @click="goToRegistration" color="#98142c"
-            style="padding: 3px 12px; border: solid 1px #39f; border-radius: 4px; background-color: #98142c; color: #fff; cursor: pointer;">Back</v-btn>
-        </div>
-        <div style="max-width: 95%; padding-bottom: 0.5rem; font-size: 80%; text-align: end;">
-          <a href="#" @click="openModal" style="color: black;">Need Help ?</a>
-        </div>
+      <div style="margin-bottom: 1rem; margin-left: 40%;">
+        <v-text>First Names </v-text>
+        <v-text style="padding-inline-start: 8.8rem;">: {{ $route.query.firstNames }}</v-text><br>
+        <v-text>Surname </v-text>
+        <v-text style="padding-inline-start: 10.1rem;">: {{ $route.query.surname }}</v-text><br>
+        <v-text>Identity Number </v-text>
+        <v-text style="padding-inline-start: 7.2rem;">: {{ $route.query.idNumber }}</v-text><br>
+        <v-text>Email </v-text>
+        <v-text style="padding-inline-start: 11.8rem;">: {{ $route.query.email }}</v-text><br>
+        <v-text>Contact phone Number </v-text>
+        <v-text style="padding-inline-start: 4rem;">: {{ $route.query.contactPhoneNumber }}</v-text><br><br>
       </div>
 
-      <!-- Use the reusable modal component -->
+      <div style="padding-bottom: 2rem; margin-left: 50%;">
+        <v-btn @click="sendEmailAndGoToThankYou" color="#98142c"
+          style="padding: 3px 12px; border: solid 1px #39f; border-radius: 4px; margin-right: 10px; background-color: #98142c; color: #fff; cursor: pointer;">Next</v-btn>
+        <v-btn @click="goToRegistration" color="#98142c"
+          style="padding: 3px 12px; border: solid 1px #39f; border-radius: 4px; background-color: #98142c; color: #fff; cursor: pointer;">Back</v-btn>
+      </div>
+      <div style="max-width: 95%; padding-bottom: 0.5rem; font-size: 80%; text-align: end;">
+        <a href="#" @click="openModal" style="color: black;">Need Help ?</a>
+      </div>
+
+
+      <!-- Help modal component -->
       <modal :is-open="isModalOpen" title="What to do next?" @close="closeModal">
-        <!-- Content of the modal goes here -->
-        <p>Click the "Continue" button to proceed with the application process or click the "Back" button to return to
-          edit
-          the details displayed.</p>
-        <p>- Riskfin Direct</p>
+
+        <v-text>Click the "Continue" button to proceed with the application process or click the "Back" button to return
+          to edit the details displayed.</v-text><br><br>
+        <v-text>- Riskfin Direct</v-text>
       </modal>
     </v-container>
   </v-main>
 </template>
+
 
 <script>
 import Modal from './help-modal.vue';
@@ -124,9 +125,3 @@ export default {
 };
 </script>
 
-<style lang="scss">
-.right {
-  margin-block-start: -2.5rem;
-  margin-inline-start: 15rem;
-}
-</style>
