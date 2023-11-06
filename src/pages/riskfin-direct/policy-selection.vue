@@ -17,7 +17,8 @@
                             <tbody>
                                 <tr v-for="(policy, index) in policies" :key="index">
                                     <td>
-                                        <input type="radio" :value="policy.path" v-model="selectedPolicy">
+                                        <input type="radio" :value="policy" v-model="selectedPolicy"
+                                            :name="'policySelection'" />
                                     </td>
                                     <td>{{ policy.name }}</td>
                                     <td>{{ policy.long_description }}</td>
@@ -31,9 +32,13 @@
                             <p style="color: #90162a; font-size: 18px; text-align: center;">
                                 Select one of the above mentioned options
                                 <button @click="submitForm"
-                                    style="padding: 3px 12px; border: solid 1px #39f; border-radius: 4px; margin-right: 10px; background-color: #98142c; color: #fff; cursor: pointer;">Continue</button>
+                                    style="padding: 3px 12px; border: solid 1px #39f; border-radius: 4px; margin-right: 10px; background-color: #98142c; color: #fff; cursor: pointer;">
+                                    Continue
+                                </button>
                                 <button @click="goBack"
-                                    style="padding: 3px 12px; border: solid 1px #39f; border-radius: 4px; background-color: #98142c; color: #fff; cursor: pointer;">Back</button>
+                                    style="padding: 3px 12px; border: solid 1px #39f; border-radius: 4px; background-color: #98142c; color: #fff; cursor: pointer;">
+                                    Back
+                                </button>
                             </p>
                         </div>
                     </div>
@@ -43,69 +48,6 @@
     </div>
 </template>
   
-<!-- <script>
-import axios from "axios";
-import { onMounted, ref } from "vue";
-import { useRouter } from "vue-router";
-
-const apiBaseUrl = "http://localhost:9000";
-const bearerToken = "1HW94aH3Gu9BNxqw2QnY4y7zMa1xwlm_rg2ZiA9tt3fu";
-
-export default {
-    data() {
-        return {
-            currentStep: 1, // Change this to control the current step
-            steps: ["Step 1", "Step 2", "Step 3", "Step 4", "Step 5", "Done"],
-            policies: [],
-        };
-    },
-
-    setup() {
-        const validationError = ref(false);
-        const selectedPolicy = ref(null);
-        const router = useRouter();
-
-        const submitForm = () => {
-            if (selectedPolicy.value) {
-                router.push(`./cover-selection/${selectedPolicy.value}`);
-            } else {
-                validationError.value = true;
-            }
-        };
-
-        const goBack = () => {
-            router.go(-1);
-        };
-
-        onMounted(async () => {
-            try {
-                const response = await axios.post(`${apiBaseUrl}/policy_details_get`, {
-                    "user_id": 0,
-                    "flag": 0
-                },
-                    {
-                        headers: {
-                            'Authorization': `Bearer ${bearerToken}`,
-                            'Content-Type': 'application/json'
-                        }
-                    });
-                this.policies = response.data;
-                console.log(response.data)
-            } catch (error) {
-                console.error("Error fetching policies from the API:", error);
-            }
-        });
-
-        return {
-            validationError,
-            selectedPolicy,
-            submitForm,
-            goBack,
-        };
-    },
-};
-</script> -->
-
 <script>
 import axios from "axios";
 import { onMounted, ref } from "vue";
@@ -130,7 +72,12 @@ export default {
 
         const submitForm = () => {
             if (selectedPolicy.value) {
-                router.push(`./cover-selection/${selectedPolicy.value}`);
+                // Pass the selected policy as a query parameter
+                router.push({
+                    // path: "./cover-selection/cover-selection",
+                    path: "./cover-selection/family",
+                    query: { policy: JSON.stringify(selectedPolicy.value) },
+                });
             } else {
                 validationError.value = true;
             }
@@ -171,6 +118,8 @@ export default {
     },
 };
 </script>
+  
+
   
 <style scoped>
 form {

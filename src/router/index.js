@@ -71,6 +71,11 @@ const router = createRouter({
           component: () => import('../pages/riskfin-direct/welcome.vue'),
         },
         {
+          path: "product_management", 
+          name: 'product_management', 
+          component: () => import('../pages/riskfin-direct/product_management.vue'),
+        },
+        {
           path: "thank-you", 
           name: 'thank-you', 
           component: () => import('../pages/riskfin-direct/thank-you.vue'),
@@ -84,6 +89,11 @@ const router = createRouter({
           path: "policy-selection",
           name: 'policy-selection', 
           component: () => import("../pages/riskfin-direct/policy-selection.vue"),
+        },
+        {
+          path: 'cover-selection/cover-selection',
+          name: 'cover-selection',
+          component: () => import('../pages/riskfin-direct/cover-selection/cover-selection.vue'),
         },
         {
           path: 'cover-selection/family',
@@ -211,7 +221,7 @@ router.beforeEach((to, from, next) => {
   } else {
     next();
   }
-  if (to.path === '/login' && userIsLoggedIn) {
+  if (to.path === '/login' && !userIsLoggedIn) {
     next('/notifications');
   } else if (to.path !== '/login' && !userIsLoggedIn) {
     next('/login');

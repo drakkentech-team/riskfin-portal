@@ -244,7 +244,7 @@ const restoreProduct = async (item) => {
 
 
 const form = reactive({
-  policy_name: '',
+  name: '',
   short_description: '',
   long_description: '',
   policy_premium: '',
@@ -283,10 +283,10 @@ const handleSaveProduct = async () => {
 
   try {
     const response = await axios.post(`http://localhost:9000/policy_details?`, {
-      policy_name: form.policy_name,
+      name: form.policy_name,
       short_description: form.short_description,
       long_description: form.long_description,
-      policy_premium: form.policy_premium,
+      premium: form.policy_premium,
       premium_due_date: "2023-08-15",
 
     }, {
