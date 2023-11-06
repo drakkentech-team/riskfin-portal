@@ -7,6 +7,71 @@ const router = useRouter()
 const apiBaseUrl = "http://localhost:9000";
 const bearerToken = "1HW94aH3Gu9BNxqw2QnY4y7zMa1xwlm_rg2ZiA9tt3fu";
 
+const pol_form = reactive({});
+const formFields = reactive([
+  {
+    model: 'policy_premium',
+    label: 'Policy Premium*',
+    rules: [(v) => !!v || 'Policy Premium is required.',
+    (v) => /^\d+(\.\d+)?$/.test(v) || 'Policy Premium must be a numeric value.',],
+  },
+  {
+    model: 'cover',
+    label: 'Cover Amount*',
+    rules: [(v) => !!v || 'Cover amount is required.',
+    (v) => /^\d+(\.\d+)?$/.test(v) || 'Cover amount must be a numeric value.',],
+  },
+  {
+    model: 'underwriter',
+    label: 'Underwriter*',
+    rules: [(v) => !!v || 'Underwriter is required.'],
+  },
+  {
+    model: 'max_Entry_Age',
+    label: 'Max. Entry Age*',
+    rules: [(v) => !!v || 'Max. Entry Age is required.',
+    (v) => /^\d+(\.\d+)?$/.test(v) || 'Max. Entry Age must be a numeric value.',
+      // Should be a certain age 
+    ],
+  },
+]);
+
+// // const pol_form = reactive({});
+
+// const showInputFields = ref(false)
+
+
+// const addInputFields = (count) => {
+//   showInputFields = true;
+//   formFields = []
+//   for (let i = 0; i < count; i++) {
+//     formFields.push({
+//       model: 'newField' + (formFields.length + i + 1),
+//       label: 'New Field ' + (formFields.length + i + 1),
+//       rules: ['required'],
+//     });
+//   }
+// };\
+
+// const pol_form = reactive({});
+
+const showInputFields = ref(false);
+
+const addInputFields = (count) => {
+  showInputFields.value = true;
+  formFields.forEach((field) => {
+    for (let i = 0; i < count; i++) {
+      const newField = {
+        model: field.model + i,
+        label: field.label + ' ' + (i + 1),
+        rules: field.rules,
+      };
+      formFields.push(newField);
+    }
+  });
+  count++
+};
+
 const policyToBeDisabled = ref(null)
 /*TABS*/
 const activePolicyTab = ref('all')
@@ -57,10 +122,21 @@ const rules = {
   policy_name: [(v) => !!v || 'Policy Name is required.'],
   short_description: [(v) => !!v || 'Short Description is required.'],
   long_description: [(v) => !!v || 'Long Description is required.'],
-  policy_premium: [
-    (v) => !!v || 'Policy Premium is required.',
-    (v) => /^\d+(\.\d+)?$/.test(v) || 'Policy Premium must be a numeric value.',
-  ],
+  // policy_premium: [
+  //   (v) => !!v || 'Policy Premium is required.',
+  //   (v) => /^\d+(\.\d+)?$/.test(v) || 'Policy Premium must be a numeric value.',
+  // ],
+  // cover: [
+  //   (v) => !!v || 'Cover amount is required.',
+  //   (v) => /^\d+(\.\d+)?$/.test(v) || 'Cover amount must be a numeric value.',
+  // ],
+  // underwriter: [(v) => !!v || 'Underwriter is required.'],
+  // max_Entry_Age: [
+  //   (v) => !!v || 'Max. Entry Age is required.',
+  //   (v) => /^\d+(\.\d+)?$/.test(v) || 'Max. Entry Age must be a numeric value.',
+  //   // Should be a certain age 
+  // ],
+
   // policy_premium: [(v) => !!v || 'Policy Premium is required.'],
   // premium: value => {
   //   const pattern = value?.length > 1 && /[0-9-]+/.test(value)
@@ -107,8 +183,8 @@ const getPolicies = async () => {
     if (response && response.status === 200) {
       responseData = response.data;
       console.log(response.data)
-      availableProdList = responseData.filter(item => item.policy_detail_delete === 0);
-      deletedProdList = responseData.filter(item => item.policy_detail_delete === 1);
+      availableProdList = responseData.filter(item => item.active === 1);
+      deletedProdList = responseData.filter(item => item.active === 0);
       data.value = availableProdList;
     }
   }
@@ -140,7 +216,7 @@ const restoreProduct = async (item) => {
     const response = await axios.put(
       `http://localhost:9000/update_policy_details?sid=${item.sid}`,
       {
-        policy_detail_delete: 0,
+        active: 1,
       }, {
       headers: {
         'Authorization': `Bearer ${bearerToken}`,
@@ -173,6 +249,9 @@ const form = reactive({
   long_description: '',
   policy_premium: '',
   // premium_due_date: '',
+  cover: '',
+  underwriter: '',
+  max_Entry_Age: '',
 });
 
 
@@ -209,6 +288,7 @@ const handleSaveProduct = async () => {
       long_description: form.long_description,
       policy_premium: form.policy_premium,
       premium_due_date: "2023-08-15",
+
     }, {
       headers: {
         'Authorization': `Bearer ${bearerToken}`,
@@ -237,10 +317,10 @@ const handleSaveProduct = async () => {
 };
 
 const showUpdateDialog = (item) => {
-  forms.policy_name = item.policy_name;
+  forms.policy_name = item.name;
   forms.short_description = item.short_description;
   forms.long_description = item.long_description;
-  forms.policy_premium = item.policy_premium;
+  forms.policy_premium = item.premium;
   // forms.premium_due_date = item.premium_due_date;
 
   updateProductId.value = item.sid;
@@ -286,10 +366,10 @@ const handleUpdateProduct = async () => {
   // console.log(forms.policy_premium)
   try {
     const response = await axios.put(`http://localhost:9000/update_policy_details?sid=${updateProductId.value}`, {
-      policy_name: forms.policy_name,
+      name: forms.policy_name,
       short_description: forms.short_description,
       long_description: forms.long_description,
-      policy_premium: forms.policy_premium,
+      premium: forms.policy_premium,
       // premium_due_date: forms.premium_due_date,
     }, {
       headers: {
@@ -314,7 +394,7 @@ const handleUpdateProduct = async () => {
 const disablePolicy = async () => {
   try {
     const response = await axios.put(`http://localhost:9000/update_policy_details?sid=${policyToBeDisabled.value}`, {
-      policy_detail_delete: 1
+      active: 0
     },
       {
         headers: {
@@ -335,7 +415,7 @@ const disablePolicy = async () => {
 };
 
 const handleRowClick = (item) => {
-  if (item.policy_detail_delete === 0) {
+  if (item.active === 1) {
     // Open the update dialog for non-deleted items
     showUpdateDialog(item);
   }
@@ -435,10 +515,77 @@ watch(isFormFieldFocused, (newValue) => {
                   @scroll="handleInputScroll" @focus="handleInputFocus" @blur="handleInputBlur"></v-textarea>
               </v-col>
 
+              <!-- <v-col cols="12" sm="6" md="4">
+                <v-text-field v-model="form.policy_premium" label="Policy Premium*" :rules="rules.policy_premium"
+                  @scroll="handleInputScroll" @focus="handleInputFocus" @blur="handleInputBlur"></v-text-field>
+              </v-col> -->
+
+              <!-- <v-form @submit.prevent="handleSubmit">
+                <div v-for="(inputGroup, index) in inputGroups" :key="index">
+                  <v-row>
+                    <v-col v-for="(input, i) in inputGroup" :key="i">
+                      <v-text-field v-model="input.value" :label="'Input Field ' + i" outlined></v-text-field>
+                    </v-col>
+                  </v-row>
+                </div>
+                <v-btn @click="addInputFields(4)">Add Input Fields</v-btn>
+                <v-btn type="submit">Submit</v-btn>
+              </v-form>
+
               <v-col cols="12" sm="6" md="4">
                 <v-text-field v-model="form.policy_premium" label="Policy Premium*" :rules="rules.policy_premium"
                   @scroll="handleInputScroll" @focus="handleInputFocus" @blur="handleInputBlur"></v-text-field>
               </v-col>
+
+              <v-col cols="12" sm="6" md="4">
+                <v-text-field v-model="form.cover" label="Cover Amount*" :rules="rules.cover" @scroll="handleInputScroll"
+                  @focus="handleInputFocus" @blur="handleInputBlur"></v-text-field>
+              </v-col>
+
+              <v-col cols="12" sm="6" md="4">
+                <v-text-field v-model="form.underwriter" label="Underwriter*" :rules="rules.underwriter"
+                  @scroll="handleInputScroll" @focus="handleInputFocus" @blur="handleInputBlur"></v-text-field>
+              </v-col>
+
+              <v-col cols="12" sm="6" md="4">
+                <v-text-field v-model="form.max_Entry_Age" label="Max. Entry Age*" :rules="rules.max_Entry_Age"
+                  @scroll="handleInputScroll" @focus="handleInputFocus" @blur="handleInputBlur"></v-text-field> 
+              </v-col> -->
+
+              <!-- <VCol cols="auto">
+                <v-btn @click="addInputFields" style="margin-bottom: 1rem;">Add Policy Cover</v-btn> -->
+              <!-- Conditional rendering of input fields -->
+              <!-- <v-row v-if="showInputFields">
+                  <v-col cols="12" sm="6" md="8" v-for="(field, index) in formFields" :key="index">
+                    <v-text-field v-model="form[field.model]" :label="field.label" :rules="field.rules"
+                      @scroll="handleInputScroll" @focus="handleInputFocus" @blur="handleInputBlur"></v-text-field>
+                  </v-col>
+                </v-row>
+              </VCol> -->
+
+              <VCol cols="auto">
+                <v-btn @click="addInputFields(1)">Add Policy Cover</v-btn>
+                <!-- Conditional rendering of input fields -->
+                <v-row>
+                  <v-col ols="12" sm="6" md="8" v-for="(field, index) in formFields" :key="index">
+                    <v-text-field v-model="pol_form[field.model]" :label="field.label" :rules="field.rules"
+                      @scroll="handleInputScroll" @focus="handleInputFocus" @blur="handleInputBlur"></v-text-field>
+                  </v-col>
+                </v-row>
+              </VCol>
+
+              <!-- <div>
+                <v-form @submit.prevent="handleSubmit">
+                  <v-row>
+                    <v-col cols="12" sm="6" md="4" v-for="(field, index) in formFields" :key="index">
+                      <v-text-field v-model="form[field.model]" :label="field.label" :rules="field.rules"
+                        @scroll="handleInputScroll" @focus="handleInputFocus" @blur="handleInputBlur"></v-text-field>
+                    </v-col>
+                  </v-row>
+                  <v-btn @click="addInputFields(4)">Add Input Fields</v-btn>
+                  <v-btn type="submit">Add Policy</v-btn>
+                </v-form>
+              </div> -->
 
               <v-alert type="error" title="Error" v-if="!isFormFieldFocused && addValidationError">
                 {{ addValidationError }}
@@ -510,22 +657,22 @@ watch(isFormFieldFocused, (newValue) => {
       </thead>
       <tbody v-if="data.length > 0">
         <tr v-for="item in data" :key="item.sid" class="clickable-row">
-          <td @click="handleRowClick(item)">{{ item.policy_name }}</td>
+          <td @click="handleRowClick(item)">{{ item.name }}</td>
           <td @click="handleRowClick(item)">{{ item.short_description }}</td>
           <td @click="handleRowClick(item)">{{ item.long_description }}</td>
-          <td @click="handleRowClick(item)">{{ item.policy_premium }}</td>
+          <td @click="handleRowClick(item)">{{ item.premium }}</td>
           <!-- <td>{{ item.premium_due_date }}</td> -->
           <td>
             <div class="button-container">
               <!-- Restore Button -->
-              <button v-if="item.policy_detail_delete === 1" @click="restoreProduct(item)" class="btn btn-success">
+              <button v-if="item.active === 0" @click="restoreProduct(item)" class="btn btn-success">
                 Restore
               </button>
               <!-- Edit and Delete Buttons -->
               <!-- <button v-if="item.policy_detail_delete === 0" @click="showUpdateDialog(item)" class="btn btn-danger">
                 Edit
               </button> -->
-              <button v-if="item.policy_detail_delete === 0" @click="handleDeletePolicy(item.sid)" class="btn btn-danger">
+              <button v-if="item.active === 1" @click="handleDeletePolicy(item.sid)" class="btn btn-danger">
                 Delete
               </button>
             </div>
@@ -534,7 +681,7 @@ watch(isFormFieldFocused, (newValue) => {
       </tbody>
       <tbody v-else>
         <tr>
-          <td colspan="5">Loading...</td>
+          <td colspan="5">No Data</td>
         </tr>
 
       </tbody>
@@ -622,3 +769,19 @@ watch(isFormFieldFocused, (newValue) => {
 tr.clickable-row {
   cursor: pointer;
 }
+
+.button-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.scrollable-textarea-label {
+  display: none;
+}
+
+.scrollable-textarea::placeholder,
+.scrollable-textarea:focus::placeholder {
+  opacity: 0;
+}
+</style>
