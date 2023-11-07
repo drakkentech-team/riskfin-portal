@@ -70,6 +70,10 @@ export default {
         const selectedPolicy = ref(null);
         const router = useRouter();
 
+        const goBack = () => {
+            router.go(-1);
+        };
+
         const submitForm = () => {
             if (selectedPolicy.value) {
                 // Pass the selected policy as a query parameter
@@ -83,9 +87,6 @@ export default {
             }
         };
 
-        const goBack = () => {
-            router.go(-1);
-        };
 
         const policies = ref([]);
 

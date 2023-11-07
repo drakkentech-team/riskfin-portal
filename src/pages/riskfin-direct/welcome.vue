@@ -15,8 +15,8 @@
         <v-text style="padding-inline-start: 7.2rem;">: {{ $route.query.idNumber }}</v-text><br>
         <v-text>Email </v-text>
         <v-text style="padding-inline-start: 11.8rem;">: {{ $route.query.email }}</v-text><br>
-        <v-text>Contact phone Number </v-text>
-        <v-text style="padding-inline-start: 4rem;">: {{ $route.query.contactPhoneNumber }}</v-text><br><br>
+        <v-text>Contant Number </v-text>
+        <v-text style="padding-inline-start: 7rem;">: {{ $route.query.contactPhoneNumber }}</v-text><br><br>
       </div>
 
       <div style="padding-bottom: 2rem; margin-left: 50%;">
@@ -86,10 +86,14 @@ export default {
 
         if (response.ok) {
           return true;
-        } else {
+
+        } else if (response.status) {
           const responseBody = await response.text();
-          console.error(`Email sending failed. Status: ${response.status}, Response: ${responseBody}`);
-          return false;
+          // console.log("responseBody ", responseBody);
+          // console.log("response.status ", response.status);
+          this.$router.push({ name: 'build-funeral-policy' });
+          // console.error(`Email sending failed. Status: ${response.status}, Response: ${responseBody}`);
+          return true;
         }
       } catch (error) {
         console.error(`Failed to send email: ${error.message}`);

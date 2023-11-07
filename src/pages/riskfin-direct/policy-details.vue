@@ -350,14 +350,16 @@ export default {
   // },
   methods: {
 
-    nextPage() {
-      // console.log(getChildData);
-      this.$router.push('./debit-order-details');
-    },
     goBack() {
 
       this.$router.go(-1);
     },
+
+    nextPage() {
+      // console.log(getChildData);
+      this.$router.push('./debit-order-details');
+    },
+
     openMainMemberDetailsModal() {
       this.isMainMemberDetailsModalOpen = true;
     },

@@ -8,6 +8,8 @@ const apiBaseUrl = "http://localhost:9000";
 const bearerToken = "1HW94aH3Gu9BNxqw2QnY4y7zMa1xwlm_rg2ZiA9tt3fu";
 
 const pol_form = reactive({});
+const maxAge = null;
+const showInputFields = ref(false)
 const formFields = reactive([
   {
     model: 'policy_premium',
@@ -29,16 +31,21 @@ const formFields = reactive([
   {
     model: 'max_Entry_Age',
     label: 'Max. Entry Age*',
-    rules: [(v) => !!v || 'Max. Entry Age is required.',
-    (v) => /^\d+(\.\d+)?$/.test(v) || 'Max. Entry Age must be a numeric value.',
-      // Should be a certain age 
+    rules: [
+      (v) => !!v || 'Max. Entry Age is required.',
+      (v) => /^\d+$/.test(v) || 'Max. Entry Age must be a numeric value.',
+      // (v) => v <= YOUR_MAX_AGE || 'Max. Entry Age must be less than or equal to ' + YOUR_MAX_AGE,
+      (v) => v <= max_Entry_Age
+      // Add any other validation rules you need here
     ],
-  },
+    // showInputFields
+  }
 ]);
+// showInputFields: false,
 
 // // const pol_form = reactive({});
 
-// const showInputFields = ref(false)
+
 
 
 // const addInputFields = (count) => {
@@ -55,7 +62,7 @@ const formFields = reactive([
 
 // const pol_form = reactive({});
 
-const showInputFields = ref(false);
+// const showInputFields = ref(false);
 
 const addInputFields = (count) => {
   showInputFields.value = true;
@@ -68,6 +75,7 @@ const addInputFields = (count) => {
       };
       formFields.push(newField);
     }
+    console.log('User Max Age:', userMaxAge);
   });
   count++
 };
@@ -143,7 +151,6 @@ const rules = {
   //   return pattern.test(value) || 'Premium needs to be a numerical value.'
   // },
 };
-
 
 
 const validationError = ref('');
@@ -239,8 +246,6 @@ const restoreProduct = async (item) => {
     console.error('Error restoring product:', error);
   }
 };
-
-
 
 
 const form = reactive({
@@ -564,7 +569,8 @@ watch(isFormFieldFocused, (newValue) => {
               </VCol> -->
 
               <VCol cols="auto">
-                <v-btn @click="addInputFields(1)">Add Policy Cover</v-btn>
+                <v-btn @click="addInputFields(1); showInputFields = true" style="margin-bottom: 1rem;">Add Policy
+                  Cover</v-btn>
                 <!-- Conditional rendering of input fields -->
                 <v-row>
                   <v-col ols="12" sm="6" md="8" v-for="(field, index) in formFields" :key="index">

@@ -62,8 +62,9 @@ export default {
         submit() {
             this.$router.push({ name: 'build-funeral-policy' });
         },
+
         resendEmail() {
-            // Logic to resend the email
+            this.$router.push({ name: 'register' });
         },
         goToHome() {
             this.$router.push({ name: 'home' });

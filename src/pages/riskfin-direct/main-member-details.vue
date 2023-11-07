@@ -241,8 +241,8 @@
 
               <div class="row">
                 <div class="col-lg-8 d-flex align-items-center" style="margin-top: 0.5rem;">
-                  <div class="col-lg-4" style=" padding-right: 4.5rem;">
-                    <label for="mobile_number">Contact Phone <br> Number </label>
+                  <div class="col-lg-4" style=" padding-right: 3.7rem;">
+                    <label for="mobile_number">Contant Number </label>
                   </div>
                   <!-- <div class="col-lg-8"> -->
                   <input type="text" id="mobile_number" class="form-control" name="mobile_number"

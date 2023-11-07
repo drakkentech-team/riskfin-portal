@@ -6,7 +6,7 @@
             <div style="margin-left: 25%;">
                 <v-row>
                     <v-col cols="12" md="4">
-                        <v-text-field v-model="firstNames" label="First Names" :rules="nameRules"></v-text-field>
+                        <v-text-field v-model="firstNames" label="Full Name" :rules="nameRules"></v-text-field>
                     </v-col>
 
                     <v-col cols="12" md="4">
@@ -25,7 +25,7 @@
                 </v-row>
                 <v-row>
                     <v-col cols="12" md="4">
-                        <v-text-field v-model="contactPhoneNumber" label="Contact Phone Number"
+                        <v-text-field v-model="contactPhoneNumber" label="Contant Number"
                             :rules="phoneRules"></v-text-field>
                     </v-col>
                 </v-row>
@@ -135,7 +135,10 @@ export default {
             isModalOpen.value = false;
         };
 
-        const nameRules = [v => !!v || "First Name is required"];
+        const nameRules = [
+            v => !!v || "First Name is required",
+            v => isNaN(v) || "First Name cannot be numeric",
+        ];
         const emailRules = [
             v => !!v || "Email is required",
             v => /.+@.+\..+/.test(v) || "Email must be valid",
@@ -145,8 +148,8 @@ export default {
             v => /^\d{13}$/.test(v) || "Identity Number must be 13 digits",
         ];
         const phoneRules = [
-            v => !!v || "Contact Phone Number is required",
-            v => /^\d{10}$/.test(v) || "Contact Phone Number must be 10 digits",
+            v => !!v || "Contant Number is required",
+            v => /^\d{10}$/.test(v) || "Contant Number must be 10 digits",
         ];
 
 
