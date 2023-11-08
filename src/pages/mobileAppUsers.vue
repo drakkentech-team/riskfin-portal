@@ -1,6 +1,6 @@
 <script setup>
    import { ref, onMounted } from 'vue';
-   import { mobileUserData } from '../../api/userManagement/mobileAppUsers';
+   import { mobileUserData } from '../api/userManagement/mobileAppUsers';
 
    const userData = ref(null);
    const user = ref(null);

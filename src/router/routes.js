@@ -43,7 +43,7 @@ const router = createRouter({
             {
                path: '',
                name: 'mobile-app-users',
-               component: () => import('../pages/userManagement/mobileAppUsers.vue'),
+               component: () => import('../pages/mobileAppUsers.vue'),
             },
          ]
       },
