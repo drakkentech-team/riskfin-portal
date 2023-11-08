@@ -7,7 +7,7 @@ import './assets/layout/layout.scss';
 
 import { createApp, reactive } from 'vue';
 import { createPinia } from 'pinia'
-import router from './router';
+import router from './router/router';
 import App from './App.vue';
 import PrimeVue from 'primevue/config';
 import AutoComplete from 'primevue/autocomplete';
@@ -63,7 +63,6 @@ import Panel from 'primevue/panel';
 import PanelMenu from 'primevue/panelmenu';
 import Password from 'primevue/password';
 import PickList from 'primevue/picklist';
-import ProgressBar from 'primevue/progressbar';
 import ProgressSpinner from 'primevue/progressspinner';
 import Rating from 'primevue/rating';
 import RadioButton from 'primevue/radiobutton';

@@ -1,7 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router';
-import DashboardLayout from './DashboardLayout.vue';
-import PlainLayout from './PlainLayout.vue';
-import { useDataStore } from './stores/store'
+import DashboardLayout from '../DashboardLayout.vue';
+import PlainLayout from '../PlainLayout.vue';
 
 const router = createRouter({
    history: createWebHistory(),
@@ -12,7 +11,7 @@ const router = createRouter({
          children: [
            {
              path: '',
-             component: () => import('./pages/Login.vue')
+             component: () => import('../pages/Login.vue')
            }
          ]
       },
@@ -22,7 +21,7 @@ const router = createRouter({
          children: [
            {
              path: '',
-             component: () => import('./pages/Login.vue')
+             component: () => import('../pages/Login.vue')
            }
          ]
       },
@@ -33,8 +32,7 @@ const router = createRouter({
             {
                path: '/notifications',
                name: 'notifications',
-               component: () => import('./pages/Notifications.vue'),
-               // meta: { requiresAuth: true }
+               component: () => import('../pages/Notifications.vue'),
             },
          ]
       },
@@ -45,8 +43,7 @@ const router = createRouter({
             {
                path: '/products',
                name: 'products',
-               component: () => import('./pages/Products.vue'),
-               // meta: { requiresAuth: true }
+               component: () => import('../pages/Products.vue'),
             },
          ]
       },
@@ -57,8 +54,7 @@ const router = createRouter({
             {
                path: '/mobile-app-users',
                name: 'mobile-app-users',
-               component: () => import('./pages/userManagement/MobileAppUsers.vue'),
-               // meta: { requiresAuth: true }
+               component: () => import('../pages/userManagement/MobileAppUsers.vue'),
             },
          ]
       },
@@ -69,8 +65,7 @@ const router = createRouter({
             {
                path: '/admin-portal-users',
                name: 'admin-portal-users',
-               component: () => import('./pages/userManagement/AdminPortalUsers.vue'),
-               // meta: { requiresAuth: true }
+               component: () => import('../pages/userManagement/AdminPortalUsers.vue'),
             },
          ]
       },
@@ -81,8 +76,7 @@ const router = createRouter({
             {
                path: '/news',
                name: 'news',
-               component: () => import('./pages/News.vue'),
-               // meta: { requiresAuth: true }
+               component: () => import('../pages/News.vue'),
             },
          ]
       },
@@ -93,26 +87,11 @@ const router = createRouter({
             {
                path: '/payment-account',
                name: 'Payment Account',
-               component: () => import('./pages/PaymentAccount.vue'),
-               // meta: { requiresAuth: true }
+               component: () => import('../pages/PaymentAccount.vue'),
             },
          ]
       },
    ]
 });
-
-
-// router.beforeEach((to, from, next) => {
-//    const userStore = useDataStore()
-//    const userIsLoggedIn = userStore.userData ? true : false
- 
-//    if (to.path === '/login' && userIsLoggedIn) {
-//      next('/notifications');
-//    } else if (to.path !== '/login' && !userIsLoggedIn) {
-//      next('/login');
-//    } else {
-//      next();
-//    }
-//  });
 
 export default router;
