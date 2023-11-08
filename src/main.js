@@ -7,7 +7,7 @@ import './assets/layout/layout.scss';
 
 import { createApp, reactive } from 'vue';
 import { createPinia } from 'pinia'
-import router from './router/router';
+import router from './router/routes';
 import App from './App.vue';
 import PrimeVue from 'primevue/config';
 import AutoComplete from 'primevue/autocomplete';

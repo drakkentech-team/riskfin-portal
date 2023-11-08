@@ -37,17 +37,6 @@ const router = createRouter({
          ]
       },
       {
-         path: '/products',
-         component: DashboardLayout,
-         children: [
-            {
-               path: '/products',
-               name: 'products',
-               component: () => import('../pages/products.vue'),
-            },
-         ]
-      },
-      {
          path: '/mobile-app-users',
          component: DashboardLayout,
          children: [
@@ -55,28 +44,6 @@ const router = createRouter({
                path: '/mobile-app-users',
                name: 'mobile-app-users',
                component: () => import('../pages/userManagement/mobileAppUsers.vue'),
-            },
-         ]
-      },
-      {
-         path: '/admin-portal-users',
-         component: DashboardLayout,
-         children: [
-            {
-               path: '/admin-portal-users',
-               name: 'admin-portal-users',
-               component: () => import('../pages/userManagement/adminPortalUsers.vue'),
-            },
-         ]
-      },
-      {
-         path: '/news',
-         component: DashboardLayout,
-         children: [
-            {
-               path: '/news',
-               name: 'news',
-               component: () => import('../pages/news.vue'),
             },
          ]
       },
