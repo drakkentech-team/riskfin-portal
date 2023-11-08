@@ -48,12 +48,12 @@ const router = createRouter({
          ]
       },
       {
-         path: '/payment-account',
+         path: '/payment',
          component: DashboardLayout,
          children: [
             {
                path: '',
-               name: 'payment-account',
+               name: 'payment',
                component: () => import('../pages/paymentAccount.vue'),
             },
          ]
