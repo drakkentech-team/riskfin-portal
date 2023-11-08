@@ -47,17 +47,6 @@ const router = createRouter({
             },
          ]
       },
-      {
-         path: '/payment-account',
-         component: DashboardLayout,
-         children: [
-            {
-               path: '',
-               name: 'payment-account',
-               component: () => import('../pages/paymentAccount'),
-            },
-         ]
-      },
    ]
 });
 

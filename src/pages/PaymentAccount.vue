@@ -54,7 +54,7 @@
             }
             if (data.account_type) {
                accountType.value = data.account_type;
-               editForm.value.accountType = data.account_type;
+               editForm.value.accountType.name = data.account_type;
             }
             if (data.swift_code) {
                swiftCode.value = data.swift_code;
