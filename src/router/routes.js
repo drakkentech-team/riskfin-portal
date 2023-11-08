@@ -53,7 +53,7 @@ const router = createRouter({
          children: [
             {
                path: '',
-               name: 'Payment Account',
+               name: 'payment-account',
                component: () => import('../pages/paymentAccount.vue'),
             },
          ]
