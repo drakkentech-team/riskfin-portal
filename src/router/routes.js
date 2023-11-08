@@ -52,7 +52,7 @@ const router = createRouter({
          component: DashboardLayout,
          children: [
             {
-               path: '/payment-account',
+               path: '',
                name: 'Payment Account',
                component: () => import('../pages/paymentAccount.vue'),
             },
