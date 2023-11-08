@@ -41,7 +41,7 @@ const router = createRouter({
          component: DashboardLayout,
          children: [
             {
-               path: '/mobile-app-users',
+               path: '',
                name: 'mobile-app-users',
                component: () => import('../pages/userManagement/mobileAppUsers.vue'),
             },
