@@ -21,7 +21,7 @@ const router = createRouter({
          children: [
            {
              path: '',
-             component: () => import('../pages/Login.vue')
+             component: () => import('../pages/login.vue')
            }
          ]
       },
@@ -32,7 +32,7 @@ const router = createRouter({
             {
                path: '/notifications',
                name: 'notifications',
-               component: () => import('../pages/Notifications.vue'),
+               component: () => import('../pages/notifications.vue'),
             },
          ]
       },
@@ -43,7 +43,7 @@ const router = createRouter({
             {
                path: '/products',
                name: 'products',
-               component: () => import('../pages/Products.vue'),
+               component: () => import('../pages/products.vue'),
             },
          ]
       },
@@ -54,7 +54,7 @@ const router = createRouter({
             {
                path: '/mobile-app-users',
                name: 'mobile-app-users',
-               component: () => import('../pages/userManagement/MobileAppUsers.vue'),
+               component: () => import('../pages/userManagement/mobileAppUsers.vue'),
             },
          ]
       },
@@ -65,7 +65,7 @@ const router = createRouter({
             {
                path: '/admin-portal-users',
                name: 'admin-portal-users',
-               component: () => import('../pages/userManagement/AdminPortalUsers.vue'),
+               component: () => import('../pages/userManagement/adminPortalUsers.vue'),
             },
          ]
       },
@@ -76,7 +76,7 @@ const router = createRouter({
             {
                path: '/news',
                name: 'news',
-               component: () => import('../pages/News.vue'),
+               component: () => import('../pages/news.vue'),
             },
          ]
       },
@@ -87,7 +87,7 @@ const router = createRouter({
             {
                path: '/payment-account',
                name: 'Payment Account',
-               component: () => import('../pages/PaymentAccount.vue'),
+               component: () => import('../pages/paymentAccount.vue'),
             },
          ]
       },
