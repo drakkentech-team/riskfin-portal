@@ -1,110 +1,73 @@
 <template>
     <v-container>
-        <v-form>
-            <h2 class="text-center">Register For a Funeral Plan</h2>
+        <!-- <v-form> -->
+        <h2 class="text-center">Register For a Funeral Plan</h2>
 
-            <div style="margin-left: 25%;">
-                <v-row>
-                    <v-col cols="12" md="4">
-                        <v-text-field v-model="firstNames" label="Full Name" :rules="nameRules"></v-text-field>
-                    </v-col>
+        <div style="margin-left: 25%;">
+            <v-row>
+                <v-col cols="12" md="4">
+                    <v-text-field v-model="firstNames" label="Full Name" :rules="nameRules"></v-text-field>
+                </v-col>
 
-                    <v-col cols="12" md="4">
-                        <v-text-field v-model="surname" label="Surname" :rules="nameRules"></v-text-field>
-                    </v-col>
-                </v-row>
-
-                <v-row>
-                    <v-col cols="12" md="4">
-                        <v-text-field v-model="email" label="Email" :rules="emailRules"></v-text-field>
-                    </v-col>
-
-                    <v-col cols="12" md="4">
-                        <v-text-field v-model="idNumber" label="Identity Number" :rules="idNumberRules"></v-text-field>
-                    </v-col>
-                </v-row>
-                <v-row>
-                    <v-col cols="12" md="4">
-                        <v-text-field v-model="contactPhoneNumber" label="Contant Number"
-                            :rules="phoneRules"></v-text-field>
-                    </v-col>
-                </v-row>
-            </div>
+                <v-col cols="12" md="4">
+                    <v-text-field v-model="surname" label="Surname" :rules="nameRules"></v-text-field>
+                </v-col>
+            </v-row>
 
             <v-row>
-                <v-col cols="12" class="text-right">
-                    <a href="#" @click="openModal" style=" color: #4c5e70; font-size: 13px; text-decoration: none;">Need
-                        Help ?</a>
+                <v-col cols="12" md="4">
+                    <v-text-field v-model="email" label="Email" :rules="emailRules"></v-text-field>
+                </v-col>
+
+                <v-col cols="12" md="4">
+                    <v-text-field v-model="idNumber" label="Identity Number" :rules="idNumberRules"
+                        type="text"></v-text-field>
                 </v-col>
             </v-row>
-
-            <v-row class="d-flex justify-center" style="padding-bottom: 2rem; margin-top: 5rem;">
-                <v-btn color="#98142c"
-                    style="padding: 3px 12px; border: solid 1px #39f; border-radius: 4px; margin-right: 10px; color: #fff; cursor: pointer;"
-                    @click="register">
-                    Continue
-                </v-btn>
-                <v-btn color="#98142c"
-                    style="padding: 3px 12px; border: solid 1px #39f; border-radius: 4px; color: #fff; cursor: pointer;"
-                    @click="cancel">
-                    Cancel
-                </v-btn>
-            </v-row>
-
-            <!--Help modal component -->
-            <modal :is-open="isModalOpen" title="What to do next?" @close="closeModal">
-
-                <div class="text-left mb-6 mx-3">
-                    <v-text>
-                        Please click on "Apply For Funeral Plan" button to continue
-                    </v-text>
-                </div>
-                <div>
-                    <v-text class="text-left mx-3">
-                        - Riskfin Direct
-                    </v-text>
-                </div>
-            </modal>
-
-            <!-- <v-row>
-                <v-col cols="12" class="text-right">
-                    <a href="#" @click="openModal" style=" color: #4c5e70; font-size: 13px; text-decoration: none;">Need
-                        Help ?</a>
+            <v-row>
+                <v-col cols="12" md="4">
+                    <v-text-field v-model="contactPhoneNumber" label="Contant Number" :rules="phoneRules"></v-text-field>
                 </v-col>
-            </v-row> -->
+            </v-row>
+        </div>
 
-            <!--Need help modal component -->
-            <!-- <modal :is-open="isModalOpen" title="What to do next?" @close="closeModal">
+        <v-row class="d-flex justify-center" style="padding-bottom: 2rem; margin-top: 5rem;">
+            <v-btn color="#98142c"
+                style="padding: 3px 12px; border: solid 1px #39f; border-radius: 4px; margin-right: 10px; color: #fff; cursor: pointer;"
+                @click="register">
+                Continue
+            </v-btn>
+            <v-btn color="#98142c"
+                style="padding: 3px 12px; border: solid 1px #39f; border-radius: 4px; color: #fff; cursor: pointer;"
+                @click="cancel">
+                Cancel
+            </v-btn>
+        </v-row>
 
-                <div class="text-left mb-6 mx-3">
-                    <v-text>
-                        Please confirm your contact details below and click the "Continue" button to proceed with the
-                        application or click the "Cancel" button to quit.
-                    </v-text>
-                </div>
-                <div>
-                    <v-text class="text-left mx-3">
-                        - Riskfin Direct
-                    </v-text>
-                </div>
-            </modal> -->
+        <v-row>
+            <v-col cols="12" class="text-right">
+                <a href="#" @click="openModal" style=" color: #4c5e70; font-size: 13px; text-decoration: none;">Need
+                    Help ?</a>
+            </v-col>
+        </v-row>
 
-            <!-- <modal :is-open="isModalOpen" title="What to do next?" @close="closeModal">
+        <!--Need help modal component -->
+        <modal :is-open="isModalOpen" title="What to do next?" @close="closeModal">
 
-                <div class="text-left mb-6 mx-3">
-                    <v-text>
-                        Please confirm your contact details below and click the "Continue" button to proceed with the
-                        application or click the "Cancel" button to quit.
-                    </v-text>
-                </div>
-                <div>
-                    <v-text class="text-left mx-3">
-                        - Riskfin Direct
-                    </v-text>
-                </div>
-            </modal> -->
+            <div class="text-left mb-6 mx-3">
+                <v-text>
+                    Please confirm your contact details below and click the "Continue" button to proceed with the
+                    application or click the "Cancel" button to quit.
+                </v-text>
+            </div>
+            <div>
+                <v-text class="text-left mx-3">
+                    - Riskfin Direct
+                </v-text>
+            </div>
+        </modal>
 
-        </v-form>
+        <!-- </v-form> -->
     </v-container>
 </template>
   

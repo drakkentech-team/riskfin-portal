@@ -153,8 +153,8 @@ export default {
                       <a href="#" @click="openSpouseDetailsModal">View</a> |
                       <a href="#" @click="editSpouseData(spouseData);" data-toggle="modal" data-target="#SpouseViewModel"
                         data-whatever="@mdo">Edit</a> |
-                      <a href="#" @click="deleteMemberData(spouseData.id);" data-toggle="modal"
-                        data-target="#SpouseViewModel" data-whatever="@mdo">Del</a>
+                      <!-- <a href="#" @click="deleteMemberData(spouseData.id);" data-toggle="modal"
+                        data-target="#SpouseViewModel" data-whatever="@mdo">Del</a> -->
                     </td>
                   </tr>
 
@@ -172,8 +172,8 @@ export default {
                       <a href="#" @click="openChildDetailsModal">View</a> |
                       <a href="#" @click="editChildData(child);" data-toggle="modal"
                         :data-target="'#ChildViewModel' + index" data-whatever="@mdo">Edit</a> |
-                      <a href="#" @click="deleteMemberData(child.id);" data-toggle="modal"
-                        :data-target="'#ChildViewModel' + index" data-whatever="@mdo">Del</a>
+                      <!-- <a href="#" @click="deleteMemberData(child.id);" data-toggle="modal"
+                        :data-target="'#ChildViewModel' + index" data-whatever="@mdo">Del</a> -->
                     </td>
                   </tr>
 
@@ -351,7 +351,6 @@ export default {
   methods: {
 
     goBack() {
-
       this.$router.go(-1);
     },
 

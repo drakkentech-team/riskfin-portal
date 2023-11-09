@@ -46,18 +46,18 @@
         </v-row>
 
         <v-row>
-          <v-col cols="12" class="text-right">
-            <a href="#" @click="openModal" style=" color: #4c5e70; font-size: 13px; text-decoration: none;">Need
-              Help ?</a>
+          <v-col cols="12" class="text-center">
+            <v-btn @click="goToDashboard" color="#98142c"
+              style=" padding: 8px 20px; border: none; border-radius: 5px; margin-bottom: 3rem; margin-top: 3rem; color: #fff; cursor: pointer;">
+              Apply for funeral plan
+            </v-btn>
           </v-col>
         </v-row>
 
         <v-row>
-          <v-col cols="12" class="text-center">
-            <v-btn @click="goToDashboard" color="#98142c"
-              style=" padding: 8px 20px; border: none; border-radius: 5px; margin-bottom: 3rem; color: #fff; cursor: pointer;">
-              Apply for funeral plan
-            </v-btn>
+          <v-col cols="12" class="text-right">
+            <a href="#" @click="openModal" style=" color: #4c5e70; font-size: 13px; text-decoration: none;">Need
+              Help ?</a>
           </v-col>
         </v-row>
 

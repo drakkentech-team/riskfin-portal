@@ -25,7 +25,7 @@
                     style=" color: #4c5e70; font-size: 13px; text-decoration: none;">Need Help ?</a>
             </div>
 
-            <!-- Use the reusable modal component -->
+            <!-- Help modal -->
             <modal :is-open="isModalOpen" title="What to do next?" @close="closeModal">
                 <v-text>
                     To proceed with the application for a funeral policy, please check your email. We have sent you an email
@@ -69,11 +69,9 @@ export default {
         goToHome() {
             this.$router.push({ name: 'home' });
         },
-        // Method to open the modal
         openModal() {
             this.isModalOpen = true;
         },
-        // Method to close the modal
         closeModal() {
             this.isModalOpen = false;
         },

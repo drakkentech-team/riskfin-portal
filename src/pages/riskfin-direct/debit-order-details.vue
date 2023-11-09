@@ -526,11 +526,15 @@ export default {
       // this.$router.push('./complete');
       // Now, you can submit this data to your server for secure storage
     },
+    goBack() {
+      this.$router.go(-1);
+    },
   },
   created() {
     this.userData = this.getUserData;
 
   },
+
 };
 
 // export default {
@@ -562,9 +566,7 @@ export default {
 //       this.$store.dispatch('addChild', childData);
 //       this.$router.push('./complete');
 //     },
-//     goBack() {
-//       this.$router.go(-1);
-//     },
+
 //   },
 //   created() {
 //     // this.userData = this.getUserData;

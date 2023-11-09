@@ -254,9 +254,9 @@ const form = reactive({
   long_description: '',
   policy_premium: '',
   // premium_due_date: '',
-  cover: '',
-  underwriter: '',
-  max_Entry_Age: '',
+  // cover: '',
+  // underwriter: '',
+  // max_Entry_Age: '',
 });
 
 
@@ -292,7 +292,7 @@ const handleSaveProduct = async () => {
       short_description: form.short_description,
       long_description: form.long_description,
       premium: form.policy_premium,
-      premium_due_date: "2023-08-15",
+      // premium_due_date: "2023-08-15",
 
     }, {
       headers: {
@@ -520,10 +520,10 @@ watch(isFormFieldFocused, (newValue) => {
                   @scroll="handleInputScroll" @focus="handleInputFocus" @blur="handleInputBlur"></v-textarea>
               </v-col>
 
-              <!-- <v-col cols="12" sm="6" md="4">
+              <v-col cols="12" sm="6" md="4">
                 <v-text-field v-model="form.policy_premium" label="Policy Premium*" :rules="rules.policy_premium"
                   @scroll="handleInputScroll" @focus="handleInputFocus" @blur="handleInputBlur"></v-text-field>
-              </v-col> -->
+              </v-col>
 
               <!-- <v-form @submit.prevent="handleSubmit">
                 <div v-for="(inputGroup, index) in inputGroups" :key="index">
