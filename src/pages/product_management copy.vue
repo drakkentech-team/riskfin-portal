@@ -118,10 +118,6 @@ const formFields = reactive([
   },
 ]);
 
-const secondForm = reactive({});
-const showSecondForm = false;
-
-
 const addInputFields = (count) => {
   showInputFields.value = true;
   formFields.forEach((field) => {
@@ -307,181 +303,80 @@ const restoreProduct = async (item) => {
 };
 
 
-// const form = reactive({
-//   name: '',
-//   short_description: '',
-//   long_description: '',
-//   date: '',
-//   cover: '',
-//   underwriter: '',
-//   premium: '',
-//   max_entry_age: "",
-//   administration_fee: "",
-// });
-
 const form = reactive({
   name: '',
   short_description: '',
   long_description: '',
-
+  date: '',
+  cover: '',
+  underwriter: '',
+  premium: '',
+  max_entry_age: "",
+  administration_fee: "",
 });
 
-const handleSaveProduct = async () => {
-
-  addValidationError.value = '';
-  for (const field in addErrorFields) {
-    addErrorFields[field] = false;
-  }
-
-  if (!form.policy_name) {
-    addErrorFields.policy_name = true;
-  }
-  if (!form.short_description) {
-    addErrorFields.short_description = true;
-  }
-  if (!form.long_description) {
-    addErrorFields.long_description = true;
-  }
-  if (!form.policy_premium) {
-    addErrorFields.policy_premium = true;
-  }
-
-  if (Object.values(addErrorFields).some(fieldError => fieldError)) {
-    addValidationError.value = 'Please fill in all required fields.';
-    return;
-  }
-
-
-  try {
-    console.log("got in here");
-
-    const response = await axios.post(`http://localhost:9000/policy_details`, {
-      policy_name: form.policy_name,
-      short_description: form.short_description,
-      long_description: form.long_description,
-      date: '2023-10-19',
-      cover: '09',
-      underwriter: "Underwriter details",
-      premium: form.policy_premium,
-      max_entry_age: "30",
-      administration_fee: "20"
-
-
-    }, {
-      headers: {
-        'Authorization': `Bearer ${bearerToken}`,
-        'Content-Type': 'application/json'
-      }
-    });
-    console.log(response);
-    if (response && response.status === 200) {
-      showAlert.value = true
-      setTimeout(() => {
-        showAlert.value = false;
-      }, 5000);
-
-      form.policy_name = null;
-      form.short_description = null;
-      form.long_description = null;
-      form.policy_premium = null;
-
-      getPolicies();
-
-    }
-  } catch (error) {
-    console.error('Error adding product:', error);
-
-    if (error.response && error.response.data && error.response.data.validation_error) {
-      console.error('Validation error details:', error.response.data.validation_error);
-    }
-  }
-
-  // }
-};
-
-const submitSecondForm = async () => {
-  // Construct the query with data from the second form (secondForm)
-  const query = {
-    policy_name: form.policy_name,
-    short_description: form.short_description,
-    long_description: form.long_description,
-    date: '2023-10-19',
-    cover: '09',
-    underwriter: "Underwriter details",
-    premium: form.policy_premium,
-    max_entry_age: "30",
-    administration_fee: "20"
-  };
-  console.log(query);
-};
-
-
-// const form = reactive({
-//   name: '',
-//   short_description: '',
-//   long_description: '',
-
-// });
 
 // const handleSaveProduct = async () => {
+
 //   addValidationError.value = '';
 //   for (const field in addErrorFields) {
 //     addErrorFields[field] = false;
 //   }
 
-//   // Validate form fields
-//   if (!pol_form.name) {
+//   if (!form.policy_name) {
 //     addErrorFields.policy_name = true;
 //   }
-//   if (!pol_form.short_description) {
+//   if (!form.short_description) {
 //     addErrorFields.short_description = true;
 //   }
-//   if (!pol_form.long_description) {
+//   if (!form.long_description) {
 //     addErrorFields.long_description = true;
 //   }
-//   if (!pol_form.policy_premium) {
+//   if (!form.policy_premium) {
 //     addErrorFields.policy_premium = true;
 //   }
 
-//   if (Object.values(addErrorFields).some((fieldError) => fieldError)) {
+//   if (Object.values(addErrorFields).some(fieldError => fieldError)) {
 //     addValidationError.value = 'Please fill in all required fields.';
 //     return;
 //   }
 
-//   try {
-//     const response = await axios.post(
-//       'http://localhost:9000/policy_details',
-//       {
-//         policy_name: pol_form.name,
-//         short_description: pol_form.short_description,
-//         long_description: pol_form.long_description,
-//         date: pol_form.date,
-//         cover: pol_form.cover,
-//         underwriter: pol_form.underwriter,
-//         premium: pol_form.policy_premium,
-//         max_entry_age: pol_form.max_entry_age,
-//         administration_fee: pol_form.administration_fee,
-//       },
-//       {
-//         headers: {
-//           Authorization: `Bearer ${bearerToken}`,
-//           'Content-Type': 'application/json',
-//         },
-//       }
-//     );
 
+//   try {
+//     console.log("got in here");
+
+//     const response = await axios.post(`http://localhost:9000/policy_details`, {
+//       policy_name: form.policy_name,
+//       short_description: form.short_description,
+//       long_description: form.long_description,
+//       date: '2023-10-19',
+//       cover: '09',
+//       underwriter: "Underwriter details",
+//       premium: form.policy_premium,
+//       max_entry_age: "30",
+//       administration_fee: "20"
+
+
+//     }, {
+//       headers: {
+//         'Authorization': `Bearer ${bearerToken}`,
+//         'Content-Type': 'application/json'
+//       }
+//     });
+//     console.log(response);
 //     if (response && response.status === 200) {
-//       showAlert.value = true;
+//       showAlert.value = true
 //       setTimeout(() => {
 //         showAlert.value = false;
 //       }, 5000);
 
-//       // Reset form fields after successful submission
-//       for (const field in pol_form) {
-//         pol_form[field] = null;
-//       }
+//       form.policy_name = null;
+//       form.short_description = null;
+//       form.long_description = null;
+//       form.policy_premium = null;
 
 //       getPolicies();
+
 //     }
 //   } catch (error) {
 //     console.error('Error adding product:', error);
@@ -490,7 +385,78 @@ const submitSecondForm = async () => {
 //       console.error('Validation error details:', error.response.data.validation_error);
 //     }
 //   }
+
+//   // }
 // };
+
+const handleSaveProduct = async () => {
+  addValidationError.value = '';
+  for (const field in addErrorFields) {
+    addErrorFields[field] = false;
+  }
+
+  // Validate form fields
+  if (!pol_form.name) {
+    addErrorFields.policy_name = true;
+  }
+  if (!pol_form.short_description) {
+    addErrorFields.short_description = true;
+  }
+  if (!pol_form.long_description) {
+    addErrorFields.long_description = true;
+  }
+  if (!pol_form.policy_premium) {
+    addErrorFields.policy_premium = true;
+  }
+
+  if (Object.values(addErrorFields).some((fieldError) => fieldError)) {
+    addValidationError.value = 'Please fill in all required fields.';
+    return;
+  }
+
+  try {
+    const response = await axios.post(
+      'http://localhost:9000/policy_details',
+      {
+        policy_name: pol_form.name,
+        short_description: pol_form.short_description,
+        long_description: pol_form.long_description,
+        date: pol_form.date,
+        cover: pol_form.cover,
+        underwriter: pol_form.underwriter,
+        premium: pol_form.policy_premium,
+        max_entry_age: pol_form.max_entry_age,
+        administration_fee: pol_form.administration_fee,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${bearerToken}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    if (response && response.status === 200) {
+      showAlert.value = true;
+      setTimeout(() => {
+        showAlert.value = false;
+      }, 5000);
+
+      // Reset form fields after successful submission
+      for (const field in pol_form) {
+        pol_form[field] = null;
+      }
+
+      getPolicies();
+    }
+  } catch (error) {
+    console.error('Error adding product:', error);
+
+    if (error.response && error.response.data && error.response.data.validation_error) {
+      console.error('Validation error details:', error.response.data.validation_error);
+    }
+  }
+};
 
 const showUpdateDialog = (item) => {
   forms.policy_name = item.name;
@@ -674,34 +640,122 @@ watch(isFormFieldFocused, (newValue) => {
         </v-card-title>
         <v-card-text>
           <v-container>
+
             <v-row>
               <v-col cols="12" sm="6" md="4">
-                <v-textarea label="Policy Name* " v-model="form.policy_name" :rules="rules.policy_name"></v-textarea>
+                <v-textarea label="Policy Name* " v-model="form.policy_name" :rules="rules.policy_name"
+                  @scroll="handleInputScroll" @focus="handleInputFocus" @blur="handleInputBlur" />
               </v-col>
-              <v-col cols="12" sm="6" md="4">
-                <v-textarea v-model="form.short_description" label="Short Description*"
-                  :rules="rules.short_description"></v-textarea>
-              </v-col>
-              <v-col cols="12" sm="6" md="4">
-                <v-textarea v-model="form.long_description" label="Long Description*"
-                  :rules="rules.long_description"></v-textarea>
-              </v-col>
-              <v-col cols="auto">
-                <v-btn @click="showSecondForm = true">Open Second Form</v-btn>
-              </v-col>
-            </v-row>
 
-            <!-- Conditional rendering of input fields -->
-            <v-row v-if="showSecondForm">
-              <v-col cols="12" sm="6" md="8" v-for="(field, index) in formFields" :key="index">
-                <v-text-field v-model="secondForm[field.model]" :label="field.label" :rules="field.rules"></v-text-field>
+              <v-col cols="12" sm="6" md="4">
+                <v-textarea v-model="form.short_description" label="Short Description*" :rules="rules.short_description"
+                  @scroll="handleInputScroll" @focus="handleInputFocus" @blur="handleInputBlur"></v-textarea>
               </v-col>
-              <v-btn @click="submitSecondForm">Submit Second Form</v-btn>
-            </v-row>
 
-            <v-alert type="error" title="Error" v-if="!isFormFieldFocused && addValidationError">
-              {{ addValidationError }}
-            </v-alert>
+              <v-col cols="12" sm="6" md="4">
+                <v-textarea v-model="form.long_description" label="Long Description*" :rules="rules.long_description"
+                  @scroll="handleInputScroll" @focus="handleInputFocus" @blur="handleInputBlur"></v-textarea>
+              </v-col>
+
+              <!-- <v-col cols="12" sm="6" md="4">
+                <v-text-field v-model="form.policy_premium" label="Policy Premium*" :rules="rules.policy_premium"
+                  @scroll="handleInputScroll" @focus="handleInputFocus" @blur="handleInputBlur"></v-text-field>
+              </v-col> -->
+
+              <!-- <v-form @submit.prevent="handleSubmit">
+                <div v-for="(inputGroup, index) in inputGroups" :key="index">
+                  <v-row>
+                    <v-col v-for="(input, i) in inputGroup" :key="i">
+                      <v-text-field v-model="input.value" :label="'Input Field ' + i" outlined></v-text-field>
+                    </v-col>
+                  </v-row>
+                </div>
+                <v-btn @click="addInputFields(4)">Add Input Fields</v-btn>
+                <v-btn type="submit">Submit</v-btn>
+              </v-form>
+
+              <v-col cols="12" sm="6" md="4">
+                <v-text-field v-model="form.policy_premium" label="Policy Premium*" :rules="rules.policy_premium"
+                  @scroll="handleInputScroll" @focus="handleInputFocus" @blur="handleInputBlur"></v-text-field>
+              </v-col>
+
+              <v-col cols="12" sm="6" md="4">
+                <v-text-field v-model="form.cover" label="Cover Amount*" :rules="rules.cover" @scroll="handleInputScroll"
+                  @focus="handleInputFocus" @blur="handleInputBlur"></v-text-field>
+              </v-col>
+
+              <v-col cols="12" sm="6" md="4">
+                <v-text-field v-model="form.underwriter" label="Underwriter*" :rules="rules.underwriter"
+                  @scroll="handleInputScroll" @focus="handleInputFocus" @blur="handleInputBlur"></v-text-field>
+              </v-col>
+
+              <v-col cols="12" sm="6" md="4">
+                <v-text-field v-model="form.max_Entry_Age" label="Max. Entry Age*" :rules="rules.max_Entry_Age"
+                  @scroll="handleInputScroll" @focus="handleInputFocus" @blur="handleInputBlur"></v-text-field> 
+              </v-col> -->
+
+              <!-- <VCol cols="auto">
+                <v-btn @click="addInputFields" style="margin-bottom: 1rem;">Add Policy Cover</v-btn> -->
+              <!-- Conditional rendering of input fields -->
+              <!-- <v-row v-if="showInputFields">
+                  <v-col cols="12" sm="6" md="8" v-for="(field, index) in formFields" :key="index">
+                    <v-text-field v-model="form[field.model]" :label="field.label" :rules="field.rules"
+                      @scroll="handleInputScroll" @focus="handleInputFocus" @blur="handleInputBlur"></v-text-field>
+                  </v-col>
+                </v-row>
+              </VCol> -->
+
+              <VCol cols="auto">
+                <v-btn @click="addInputFields(1); showInputFields = true" style="margin-bottom: 1rem;">Add Policy
+                  Cover</v-btn>
+                <!-- Conditional rendering of input fields -->
+                <v-row>
+                  <v-col ols="12" sm="6" md="8" v-for="(field, index) in formFields" :key="index">
+                    <v-text-field v-model="pol_form[field.model]" :label="field.label" :rules="field.rules"
+                      @scroll="handleInputScroll" @focus="handleInputFocus" @blur="handleInputBlur"></v-text-field>
+                  </v-col>
+                </v-row>
+              </VCol>
+
+              <!-- <div>
+                <v-form @submit.prevent="handleSubmit">
+                  <v-row>
+                    <v-col cols="12" sm="6" md="4" v-for="(field, index) in formFields" :key="index">
+                      <v-text-field v-model="form[field.model]" :label="field.label" :rules="field.rules"
+                        @scroll="handleInputScroll" @focus="handleInputFocus" @blur="handleInputBlur"></v-text-field>
+                    </v-col>
+                  </v-row>
+                  <v-btn @click="addInputFields(4)">Add Input Fields</v-btn>
+                  <v-btn type="submit">Add Policy</v-btn>
+                </v-form>
+              </div> -->
+
+              <v-alert type="error" title="Error" v-if="!isFormFieldFocused && addValidationError">
+                {{ addValidationError }}
+              </v-alert>
+
+              <!-- <v-alert type="error" title="Error" v-if="!isFormFieldFocused && addValidationError">
+                {{ addValidationError }}
+              </v-alert> -->
+              <!-- <v-col cols="12" sm="6" md="4">
+          <v-date-picker v-model="forms.premium_due_date" label="Premium Due Date*" required></v-date-picker>
+        </v-col> -->
+              <!-- <v-col cols="12" sm="6" md="4">
+              <v-date-picker
+                v-model="form.premium_due_date"
+                label="Premium Due Date*"
+                required
+              ></v-date-picker>
+            </v-col> -->
+              <!-- <v-date-picker v-model="forms.premium_due_date" label="Premium Due Date*" required /> -->
+              <!-- <v-col cols="12" sm="6" md="4">
+                <v-text-field
+                  v-model="form.premium_due_date"
+                  label="Premium Due Date*"
+                  required
+                ></v-text-field>
+              </v-col> -->
+            </v-row>
             <v-row justify="center">
               <v-alert type="success" title="Success" text="New product has been successfully added!"
                 v-model="showAlert"></v-alert>
