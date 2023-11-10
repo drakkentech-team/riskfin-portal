@@ -64,6 +64,8 @@
 import axios from "axios";
 import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
+import { useStore } from 'vuex';
+
 
 const apiBaseUrl = "http://localhost:9000";
 const bearerToken = "1HW94aH3Gu9BNxqw2QnY4y7zMa1xwlm_rg2ZiA9tt3fu";
@@ -78,6 +80,7 @@ export default {
     },
 
     setup() {
+        const store = useStore();
         const validationError = ref(false);
         const selectedPolicy = ref(null);
         const router = useRouter();
@@ -86,12 +89,29 @@ export default {
             router.go(-1);
         };
 
+        // const submit = () => {
+        //     if (selectedPolicy.value) {
+        //         router.push({
+        //             path: "./cover-selection/family",
+        //             // query: { policy: JSON.stringify(selectedPolicy.value) },
+        //             query: { policyId: selectedPolicy.value.id },
+        //         });
+        //         console.log("pol ", selectedPolicy.value)
+        //     } else {
+        //         validationError.value = true;
+        //     }
+        // };
+
         const submitForm = () => {
             if (selectedPolicy.value) {
+                store.dispatch('updateSelectedPolicy', selectedPolicy.value);
+
                 router.push({
                     path: "./cover-selection/family",
-                    query: { policy: JSON.stringify(selectedPolicy.value) },
+                    query: { policyId: selectedPolicy.value.id }, // Pass policy ID instead of the whole policy
                 });
+                console.log("pol ", selectedPolicy.value);
+                return; // Add this line to prevent the navigation guard warning
             } else {
                 validationError.value = true;
             }
@@ -112,7 +132,6 @@ export default {
                     }
                 );
                 policies.value = response.data;
-                console.log(response.data);
             } catch (error) {
                 console.error("Error fetching policies from the API:", error);
             }

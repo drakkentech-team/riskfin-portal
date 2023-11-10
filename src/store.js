@@ -9,6 +9,7 @@ export default new Vuex.Store({
     childData: [],    
     selectedPremium: null,
     selectedCover: null,  
+    selectedPolicy: null,
   },
   mutations: {
     setUserData(state, userData) {
@@ -28,6 +29,9 @@ export default new Vuex.Store({
     },
     setSelectedCover(state, cover) {
       state.selectedCover = cover; 
+    },
+    setSelectedPolicy(state, policy) {
+      state.selectedPolicy = policy;
     },
   },
   actions: {
@@ -49,6 +53,9 @@ export default new Vuex.Store({
     updateSelectedCover({ commit }, cover) {
       commit('setSelectedCover', cover);
     },
+    updateSelectedPolicy({ commit }, policy) {
+      commit('setSelectedPolicy', policy);
+    },
   },
   getters: {
     getUserData(state) {
@@ -68,6 +75,9 @@ export default new Vuex.Store({
     },
     getSelectedCover(state) {
       return state.selectedCover; 
+  },
+  getSelectedPolicy(state) {
+    return state.selectedPolicy;
   },
 },
 });

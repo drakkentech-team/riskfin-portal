@@ -50,11 +50,12 @@
 
 <script>
 import { useRouter } from "vue-router";
-import { mapActions, useStore } from 'vuex';
+import { mapActions, mapGetters, useStore } from 'vuex';
 
 export default {
   computed: {
     ...mapActions(['updateSelectedPremium', 'updateSelectedCover']),
+    ...mapGetters([' getSelectedPolicy']),
   },
   data() {
     return {
@@ -64,46 +65,46 @@ export default {
       policies: [
         {
           value: "6",
-          cover: "R 5,000",
-          underwriter: "Safrican",
-          premium: 73.00,
-          maxAge: "64"
+          cover: this.selectedPolicy.cover,
+          underwriter: this.selectedPolicy.underwriter,
+          premium: this.selectedPolicy.premium,
+          maxAge: this.selectedPolicy.max_entry_age
         },
-        {
-          value: "16",
-          cover: "R 10,000",
-          underwriter: "Safrican",
-          premium: 109.00,
-          maxAge: "64"
-        },
-        {
-          value: "24",
-          cover: "R 15,000",
-          underwriter: "Safrican",
-          premium: 120.00,
-          maxAge: "64"
-        },
-        {
-          value: "28",
-          cover: "R 20,000",
-          underwriter: "Safrican",
-          premium: 140.00,
-          maxAge: "64"
-        },
-        {
-          value: "91",
-          cover: "R 25,000",
-          underwriter: "Safrican",
-          premium: 165.00,
-          maxAge: "64"
-        },
-        {
-          value: "29",
-          cover: "R 30,000",
-          underwriter: "Safrican",
-          premium: 200.00,
-          maxAge: "64"
-        }
+        // {
+        //   value: "16",
+        //   cover: "R 10,000",
+        //   underwriter: "Safrican",
+        //   premium: 109.00,
+        //   maxAge: "64"
+        // },
+        // {
+        //   value: "24",
+        //   cover: "R 15,000",
+        //   underwriter: "Safrican",
+        //   premium: 120.00,
+        //   maxAge: "64"
+        // },
+        // {
+        //   value: "28",
+        //   cover: "R 20,000",
+        //   underwriter: "Safrican",
+        //   premium: 140.00,
+        //   maxAge: "64"
+        // },
+        // {
+        //   value: "91",
+        //   cover: "R 25,000",
+        //   underwriter: "Safrican",
+        //   premium: 165.00,
+        //   maxAge: "64"
+        // },
+        // {
+        //   value: "29",
+        //   cover: "R 30,000",
+        //   underwriter: "Safrican",
+        //   premium: 200.00,
+        //   maxAge: "64"
+        // }
       ]
     };
   },
@@ -111,17 +112,19 @@ export default {
   setup() {
     const store = useStore();
     const validationError = ref(false);
-    const selectedPolicy = ref(null);
     const router = useRouter();
+    const selectedPolicy = store.getters.getSelectedPolicy;
 
     const submitForm = () => {
-      if (selectedPolicy.value) {
-        store.dispatch('updateSelectedPremium', selectedPolicy.value.premium);
-        store.dispatch('updateSelectedCover', selectedPolicy.value.cover);
-        // Redirect to the next page (page two)
+      console.log("in here");
+      if (selectedPolicy) {
+        console.log("in here2");
+        store.dispatch('updateSelectedPremium', selectedPolicy.premium);
+        store.dispatch('updateSelectedCover', selectedPolicy.cover);
         router.push('../main-member-details');
       } else {
         validationError.value = true;
+        console.log("not happening");
       }
     };
 
@@ -149,8 +152,9 @@ export default {
     goBack() {
       this.$router.go(-1);
     },
-
-
+    created() {
+      this.selectedPolicy = this.getSelectedPolicy;
+    }
   }
 };
 </script>
