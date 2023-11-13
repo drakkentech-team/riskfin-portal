@@ -24,45 +24,60 @@
 
                 <v-row>
                     <v-col cols="4">
-                        <v-text-field v-model="formData.first_name" label="First Names" required
-                            @input="showErrors = false"></v-text-field>
+                        <v-col cols="2" sm="4" md="12" style="height: 4.5em">
+                            <v-text-field v-model="userData.name" label="First Names" required
+                                @input="showErrors = false"></v-text-field>
+                        </v-col>
 
-                        <v-text-field v-model="formData.known_as" label="KnownAs" required
-                            @input="showErrors = false"></v-text-field>
-
-                        <v-select v-model="formData.type_of_identity_document" label="Type of Identity Document" required
-                            @input="showErrors = false">
-                            <v-select-item value="RSA">RSA</v-select-item>
-                            <v-select-item value="Passport">Passport</v-select-item>
-                            <v-select-item value="Other">Other</v-select-item>
-                        </v-select>
-
-                        <v-text-field v-model="formData.id" label="Identity Number" required
-                            @input="showErrors = false"></v-text-field>
-
+                        <v-col cols="4" sm="4" md="12" style="height: 4.5rem">
+                            <v-text-field v-model="storedData.known_as" label="KnownAs" required
+                                @input="showErrors = false"></v-text-field>
+                        </v-col>
+                        <v-col cols="4" sm="4" md="12" style="height: 4.5rem">
+                            <v-select v-model="storedData.type_of_identity_document" label="Type of Identity Document"
+                                required @input="showErrors = false">
+                                <v-select-item value="RSA">RSA</v-select-item>
+                                <v-select-item value="Passport">Passport</v-select-item>
+                                <v-select-item value="Other">Other</v-select-item>
+                            </v-select>
+                        </v-col>
+                        <v-col cols="4" sm="4" md="12" style="height: 4.5rem">
+                            <v-text-field v-model="userData.idNumber" label="Identity Number" required
+                                @input="showErrors = false"></v-text-field>
+                        </v-col>
                     </v-col>
                     <v-col cols="4">
-                        <v-text-field v-model="formData.surname" label="Surname" required
+                        <v-col cols="4" sm="4" md="12" style="height: 4.5rem">
+                            <v-text-field v-model="userData.surname" label="Surname" required
+                                @input="showErrors = false"></v-text-field>
+                        </v-col>
+
+                        <v-col cols="4" sm="4" md="12" style="height: 4.5rem">
+                            <v-text-field v-model="storedData.address_line_1" label="Address Line 1" required
+                                @input="showErrors = false"></v-text-field>
+                        </v-col>
+
+                        <!-- 
+                        <v-text-field v-model="storedData.address_line_2" label="Address Line 2" required
                             @input="showErrors = false"></v-text-field>
 
-                        <v-text-field v-model="formData.address_line_1" label="Address Line 1" required
-                            @input="showErrors = false"></v-text-field>
+                        <v-text-field v-model="storedData.address_line_3" label="Address Line 3" required
+                            @input="showErrors = false"></v-text-field> -->
 
-                        <v-text-field v-model="formData.address_line_2" label="Address Line 2" required
-                            @input="showErrors = false"></v-text-field>
+                        <v-col cols="4" sm="4" md="12" style="height: 4.5rem">
+                            <v-text-field v-model="storedData.city" label="City" required
+                                @input="showErrors = false"></v-text-field>
+                        </v-col>
 
-                        <v-text-field v-model="formData.address_line_3" label="Address Line 3" required
-                            @input="showErrors = false"></v-text-field>
+                        <v-col cols="4" sm="4" md="12" style="height: 4.5rem">
+                            <v-text-field v-model="userData.mobile_number" label="Contact Number" required
+                                @input="showErrors = false"></v-text-field>
+                        </v-col>
 
-                        <v-text-field v-model="formData.city" label="City" required
-                            @input="showErrors = false"></v-text-field>
-
-                        <v-text-field v-model="formData.mobile_number" label="Contact Number" required
-                            @input="showErrors = false"></v-text-field>
-
-                        <v-text-field v-model="formData.email" label="Email Address" required
-                            @input="showErrors = false"></v-text-field>
-
+                        <v-col cols="4" sm="4" md="12" style="height: 4.5rem">
+                            <v-text-field v-model="userData.email" label="Email Address" required
+                                @input="showErrors = false"></v-text-field>
+                        </v-col>
                     </v-col>
                 </v-row>
 
@@ -84,7 +99,7 @@
                 </v-row>
             </fieldset>
         </v-form>
-        <input type="hidden" id="hdn_newRegInfo" name="hdn_newRegInfo" v-model="formData" />
+        <input type="hidden" id="hdn_newRegInfo" name="hdn_newRegInfo" v-model="storedData" />
     </v-container>
 </template>
   
@@ -183,11 +198,9 @@ export default {
         // Submit the form data here
         // Use axios or fetch to make a POST request
     },
-    goBack() {
-        // Implement going back to the previous step or page
-    },
-},
+
 };
+
 </script>
   
 <style lang="scss">
