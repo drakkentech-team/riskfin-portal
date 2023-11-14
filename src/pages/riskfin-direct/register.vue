@@ -78,6 +78,19 @@ import Modal from './help-modal.vue';
 export default {
     components: {
         Modal,
+        // fullName: {
+        //     get() {
+        //         if (this.getUserData.name && this.getUserData.surname) {
+        //             return `${this.getUserData.name} ${this.getUserData.surname}`;
+        //         } else {
+        //             return '';
+        //         }
+        //     },
+        //     set(value) {
+        //         const [name, surname] = value.split(' ');
+        //         this.updateUserData({ name, surname });
+        //     },
+        // },
     },
     name: 'FuneralPlanRegistration',
     setup() {

@@ -1,7 +1,7 @@
 <template>
     <v-container>
         <v-row class="content">
-            <v-col cols="12">
+            <!-- <v-col cols="12">
                 <div class="progress-bar">
                     <div v-for="(step, index) in steps" :key="index" class="step">
                         <v-icon :class="{ 'done': index < currentStep }" small>
@@ -9,7 +9,14 @@
                                 {{ step }}
                     </div>
                 </div>
-            </v-col>
+            </v-col> -->
+
+            <div class="progress-bar">
+                <div class="step" v-for="(step, index) in steps" :key="index">
+                    {{ step }}
+                    <div class="step-indicator" :class="{ done: index < currentStep }"></div>
+                </div>
+            </div>
 
             <v-col style="margin-bottom: -1rem" cols="12">
                 <v-form @submit.prevent="submitForm">
