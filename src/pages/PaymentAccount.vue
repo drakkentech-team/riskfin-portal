@@ -15,7 +15,7 @@
    const editDialog = ref(false);
    const saved = ref(false);
    const spinner = ref(false);
-   
+
    const editForm = ref({
       accountHolder: "",
       bank: "",
@@ -114,6 +114,41 @@
          saved.value = false; 
          spinner.value = false; 
          editDialog.value = false;
+
+         fetchPaymentAccount().then((data) => {
+            if (data) {
+               accountData.value = data
+               buttonLabel.value = "Edit Account Details"
+               if (data.account_holder) {
+                  accountHolder.value = data.account_holder;
+                  editForm.value.accountHolder = data.account_holder;
+               }
+               if (data.bank) {
+                  bank.value = data.bank;
+                  editForm.value.bank = data.bank;
+               }
+               if (data.account_nr) {
+                  accountNr.value = data.account_nr;
+                  editForm.value.accountNr = data.account_nr;
+               }
+               if (data.branch_code) {
+                  branchCode.value = data.branch_code;
+                  editForm.value.branchCode = data.branch_code;
+               }
+               if (data.account_type) {
+                  accountType.value = data.account_type;
+                  editForm.value.accountType.name = data.account_type;
+               }
+               if (data.swift_code) {
+                  swiftCode.value = data.swift_code;
+                  editForm.value.swiftCode = data.swift_code;
+               }
+               if (data.reference) { 
+                  reference.value = data.reference;
+                  editForm.value.reference = data.reference;
+               }
+            }
+         });
       } 
       else {
          spinner.value = false;

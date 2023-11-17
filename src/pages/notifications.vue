@@ -268,7 +268,7 @@
                            {{ data.date_sent }}
                         </template>
                         <template #filter>
-                           <InputText v-model="filters['date_sent'].value" type="text" class="p-column-filter" placeholder="Search by date_sent" />
+                           <InputText v-model="filters['date_sent'].value" type="text" class="p-column-filter" placeholder="Search by date sent" />
                         </template>
                      </Column>
                      <Column header="Pending" :exportable="false">

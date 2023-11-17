@@ -48,17 +48,6 @@ const router = createRouter({
          ]
       },
       {
-         path: '/admin-portal-users',
-         component: DashboardLayout,
-         children: [
-            {
-               path: '',
-               name: 'admin-portal-users',
-               component: () => import('../pages/adminPortalUsers.vue'),
-            },
-         ]
-      },
-      {
          path: '/payment-account',
          component: DashboardLayout,
          children: [
@@ -69,6 +58,18 @@ const router = createRouter({
             },
          ]
       },
+      {
+         path: '/admin-portal-users',
+         component: DashboardLayout,
+         children: [
+            {
+               path: '',
+               name: 'admin-portal-users',
+               component: () => import('../pages/adminPortalUsers.vue'),
+            },
+         ]
+      },
+      
    ]
 });
 
