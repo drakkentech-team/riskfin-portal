@@ -70,13 +70,13 @@ const router = createRouter({
          ]
       },
       {
-         path: '/payment-account-test',
+         path: '/payment-account',
          component: DashboardLayout,
          children: [
             {
                path: '',
-               name: 'payment-account-test',
-               component: () => import('../pages/paymentAccountTest.vue'),
+               name: 'payment-account',
+               component: () => import('../pages/paymentAccount.vue'),
             },
          ]
       },
