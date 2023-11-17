@@ -128,7 +128,7 @@
 				<li>
 					<button class="p-link">
 						<img src="assets/layout/images/avatar_1.png" width="35" alt="avatar1"/>
-						<span class="name">Claire Williams</span>
+						<!-- <span class="name">Claire Williams</span> -->
 						<span class="email">clare@primevue.com</span>
 					</button>
 				</li>

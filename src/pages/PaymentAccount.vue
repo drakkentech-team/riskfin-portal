@@ -15,12 +15,13 @@
    const editDialog = ref(false);
    const saved = ref(false);
    const spinner = ref(false);
+   
    const editForm = ref({
       accountHolder: "",
       bank: "",
       accountNr: null,
       branchCode: null,
-      accountType: "",
+      accountType: { name: "" },
       swiftCode: "",
       reference: "",
    })
@@ -71,8 +72,7 @@
 
    const saveDetails = () => {
       saved.value = true;
-      spinner.value = true;
-      console.log(editForm.value.accountType)
+      spinner.value = true;   
       const isFormValid = editForm.value.accountHolder &&
          editForm.value.bank &&
          editForm.value.accountNr &&
@@ -239,7 +239,7 @@
                            placeholder="Select an account type"
                            autofocus :class="{'p-invalid': saved && !editForm.accountType}" 
                         />
-                        <small class="p-error" v-if="saved && !editForm.accountType">Account Type is required.</small>
+                        <small class="p-error" v-if="saved && !editForm.accountType.name">Account Type is required.</small>
                      </div>
                      </div>
                      <div class="formgrid grid">

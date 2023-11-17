@@ -1,25 +1,15 @@
 <script setup>
    import { ref, onMounted } from 'vue';
-   import { mobileUserData, deleteUserPolicy, updateMobileAppUser } from '../api/mobileAppUsers';
+   import { fetchAdminPortalUsers, createAdminPortalUser, updateAdminPortalUser } from '../api/adminPortalUsers';
 
-   const userData = ref(null);
+   const users = ref(null);
    const user = ref(null);
    const editDialog = ref(false);
    const saved = ref(false);
-   const spinner = ref(false);
-
-   const editForm = ref({
-      first_name: "",
-      last_name: "",
-      email: null,
-      id: null,
-      contact_nr: { name: "" },
-      organisation: "",
-   })
 
    onMounted(() => {
-      mobileUserData().then((data) => {
-        userData.value = data;
+      fetchAdminPortalUsers().then((data) => {
+         users.value = data;
       });
    });
 
@@ -28,62 +18,23 @@
       editDialog.value = true;
    };
 
+   const saveUser = () => {
+      saved.value = true;
 
-   const deletePolicy = (policy_sid) => {
-      spinner.value = true;
-      const open_user = user.value.user_sid
-      deleteUserPolicy({
-         user_detail_fk: user.value.user_sid,
-         policy_fk: policy_sid,
-      })
-      let updatedUsers = userData.value.map(user => {
-         if (user.user_sid === open_user) {
-            let updatedPolicies = user.active_policy.filter(policy => policy.policy_sid !== policy_sid);
-            return {
-                  ...user,
-                  active_policy: updatedPolicies
-            };
+      if (user.value.first_name.trim()) {
+         if (user.value.sid) {
+            userData.value[findIndexById(user.value.id)] = user.value;
+            toast.add({severity:'success', summary: 'Successful', detail: 'User Updated', life: 3000});
          }
-         return user;
-      });
-      userData.value = updatedUsers
-      editDialog.value = false;
-      user.value = {};
-   }
-
-   const saveUser = async () => {
-    console.log(user.value)
-    saved.value = true;
-    spinner.value = true;  
-
-    try {
-        await updateMobileAppUser({
-            user_fk: user.value.user_sid,
-            name: user.value.first_name,
-            surname: user.value.last_name,
-            email: user.value.email,
-            id: user.value.id,
-            mobile_number: user.value.contact_number,
-        });
-
-        const data = await mobileUserData();
-        userData.value = data;
-    } catch (error) {
-        console.error("Error in saveUser:", error);
-        // Handle your error here
-    } finally {
-        spinner.value = false;
-        editDialog.value = false;
-        user.value = {};
-    }
-};
+         editDialog.value = false;
+         user.value = {};
+      }
+   };
 
    const closeDialog = () => {
       editDialog.value = false;
       saved.value = false;
    };
-
-
 
 </script>
 
@@ -91,29 +42,31 @@
 	<div class="p-grid">
 		<div class="p-col-12">
 			<Card>
-            <template #title> Mobile App Users </template>
+            <template #title> Admin Portal Users </template>
                <template #content>
                   <DataTable 
-                     :value="userData"
+                     :value="users"
                      paginator :rows="5" 
                      :rowsPerPageOptions="[5, 10, 20, 50]"
                      tableStyle="min-width: 50rem"
                   >
-                     <Column field="user_sid" header="ID"></Column>
+                     <Column field="sid" header="ID"></Column>
                      <Column field="first_name" header="Name"></Column>
                      <Column field="last_name" header="Surname"></Column>
-                     <Column field="active_policy" header="Active Products">
+                     <Column field="admin" header="User Level">
                         <template #body="slotProps">
-                           <div v-for="(policy, index) in slotProps.data.active_policy" :key="index">
-                              <span v-if="slotProps.data.active_policy.length > 1">•</span> {{ policy.policy_name }}
-                           </div>
+                           <span>{{ slotProps.data.admin === 1 ? 'Admin' : 'Standard' }}</span>
                         </template>
                      </Column>
-
+                     <Column field="active" header="Status">
+                        <template #body="slotProps">
+                           <span>{{ slotProps.data.active === 1 ? 'Active' : 'Deactivated' }}</span>
+                        </template>
+                     </Column>
                      <Column :exportable="false" style="min-width:8rem">
                         <template #body="slotProps">
                            <Button icon="pi pi-pencil" outlined rounded class="mr-2" @click="editUser(slotProps.data)" />
-                           <Button icon="pi pi-trash" outlined rounded severity="danger" @click="confirmDeleteProduct(slotProps.data)" />
+                           <Button :icon="slotProps.data.active === 1 ? 'pi pi-times' : 'pi pi-check'" outlined rounded :severity="slotProps.data.active === 1 ? danger : success" @click="confirmDeleteProduct(slotProps.data)" />
                         </template>
                      </Column>
                   </DataTable>
@@ -148,28 +101,20 @@
                            <small class="p-error" v-if="saved && !user.contact_number">Contact Number is required.</small>
                         </div>
                      </div>
-                     <!-- <div class="field">
+                     <div class="field">
                         <label for="organisation" class="bold-label">Organisation</label>
                         <InputText id="organisation" v-model.trim="user.organisation" required="true" autofocus :class="{'p-invalid': saved && !user.organisation}" />
                         <small class="p-error" v-if="saved && !user.organisation">Organisation is required.</small>
-                     </div> -->
+                     </div>
                      <div class="field">
-                        <DataTable :value="[user][0].active_policy" tableStyle="width: 390px">
-                           <Column field="policy_name" header="Policy">
-                              <template #body="slotProps">
-                                 <span v-if="slotProps.data.policy_name.toLowerCase() === 'none'">No active policies</span>
-                                 <span v-else>{{ slotProps.data.policy_name }}</span>
-                              </template>
-                           </Column>
+                        <DataTable 
+                           :value="[user][0].active_policy"
+                           tableStyle="width: 390px"
+                        >
+                           <Column field="policy_name" header="Policy"></Column>
                            <Column :exportable="false" style="min-width:8rem">
                               <template #body="slotProps">
-                                 <Button 
-                                    v-if="slotProps.data.policy_name.toLowerCase() !== 'none'"
-                                    icon="pi pi-trash" 
-                                    class="p-button-outlined p-button-rounded" 
-                                    severity="danger" 
-                                    @click="deletePolicy(slotProps.data.policy_sid)"
-                                 />
+                                 <Button icon="pi pi-trash" class="p-button-outlined p-button-rounded" severity="danger" />
                               </template>
                            </Column>
                         </DataTable>

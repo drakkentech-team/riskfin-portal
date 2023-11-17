@@ -2,6 +2,8 @@
    import { ref, onMounted } from 'vue';
    import { fetchNotifications } from '../api/notifications';
    import {todayDate} from "../utilities/common"
+   import {FilterMatchMode} from 'primevue/api';
+   
 
    const notifications = ref(null);
    const newDialog = ref(false);
@@ -13,6 +15,15 @@
    const sendDate = ref(todayDate());
    const saved = ref(false);
    const menu = ref(null);
+   const loading = ref(true);
+
+   const filters = ref({
+      sid: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+      title: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+      body: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+      date_sent: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+   });
+
 
    const titlePlaceholder = (placeholder) =>{
       const inputElement = titleValue.value
@@ -186,6 +197,7 @@
    onMounted(() => {
       fetchNotifications().then((data) => {
          notifications.value = data;
+         loading.value = false;
       });
    });
 
@@ -216,11 +228,49 @@
                      paginator :rows="5" 
                      :rowsPerPageOptions="[5, 10, 20, 50]"
                      tableStyle="min-width: 50rem"
+                     v-model:filters="filters"
+                     filterDisplay="row"
+                     :globalFilterFields="['sid']"
+                     :loading="loading"
                   >
-                     <Column field="sid" header="ID"></Column>
-                     <Column field="title" header="Title"></Column>
-                     <Column field="body" header="Message"></Column>
-                     <Column field="date_sent" header="Date Sent"></Column>
+                     <template #loading> Loading customers data. Please wait. </template>
+                     <Column 
+                        field="sid" 
+                        header="ID" 
+                        style="min-width: 10rem"
+                        suppressMenu: true
+                        >
+                        <template #body="{ data }">
+                           {{ data.sid }}
+                        </template>
+                        <template #filter>
+                           <InputText :showFilterMatchModes="false" v-model="filters['sid'].value" type="text" class="p-column-filter " placeholder="Search by ID" />
+                        </template>
+                     </Column>
+                     <Column field="title" header="Title" style="min-width: 11rem">
+                        <template #body="{ data }">
+                           {{ data.title }}
+                        </template>
+                        <template #filter>
+                           <InputText v-model="filters['title'].value" type="text" class="p-column-filter" placeholder="Search by title" />
+                        </template>
+                     </Column>
+                     <Column field="body" header="Message">
+                        <template #body="{ data }">
+                           {{ data.body }}
+                        </template>
+                        <template #filter>
+                           <InputText v-model="filters['body'].value" type="text" class="p-column-filter" placeholder="Search by message" />
+                        </template>
+                     </Column>
+                     <Column field="date_sent" header="Date Sent" style="min-width: 11rem">
+                        <template #body="{ data }">
+                           {{ data.date_sent }}
+                        </template>
+                        <template #filter>
+                           <InputText v-model="filters['date_sent'].value" type="text" class="p-column-filter" placeholder="Search by date_sent" />
+                        </template>
+                     </Column>
                      <Column header="Pending" :exportable="false">
                         <template #body="slotProps">
                            {{ slotProps.data.counts.pending }} / {{ slotProps.data.counts.sent }}

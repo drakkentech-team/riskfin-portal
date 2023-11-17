@@ -47,6 +47,28 @@ const router = createRouter({
             },
          ]
       },
+      {
+         path: '/admin-portal-users',
+         component: DashboardLayout,
+         children: [
+            {
+               path: '',
+               name: 'admin-portal-users',
+               component: () => import('../pages/adminPortalUsers.vue'),
+            },
+         ]
+      },
+      {
+         path: '/payment-account',
+         component: DashboardLayout,
+         children: [
+            {
+               path: '',
+               name: 'payment-account',
+               component: () => import('../pages/paymentAccount.vue'),
+            },
+         ]
+      },
    ]
 });
 
