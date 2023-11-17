@@ -65,7 +65,7 @@ const router = createRouter({
             {
                path: '',
                name: 'admin-portal-users',
-               component: () => import('../pages/adminPortalUsers.vue'),
+               component: () => import('../pages/adminPortalUsert.vue'),
             },
          ]
       },
