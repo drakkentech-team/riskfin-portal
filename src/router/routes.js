@@ -54,7 +54,7 @@ const router = createRouter({
             {
                path: '',
                name: 'payment-account',
-               // component: () => import('../pages/paymentAccount.vue'),
+               component: () => import('../pages/paymentAccount.vue'),
             },
          ]
       },
