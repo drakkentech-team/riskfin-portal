@@ -118,6 +118,7 @@ export default {
                     query: { policyId: selectedPolicy.value.id }, // Pass policy ID instead of the whole policy
                 });
                 console.log("pol ", selectedPolicy.value);
+                console.log("pol-id ", selectedPolicy.value.id);
                 return; // Add this line to prevent the navigation guard warning
             } else {
                 validationError.value = true;
@@ -139,6 +140,7 @@ export default {
                     }
                 );
                 policies.value = response.data;
+                console.log(policies.value)
             } catch (error) {
                 console.error("Error fetching policies from the API:", error);
             }

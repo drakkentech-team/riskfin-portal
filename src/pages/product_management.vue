@@ -114,6 +114,14 @@ const formFields = reactive([
             // Add any other validation rules you need here
         ],
     },
+    // {
+    //     model: 'administration_fee',
+    //     label: 'Administration Fee*',
+    //     rules: [
+    //         (v) => !!v || 'Administration fee is required.',
+    //         (v) => /^\d+(\.\d+)?$/.test(v) || 'Administration fee must be a numeric value.',
+    //     ],
+    // },
 ]);
 
 const secondForm = reactive({});
@@ -329,37 +337,13 @@ const handleSaveProduct = async () => {
     //     return;
     // }
 
-
-    // try {
-    //     console.log("got in here premium", form.policy_premium);
-
-    //     const response = await axios.post(`http://localhost:9000/policy_details`, {
-    //         policy_name: form.policy_name,
-    //         short_description: form.short_description,
-    //         long_description: form.long_description,
-    //         date: '2023-10-19',
-    //         cover: secondForm.cover,
-    //         underwriter: secondForm.underwriter,
-    //         premium: secondForm.policy_premium,
-    //         max_entry_age: secondForm.max_entry_age,
-    //         administration_fee: "20"
-    //         // underwriter: secondForm.underwriter,
-    //         // additional_field_2: secondForm.additional_field_2,
-
-
-    //     }, {
-    //         headers: {
-    //             'Authorization': `Bearer ${bearerToken}`,
-    //             'Content-Type': 'application/json'
-    //         }
-    //     });
-
     try {
         const policyCoversArray = policyCovers.map((cover) => ({
             cover: cover.cover,
             underwriter: cover.underwriter,
             premium: cover.policy_premium,
             max_entry_age: cover.max_entry_age,
+            // administration_fee: cover.administration_fee,
         }));
 
         const requestData = {
@@ -387,7 +371,7 @@ const handleSaveProduct = async () => {
             form.policy_name = null;
             form.short_description = null;
             form.long_description = null;
-            form.policy_covers = [];
+            policyCovers.length = 0;
 
             getPolicies();
 
