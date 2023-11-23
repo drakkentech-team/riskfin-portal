@@ -236,10 +236,11 @@ const getPolicies = async () => {
 
         if (response && response.status === 200) {
             responseData = response.data;
-            console.log(response.data)
+            console.log(response.data);
             availableProdList = responseData.filter(item => item.active === 1);
             deletedProdList = responseData.filter(item => item.active === 0);
             data.value = availableProdList;
+
         }
     }
     catch (error) {
@@ -575,6 +576,7 @@ const disablePolicy = async () => {
 const handleRowClick = (item) => {
     if (item.active === 1) {
         // Open the update dialog for non-deleted items
+        console.log("item premium:", item.cover_details.premium);
         showUpdateDialog(item);
     }
 };

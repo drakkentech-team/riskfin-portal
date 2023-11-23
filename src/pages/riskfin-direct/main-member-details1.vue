@@ -157,9 +157,7 @@
                   </p>
                 </div>
               </div>
-
             </div>
-
 
             <div class="col-lg-6 float-right" style="margin-top: -18.8rem;">
               <div class="row">
