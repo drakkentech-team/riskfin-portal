@@ -164,6 +164,8 @@ const isFormFieldFocused = ref(false);
 /*MODALS*/
 const addNewPolicyModal = ref(false)
 const deletePolicyModal = ref(false)
+const policyDetailsDialog = ref(false)
+const selectedPolicy = ref(null)
 
 /*METHODS*/
 const handleTabClick = (tabItem) => {
@@ -189,6 +191,7 @@ const handleDeletePolicy = (item) => {
 
 
 const data = ref([])
+// const policyCovers_data = ref
 
 const updateDialog = ref(false);
 const updateProductId = ref(null);
@@ -577,9 +580,132 @@ const handleRowClick = (item) => {
     if (item.active === 1) {
         // Open the update dialog for non-deleted items
         console.log("item premium:", item.cover_details.premium);
+        // selectedPolicy = item;
+        // console.log('selectedPolicy', selectedPolicy)
+        // policyDetailsDialog = true;
         showUpdateDialog(item);
     }
 };
+
+// const handleViewPolicyCovers= (item) => {
+//     if (item.active === 1) {
+//         // Open the update dialog for non-deleted items
+//         console.log("item premium:", item.cover_details.premium);
+//         showUpdateDialog(item);
+//     }
+// };
+
+// const policyCoverData = ref([]);
+// const handleViewPolicyCovers = (item) => {
+//     // This method is called when clicking on the "View" button
+//     // You can add specific logic for viewing policy covers
+//     console.log('Viewing policy covers for:', item.name);
+//     selectedPolicy.value = item;
+//     console.log('selectedPolicy', selectedPolicy.value);
+
+//     // Ensure policyCoverData.value is an array before pushing
+//     if (!Array.isArray(policyCoverData.value)) {
+//         policyCoverData.value = [];
+//     }
+
+//     policyCoverData.value.push(item.cover_details);
+//     console.log('Viewing policy covers for:', policyCoverData.value);
+
+//     policyDetailsDialog.value = true;
+//     console.log('policyDetailsDialog', policyDetailsDialog.value);
+// };
+
+// const policyCoverData = ref([]);
+const handleViewPolicyCovers = (item) => {
+    // This method is called when clicking on the "View" button
+    // You can add specific logic for viewing policy covers
+    // console.log('Viewing policy covers for:', item.name);
+    // console.log('Viewing policy covers for:', item.cover_details);
+    selectedPolicy.value = item;
+    // console.log('This selectedPolicy', selectedPolicy.value)
+    // policyCoverData.push(item.cover_details);
+    // console.log('Viewing policy covers for:', selectedPolicy.value.cover_details);
+
+
+    policyDetailsDialog.value = true;
+    console.log('policyDetailsDialog', policyDetailsDialog.value)
+};
+
+// const getCoverDetails = (coverDetailsString) => {
+//     // Parse the cover_details string into a JavaScript object
+//     console.log('coverDetailsObject');
+//     const coverDetailsObject = JSON.parse(coverDetailsString);
+//     // Access specific properties from the cover_details object
+//     console.log('coverDetailsObject', coverDetailsObject);
+//     return `Cover: ${coverDetailsObject.cover}, Premium: ${coverDetailsObject.premium}, Underwriter: ${coverDetailsObject.underwriter}, Max Entry Age: ${coverDetailsObject.max_entry_age}`;
+// };
+
+// const getCoverDetails = async () => {
+//     try {
+//         // Parse the cover_details string into a JavaScript object
+//         // const coverDetailsObject = JSON.parse(coverDetailsString);
+//         // Access specific properties from the cover_details object
+//         const response = await fetchData();
+//         console.log("response", response);
+//         // Check if the response is successful (status code 200)
+//         if (response.ok) {
+//             const jsonData = await response.json();
+//             return {
+//                 cover: jsonData.cover,
+//                 premium: jsonData.premium,
+//                 underwriter: jsonData.underwriter,
+//                 maxEntryAge: jsonData.max_entry_age,
+//             };
+//         } else {
+//             console.error('Network request failed with status:', response.status);
+//             // Handle the error or log it
+//         }
+//     } catch (error) {
+//         console.error('Error in getCoverDetails:', error);
+//         // Handle the error or log it
+//     }
+// };
+
+
+const getCoverDetails = (item) => {
+    selectedPolicy.value = item;
+    console.log('Raw JSON string:', item.cover_details);
+
+    try {
+        const details = JSON.parse(item.cover_details);
+        console.log('Parsed details:', details);
+        return details;
+    } catch (error) {
+        console.error('Error parsing cover details:', error);
+        return null; // Handle the error as needed
+    }
+};
+// const getCoverDetails = (item) => {
+//     selectedPolicy.value = item;
+//     console.log('Raw JSON string:', item.cover_details);
+
+//     try {
+//         const details = JSON.parse(item.cover_details);
+//         console.log('Parsed details:', details);
+//         return details;
+//     } catch (error) {
+//         console.error('Error parsing cover details:', error);
+//         return null; // Handle the error as needed
+//     }
+// };
+
+// const getCoverDetails = (item) => {
+//     selectedPolicy.value = item;
+//     console.log('this coverDetails', selectedPolicy.value.cover_details);
+//     // try {
+//     const details = JSON.parse(item.cover_details);
+//     // console.log('details', details)
+//     return details;
+//     // } catch (error) {
+//     //     console.error('Error parsing cover details:', error);
+//     //     return [];
+//     // }
+// };
 
 const handleInputScroll = () => {
     const textareaElement = document.querySelector('.scrollable-textarea');
@@ -722,7 +848,8 @@ watch(isFormFieldFocused, (newValue) => {
                         Long Description
                     </th>
                     <th class="text-left">
-                        Policy Premium
+                        <!-- Policy Premium -->
+                        Policy Cover
                     </th>
                     <!-- <th class="text-left">
           Premium Due Date
@@ -737,7 +864,8 @@ watch(isFormFieldFocused, (newValue) => {
                     <td @click="handleRowClick(item)">{{ item.name }}</td>
                     <td @click="handleRowClick(item)">{{ item.short_description }}</td>
                     <td @click="handleRowClick(item)">{{ item.long_description }}</td>
-                    <td @click="handleRowClick(item)">{{ item.premium }}</td>
+                    <!-- <td @click="handleRowClick(item)">{{ item.premium }}</td> -->
+                    <td @click="handleViewPolicyCovers(item)">View</td>
                     <!-- <td>{{ item.premium_due_date }}</td> -->
                     <td>
                         <div class="button-container">
@@ -841,6 +969,92 @@ watch(isFormFieldFocused, (newValue) => {
             </v-card>
         </v-dialog>
 
+        <!-- Modal for displaying policy details -->
+        <v-dialog v-model="policyDetailsDialog" max-width="800">
+            <v-card>
+                <v-card-title>
+                    Policy Details
+                </v-card-title>
+                <!-- <v-card-text>
+                    <-- Display policy details here --
+                    <div v-if="selectedPolicy.value">
+                        <p>Name: {{ selectedPolicy.value.name }}</p>
+                        <p>Short Description: {{ selectedPolicy.value.short_description }}</p>
+                        <p>Long Description: {{ selectedPolicy.value.long_description }}</p>
+
+                        <-- Extract and display details from cover_details --
+                        <p>Policy Cover: {{ getCoverDetails(selectedPolicy.value.cover_details) }}</p>
+                        <-- Add more details as needed --
+                    </div>
+                </v-card-text> -->
+
+                <v-table>
+                    <thead>
+                        <tr>
+                            <th class="text-left">
+                                Cover
+                            </th>
+                            <th class="text-left">
+                                Premium
+                            </th>
+                            <th class="text-left">
+                                Underwriter
+                            </th>
+                            <th class="text-left">
+                                Max Entry Age
+                            </th>
+
+                            <th class="text-left">
+                                Action
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody v-if="data.length > 0">
+                        <tr v-for="item in data" :key="item.sid" class="clickable-row">
+                            <!-- <td @click="handleRowClick(item)">{{ item.cover_details.cover }}</td>
+                            <td @click="handleRowClick(item)">{{ item.short_description }}</td>
+                            <td @click="handleRowClick(item)">{{ item.long_description }}</td> -->
+                            <!-- <td @click="handleRowClick(item)">{{ item.premium }}</td> -->
+                            <!-- <td @click="handleViewPolicyCovers(item)">View</td> -->
+
+                            <!-- <td @click="handleRowClick(item)">{{ getCoverDetails(item.cover_details).cover }}</td>
+                            <td @click="handleRowClick(item)">{{ getCoverDetails(item.cover_details).premium }}</td>
+                            <td @click="handleRowClick(item)">{{ getCoverDetails(item.cover_details).underwriter }}</td>
+                            <td @click="handleRowClick(item)">{{ getCoverDetails(item.cover_details).max_entry_age }}</td> -->
+                            <td v-for="policyCover in getCoverDetails(item)" :key="policyCover.id">
+                                {{ policyCover.cover }}
+                            </td>
+                            <!-- <td>{{ item.premium_due_date }}</td> -->
+                            <td>
+                                <div class="button-container">
+                                    <!-- Restore Button -->
+                                    <button v-if="item.active === 0" @click="restoreProduct(item)" class="btn btn-success">
+                                        Restore
+                                    </button>
+                                    <!-- Edit and Delete Buttons -->
+                                    <!-- <button v-if="item.policy_detail_delete === 0" @click="showUpdateDialog(item)" class="btn btn-danger">
+                Edit
+              </button> -->
+                                    <button v-if="item.active === 1" @click="handleDeletePolicy(item.sid)"
+                                        class="btn btn-danger">
+                                        Delete
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                    <tbody v-else>
+                        <tr>
+                            <td colspan="5">No Data</td>
+                        </tr>
+
+                    </tbody>
+                </v-table>
+                <v-card-actions>
+                    <v-btn @click="policyDetailsDialog = false">Close</v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
         <!-- <v-table>
             <thead>
                 <tr>
