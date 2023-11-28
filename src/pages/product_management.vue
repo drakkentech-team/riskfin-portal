@@ -7,79 +7,6 @@ const router = useRouter()
 const apiBaseUrl = "http://localhost:9000";
 const bearerToken = "1HW94aH3Gu9BNxqw2QnY4y7zMa1xwlm_rg2ZiA9tt3fu";
 
-// const pol_form = reactive({});
-// const maxAge = null;
-// const showInputFields = ref(false)
-// const formFields = reactive([
-//   {
-//     model: 'policy_premium',
-//     label: 'Policy Premium*',
-//     rules: [(v) => !!v || 'Policy Premium is required.',
-//     (v) => /^\d+(\.\d+)?$/.test(v) || 'Policy Premium must be a numeric value.',],
-//   },
-//   {
-//     model: 'cover',
-//     label: 'Cover Amount*',
-//     rules: [(v) => !!v || 'Cover amount is required.',
-//     (v) => /^\d+(\.\d+)?$/.test(v) || 'Cover amount must be a numeric value.',],
-//   },
-//   {
-//     model: 'underwriter',
-//     label: 'Underwriter*',
-//     rules: [(v) => !!v || 'Underwriter is required.'],
-//   },
-//   {
-//     model: 'max_Entry_Age',
-//     label: 'Max. Entry Age*',
-//     rules: [
-//       (v) => !!v || 'Max. Entry Age is required.',
-//       (v) => /^\d+$/.test(v) || 'Max. Entry Age must be a numeric value.',
-//       // (v) => v <= YOUR_MAX_AGE || 'Max. Entry Age must be less than or equal to ' + YOUR_MAX_AGE,
-//       (v) => v <= max_Entry_Age
-//       // Add any other validation rules you need here
-//     ],
-//     // showInputFields
-//   }
-// ]);
-// // showInputFields: false,
-
-// // // const pol_form = reactive({});
-
-
-
-
-// // const addInputFields = (count) => {
-// //   showInputFields = true;
-// //   formFields = []
-// //   for (let i = 0; i < count; i++) {
-// //     formFields.push({
-// //       model: 'newField' + (formFields.length + i + 1),
-// //       label: 'New Field ' + (formFields.length + i + 1),
-// //       rules: ['required'],
-// //     });
-// //   }
-// // };\
-
-// // const pol_form = reactive({});
-
-// // const showInputFields = ref(false);
-
-// const addInputFields = (count) => {
-//   showInputFields.value = true;
-//   formFields.forEach((field) => {
-//     for (let i = 0; i < count; i++) {
-//       const newField = {
-//         model: field.model + i,
-//         label: field.label + ' ' + (i + 1),
-//         rules: field.rules,
-//       };
-//       formFields.push(newField);
-//     }
-//     console.log('User Max Age:', userMaxAge);
-//   });
-//   count++
-// };
-
 const max_entry_age = 100;
 const showInputFields = ref(false);
 const formFields = reactive([
@@ -111,7 +38,7 @@ const formFields = reactive([
             (v) => !!v || 'Max. Entry Age is required.',
             (v) => /^\d+$/.test(v) || 'Max. Entry Age must be a numeric value.',
             (v) => v <= max_entry_age || 'Max. Entry Age must be less than or equal to ' + max_entry_age,
-            // Add any other validation rules you need here
+
         ],
     },
     // {
@@ -402,92 +329,23 @@ const removePolicyCover = (index) => {
 };
 
 
-// const form = reactive({
-//   name: '',
-//   short_description: '',
-//   long_description: '',
-
-// });
-
-// const handleSaveProduct = async () => {
-//   addValidationError.value = '';
-//   for (const field in addErrorFields) {
-//     addErrorFields[field] = false;
-//   }
-
-//   // Validate form fields
-//   if (!pol_form.name) {
-//     addErrorFields.policy_name = true;
-//   }
-//   if (!pol_form.short_description) {
-//     addErrorFields.short_description = true;
-//   }
-//   if (!pol_form.long_description) {
-//     addErrorFields.long_description = true;
-//   }
-//   if (!pol_form.policy_premium) {
-//     addErrorFields.policy_premium = true;
-//   }
-
-//   if (Object.values(addErrorFields).some((fieldError) => fieldError)) {
-//     addValidationError.value = 'Please fill in all required fields.';
-//     return;
-//   }
-
-//   try {
-//     const response = await axios.post(
-//       'http://localhost:9000/policy_details',
-//       {
-//         policy_name: pol_form.name,
-//         short_description: pol_form.short_description,
-//         long_description: pol_form.long_description,
-//         date: pol_form.date,
-//         cover: pol_form.cover,
-//         underwriter: pol_form.underwriter,
-//         premium: pol_form.policy_premium,
-//         max_entry_age: pol_form.max_entry_age,
-//         administration_fee: pol_form.administration_fee,
-//       },
-//       {
-//         headers: {
-//           Authorization: `Bearer ${bearerToken}`,
-//           'Content-Type': 'application/json',
-//         },
-//       }
-//     );
-
-//     if (response && response.status === 200) {
-//       showAlert.value = true;
-//       setTimeout(() => {
-//         showAlert.value = false;
-//       }, 5000);
-
-//       // Reset form fields after successful submission
-//       for (const field in pol_form) {
-//         pol_form[field] = null;
-//       }
-
-//       getPolicies();
-//     }
-//   } catch (error) {
-//     console.error('Error adding product:', error);
-
-//     if (error.response && error.response.data && error.response.data.validation_error) {
-//       console.error('Validation error details:', error.response.data.validation_error);
-//     }
-//   }
-// };
-
 const showUpdateDialog = (item) => {
-    forms.policy_name = item.name;
-    forms.short_description = item.short_description;
-    forms.long_description = item.long_description;
-    forms.policy_premium = item.premium;
-    // forms.premium_due_date = item.premium_due_date;
 
-    updateProductId.value = item.sid;
+    try {
+        openUpdateDialog(item);
 
-    updateDialog.value = true;
+        forms.policy_name = item.name;
+        forms.short_description = item.short_description;
+        forms.long_description = item.long_description;
+        // forms.policy_premium = item.premium;
+
+        updateProductId.value = item.sid;
+
+        updateDialog.value = true;
+    } catch (error) {
+        console.error('Error in showUpdateDialog:', error);
+    }
+
 };
 
 
@@ -495,7 +353,9 @@ const forms = reactive({
     policy_name: '',
     short_description: '',
     long_description: '',
-    policy_premium: '',
+    policy_covers: [],
+
+    // policy_premium: '',
     // premium_due_date: '',
 });
 
@@ -517,9 +377,16 @@ const handleUpdateProduct = async () => {
     if (!forms.long_description) {
         errorFields.long_description = true;
     }
-    if (!forms.policy_premium) {
-        errorFields.policy_premium = true;
+    if (!policyCovers.length) {
+
+        addErrorFields.policy_covers = true;
+
+        console.log(policyCovers.length);
+        addValidationError.value = 'Please add policy covers.';
     }
+    // if (!forms.policy_premium) {
+    //     errorFields.policy_premium = true;
+    // }
 
     if (Object.values(errorFields).some(fieldError => fieldError)) {
         validationError.value = 'Please fill in all required fields.';
@@ -527,13 +394,31 @@ const handleUpdateProduct = async () => {
     }
     // console.log(forms.policy_premium)
     try {
-        const response = await axios.put(`http://localhost:9000/update_policy_details?sid=${updateProductId.value}`, {
-            name: forms.policy_name,
+        const policyCoversArray = policyCovers.map((cover) => ({
+            cover: cover.cover,
+            underwriter: cover.underwriter,
+            premium: cover.policy_premium,
+            max_entry_age: cover.max_entry_age,
+            // administration_fee: cover.administration_fee,
+        }));
+
+        const requestUpdateData = {
+            policy_name: forms.policy_name,
             short_description: forms.short_description,
             long_description: forms.long_description,
-            premium: forms.policy_premium,
+            date: '2023-10-19',
+            administration_fee: "20",
+            policy_covers: policyCoversArray,
+        };
+
+        const response = await axios.put(`http://localhost:9000/update_policy_details?sid=${updateProductId.value}`, requestData, {
+            // name: forms.policy_name,
+            // short_description: forms.short_description,
+            // long_description: forms.long_description,
+            // policy_covers: policyCoversArray,
+            // premium: forms.policy_premium,
             // premium_due_date: forms.premium_due_date,
-        }, {
+            // }, {
             headers: {
                 'Authorization': `Bearer ${bearerToken}`,
                 'Content-Type': 'application/json'
@@ -587,124 +472,35 @@ const handleRowClick = (item) => {
     }
 };
 
-// const handleViewPolicyCovers= (item) => {
-//     if (item.active === 1) {
-//         // Open the update dialog for non-deleted items
-//         console.log("item premium:", item.cover_details.premium);
-//         showUpdateDialog(item);
-//     }
-// };
-
-// const policyCoverData = ref([]);
-// const handleViewPolicyCovers = (item) => {
-//     // This method is called when clicking on the "View" button
-//     // You can add specific logic for viewing policy covers
-//     console.log('Viewing policy covers for:', item.name);
-//     selectedPolicy.value = item;
-//     console.log('selectedPolicy', selectedPolicy.value);
-
-//     // Ensure policyCoverData.value is an array before pushing
-//     if (!Array.isArray(policyCoverData.value)) {
-//         policyCoverData.value = [];
-//     }
-
-//     policyCoverData.value.push(item.cover_details);
-//     console.log('Viewing policy covers for:', policyCoverData.value);
-
-//     policyDetailsDialog.value = true;
-//     console.log('policyDetailsDialog', policyDetailsDialog.value);
-// };
-
-// const policyCoverData = ref([]);
+// works
 const handleViewPolicyCovers = (item) => {
-    // This method is called when clicking on the "View" button
-    // You can add specific logic for viewing policy covers
-    // console.log('Viewing policy covers for:', item.name);
-    // console.log('Viewing policy covers for:', item.cover_details);
     selectedPolicy.value = item;
-    // console.log('This selectedPolicy', selectedPolicy.value)
-    // policyCoverData.push(item.cover_details);
-    // console.log('Viewing policy covers for:', selectedPolicy.value.cover_details);
-
-
     policyDetailsDialog.value = true;
-    console.log('policyDetailsDialog', policyDetailsDialog.value)
 };
-
-// const getCoverDetails = (coverDetailsString) => {
-//     // Parse the cover_details string into a JavaScript object
-//     console.log('coverDetailsObject');
-//     const coverDetailsObject = JSON.parse(coverDetailsString);
-//     // Access specific properties from the cover_details object
-//     console.log('coverDetailsObject', coverDetailsObject);
-//     return `Cover: ${coverDetailsObject.cover}, Premium: ${coverDetailsObject.premium}, Underwriter: ${coverDetailsObject.underwriter}, Max Entry Age: ${coverDetailsObject.max_entry_age}`;
-// };
-
-// const getCoverDetails = async () => {
-//     try {
-//         // Parse the cover_details string into a JavaScript object
-//         // const coverDetailsObject = JSON.parse(coverDetailsString);
-//         // Access specific properties from the cover_details object
-//         const response = await fetchData();
-//         console.log("response", response);
-//         // Check if the response is successful (status code 200)
-//         if (response.ok) {
-//             const jsonData = await response.json();
-//             return {
-//                 cover: jsonData.cover,
-//                 premium: jsonData.premium,
-//                 underwriter: jsonData.underwriter,
-//                 maxEntryAge: jsonData.max_entry_age,
-//             };
-//         } else {
-//             console.error('Network request failed with status:', response.status);
-//             // Handle the error or log it
-//         }
-//     } catch (error) {
-//         console.error('Error in getCoverDetails:', error);
-//         // Handle the error or log it
-//     }
-// };
-
 
 const getCoverDetails = (item) => {
-    selectedPolicy.value = item;
-    console.log('Raw JSON string:', item.cover_details);
+    const covers = item.cover_details;
 
     try {
-        const details = JSON.parse(item.cover_details);
-        console.log('Parsed details:', details);
-        return details;
+        const details = JSON.parse(covers);
+        return Array.isArray(details) ? details : [details];
     } catch (error) {
         console.error('Error parsing cover details:', error);
-        return null; // Handle the error as needed
+        return [];
     }
 };
-// const getCoverDetails = (item) => {
-//     selectedPolicy.value = item;
-//     console.log('Raw JSON string:', item.cover_details);
 
+const openUpdateDialog = (item) => {
+    selectedPolicy = item;
+    updateDialog = true;
+};
+
+// const showUpdateDialog = (item) => {
 //     try {
-//         const details = JSON.parse(item.cover_details);
-//         console.log('Parsed details:', details);
-//         return details;
+//         this.openUpdateDialog(item);
 //     } catch (error) {
-//         console.error('Error parsing cover details:', error);
-//         return null; // Handle the error as needed
+//         console.error('Error in showUpdateDialog:', error);
 //     }
-// };
-
-// const getCoverDetails = (item) => {
-//     selectedPolicy.value = item;
-//     console.log('this coverDetails', selectedPolicy.value.cover_details);
-//     // try {
-//     const details = JSON.parse(item.cover_details);
-//     // console.log('details', details)
-//     return details;
-//     // } catch (error) {
-//     //     console.error('Error parsing cover details:', error);
-//     //     return [];
-//     // }
 // };
 
 const handleInputScroll = () => {
@@ -933,11 +729,32 @@ watch(isFormFieldFocused, (newValue) => {
                                     @blur="handleInputBlur"></v-textarea>
                             </v-col>
 
-                            <v-col cols="12" sm="6" md="4">
+                            <!-- <v-col cols="12" sm="6" md="4">
                                 <v-text-field v-model="forms.policy_premium" label="Policy Premium*" required
                                     :rules="rules.policy_premium" @scroll="handleInputScroll" @focus="handleInputFocus"
                                     @blur="handleInputBlur"></v-text-field>
-                            </v-col>
+                            </v-col> -->
+
+                            <v-table>
+                                <thead>
+                                    <tr>
+                                        <th class="text-left">Cover</th>
+                                        <th class="text-left">Premium</th>
+                                        <th class="text-left">Underwriter</th>
+                                        <th class="text-left">Max Entry Age</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="item in getCoverDetails(selectedPolicy)" :key="item.sid"
+                                        class="clickable-row">
+                                        <td class="text-center">{{ item.cover }}</td>
+                                        <td class="text-center">{{ item.premium }}</td>
+                                        <td class="text-center">{{ item.underwriter }}</td>
+                                        <td class="text-center">{{ item.max_entry_age }}</td>
+                                    </tr>
+                                </tbody>
+                            </v-table>
+
 
                             <v-alert type="error" title="Error" v-if="!isFormFieldFocused && validationError">
                                 {{ validationError }}
@@ -975,19 +792,6 @@ watch(isFormFieldFocused, (newValue) => {
                 <v-card-title>
                     Policy Details
                 </v-card-title>
-                <!-- <v-card-text>
-                    <-- Display policy details here --
-                    <div v-if="selectedPolicy.value">
-                        <p>Name: {{ selectedPolicy.value.name }}</p>
-                        <p>Short Description: {{ selectedPolicy.value.short_description }}</p>
-                        <p>Long Description: {{ selectedPolicy.value.long_description }}</p>
-
-                        <-- Extract and display details from cover_details --
-                        <p>Policy Cover: {{ getCoverDetails(selectedPolicy.value.cover_details) }}</p>
-                        <-- Add more details as needed --
-                    </div>
-                </v-card-text> -->
-
                 <v-table>
                     <thead>
                         <tr>
@@ -1004,43 +808,31 @@ watch(isFormFieldFocused, (newValue) => {
                                 Max Entry Age
                             </th>
 
-                            <th class="text-left">
+                            <!-- <th class="text-left">
                                 Action
-                            </th>
+                            </th> -->
                         </tr>
                     </thead>
-                    <tbody v-if="data.length > 0">
-                        <tr v-for="item in data" :key="item.sid" class="clickable-row">
-                            <!-- <td @click="handleRowClick(item)">{{ item.cover_details.cover }}</td>
-                            <td @click="handleRowClick(item)">{{ item.short_description }}</td>
-                            <td @click="handleRowClick(item)">{{ item.long_description }}</td> -->
-                            <!-- <td @click="handleRowClick(item)">{{ item.premium }}</td> -->
-                            <!-- <td @click="handleViewPolicyCovers(item)">View</td> -->
-
-                            <!-- <td @click="handleRowClick(item)">{{ getCoverDetails(item.cover_details).cover }}</td>
-                            <td @click="handleRowClick(item)">{{ getCoverDetails(item.cover_details).premium }}</td>
-                            <td @click="handleRowClick(item)">{{ getCoverDetails(item.cover_details).underwriter }}</td>
-                            <td @click="handleRowClick(item)">{{ getCoverDetails(item.cover_details).max_entry_age }}</td> -->
-                            <td v-for="policyCover in getCoverDetails(item)" :key="policyCover.id">
-                                {{ policyCover.cover }}
-                            </td>
-                            <!-- <td>{{ item.premium_due_date }}</td> -->
-                            <td>
-                                <div class="button-container">
-                                    <!-- Restore Button -->
-                                    <button v-if="item.active === 0" @click="restoreProduct(item)" class="btn btn-success">
-                                        Restore
-                                    </button>
-                                    <!-- Edit and Delete Buttons -->
-                                    <!-- <button v-if="item.policy_detail_delete === 0" @click="showUpdateDialog(item)" class="btn btn-danger">
-                Edit
-              </button> -->
-                                    <button v-if="item.active === 1" @click="handleDeletePolicy(item.sid)"
-                                        class="btn btn-danger">
-                                        Delete
-                                    </button>
+                    <tbody v-if="getCoverDetails(selectedPolicy).length > 0">
+                        <tr v-for="item in getCoverDetails(selectedPolicy)" :key="item.sid" class="clickable-row">
+                            <td class="text-center">{{ item.cover }}</td>
+                            <td class="text-center">{{ item.premium }}</td>
+                            <td class="text-center">{{ item.underwriter }}</td>
+                            <td class="text-center">{{ item.max_entry_age }}</td>
+                            <!-- <td>
+                                <div class="button-container"> -->
+                            <!-- <button @click="policyDetailsDialog = false">Close</button> -->
+                            <!-- <button class="btn btn-danger" @click="policyDetailsDialog = false">Delete</button>
                                 </div>
-                            </td>
+                            </td> -->
+                            <!-- <td>
+                                <div class="button-container">
+                                    <button v-if="item.active === 0" @click="restoreProduct(item)"
+                                        class="btn btn-success">Restore</button>
+                                    <button v-if="item.active === 1" @click="handleDeletePolicy(item.sid)"
+                                        class="btn btn-danger">Delete</button>
+                                </div>
+                            </td> -->
                         </tr>
                     </tbody>
                     <tbody v-else>
@@ -1130,5 +922,9 @@ tr.clickable-row {
 .scrollable-textarea::placeholder,
 .scrollable-textarea:focus::placeholder {
     opacity: 0;
+}
+
+.text-center {
+    text-align: center;
 }
 </style>
