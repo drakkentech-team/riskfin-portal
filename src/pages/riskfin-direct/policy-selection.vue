@@ -112,6 +112,7 @@ export default {
         const submitForm = () => {
             if (selectedPolicy.value) {
                 store.dispatch('updateSelectedPolicy', selectedPolicy.value);
+                // console.log(selectedPolicy.value);
 
                 router.push({
                     path: "./cover-selection/family",

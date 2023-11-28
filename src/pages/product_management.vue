@@ -330,18 +330,17 @@ const removePolicyCover = (index) => {
 
 
 const showUpdateDialog = (item) => {
+    forms.policy_name = item.name;
+    forms.short_description = item.short_description;
+    forms.long_description = item.long_description;
+    // forms.policy_premium = item.premium;
+
+    updateProductId.value = item.sid;
+
+    updateDialog.value = true;
 
     try {
         openUpdateDialog(item);
-
-        forms.policy_name = item.name;
-        forms.short_description = item.short_description;
-        forms.long_description = item.long_description;
-        // forms.policy_premium = item.premium;
-
-        updateProductId.value = item.sid;
-
-        updateDialog.value = true;
     } catch (error) {
         console.error('Error in showUpdateDialog:', error);
     }
@@ -411,7 +410,7 @@ const handleUpdateProduct = async () => {
             policy_covers: policyCoversArray,
         };
 
-        const response = await axios.put(`http://localhost:9000/update_policy_details?sid=${updateProductId.value}`, requestData, {
+        const response = await axios.put(`http://localhost:9000/update_policy_details?sid=${updateProductId.value}`, requestUpdateData, {
             // name: forms.policy_name,
             // short_description: forms.short_description,
             // long_description: forms.long_description,

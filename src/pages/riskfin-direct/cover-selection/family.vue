@@ -63,49 +63,8 @@ export default {
       steps: ["Step 1", "Step 2", "Step 3", "Step 4", "Step 5", "Done"],
       selectedPolicy: null,
       policies: [
-        this.selectedPolicy
-        // {
-        //   value: "6",
-        //   cover: this.selectedPolicy.cover,
-        //   underwriter: this.selectedPolicy.underwriter,
-        //   premium: this.selectedPolicy.premium,
-        //   maxAge: this.selectedPolicy.max_entry_age
-        // },
-        // {
-        //   value: "16",
-        //   cover: "R 10,000",
-        //   underwriter: "Safrican",
-        //   premium: 109.00,
-        //   maxAge: "64"
-        // },
-        // {
-        //   value: "24",
-        //   cover: "R 15,000",
-        //   underwriter: "Safrican",
-        //   premium: 120.00,
-        //   maxAge: "64"
-        // },
-        // {
-        //   value: "28",
-        //   cover: "R 20,000",
-        //   underwriter: "Safrican",
-        //   premium: 140.00,
-        //   maxAge: "64"
-        // },
-        // {
-        //   value: "91",
-        //   cover: "R 25,000",
-        //   underwriter: "Safrican",
-        //   premium: 165.00,
-        //   maxAge: "64"
-        // },
-        // {
-        //   value: "29",
-        //   cover: "R 30,000",
-        //   underwriter: "Safrican",
-        //   premium: 200.00,
-        //   maxAge: "64"
-        // }
+        this.selectedPolicy.cover_details
+
       ]
     };
   },
@@ -115,7 +74,8 @@ export default {
     const validationError = ref(false);
     const router = useRouter();
     const selectedPolicy = store.getters.getSelectedPolicy;
-    console.log(selectedPolicy);
+    console.log('this ', selectedPolicy);
+    console.log('this ', selectedPolicy.cover_details);
 
     const submitForm = () => {
       console.log("in here");
