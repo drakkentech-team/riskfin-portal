@@ -285,7 +285,7 @@ const handleSaveProduct = async () => {
             administration_fee: "20",
             policy_covers: policyCoversArray,
         };
-        console.log(requestData);
+        console.log('requestData ', requestData);
         const response = await axios.post(`http://localhost:9000/policy_details`, requestData, {
             headers: {
                 'Authorization': `Bearer ${bearerToken}`,
@@ -333,17 +333,13 @@ const showUpdateDialog = (item) => {
     forms.policy_name = item.name;
     forms.short_description = item.short_description;
     forms.long_description = item.long_description;
-    // forms.policy_premium = item.premium;
+    forms.policy_covers = getCoverDetails(item);
+    console.log(forms.policy_covers);
 
     updateProductId.value = item.sid;
-
     updateDialog.value = true;
 
-    try {
-        openUpdateDialog(item);
-    } catch (error) {
-        console.error('Error in showUpdateDialog:', error);
-    }
+
 
 };
 
@@ -393,13 +389,13 @@ const handleUpdateProduct = async () => {
     }
     // console.log(forms.policy_premium)
     try {
-        const policyCoversArray = policyCovers.map((cover) => ({
-            cover: cover.cover,
-            underwriter: cover.underwriter,
-            premium: cover.policy_premium,
-            max_entry_age: cover.max_entry_age,
-            // administration_fee: cover.administration_fee,
-        }));
+        // const policyCoversArray = policyCovers.map((cover) => ({
+        //     cover: cover.cover,
+        //     underwriter: cover.underwriter,
+        //     premium: cover.policy_premium,
+        //     max_entry_age: cover.max_entry_age,
+        //     // administration_fee: cover.administration_fee,
+        // }));
 
         const requestUpdateData = {
             policy_name: forms.policy_name,
@@ -407,8 +403,9 @@ const handleUpdateProduct = async () => {
             long_description: forms.long_description,
             date: '2023-10-19',
             administration_fee: "20",
-            policy_covers: policyCoversArray,
-        };
+            policy_covers: forms.policy_covers,
+        }
+        console.log(requestUpdateData);
 
         const response = await axios.put(`http://localhost:9000/update_policy_details?sid=${updateProductId.value}`, requestUpdateData, {
             // name: forms.policy_name,
@@ -478,10 +475,10 @@ const handleViewPolicyCovers = (item) => {
 };
 
 const getCoverDetails = (item) => {
-    const covers = item.cover_details;
+    // const covers = item.cover_details;
 
     try {
-        const details = JSON.parse(covers);
+        const details = JSON.parse(item.cover_details);
         return Array.isArray(details) ? details : [details];
     } catch (error) {
         console.error('Error parsing cover details:', error);
@@ -489,10 +486,11 @@ const getCoverDetails = (item) => {
     }
 };
 
-const openUpdateDialog = (item) => {
-    selectedPolicy = item;
-    updateDialog = true;
-};
+// const openUpdateDialog = (item) => {
+//     // selectedPolicy = item;
+//     console.log("openUdateDialog ", item);
+//     // updateDialog = true;
+// };
 
 // const showUpdateDialog = (item) => {
 //     try {
@@ -744,12 +742,11 @@ watch(isFormFieldFocused, (newValue) => {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr v-for="item in getCoverDetails(selectedPolicy)" :key="item.sid"
-                                        class="clickable-row">
-                                        <td class="text-center">{{ item.cover }}</td>
-                                        <td class="text-center">{{ item.premium }}</td>
-                                        <td class="text-center">{{ item.underwriter }}</td>
-                                        <td class="text-center">{{ item.max_entry_age }}</td>
+                                    <tr v-for="cover in forms.policy_covers" :key="cover.sid" class="clickable-row">
+                                        <td class="text-center">{{ cover.cover }}</td>
+                                        <td class="text-center">{{ cover.premium }}</td>
+                                        <td class="text-center">{{ cover.underwriter }}</td>
+                                        <td class="text-center">{{ cover.max_entry_age }}</td>
                                     </tr>
                                 </tbody>
                             </v-table>
