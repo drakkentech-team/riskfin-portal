@@ -89,10 +89,12 @@ const isFormFieldFocused = ref(false);
 
 
 /*MODALS*/
-const addNewPolicyModal = ref(false)
-const deletePolicyModal = ref(false)
-const policyDetailsDialog = ref(false)
-const selectedPolicy = ref(null)
+const addNewPolicyModal = ref(false);
+const deletePolicyModal = ref(false);
+const policyDetailsDialog = ref(false);
+const selectedPolicy = ref(null);
+const editingCoverIndex = ref(null);
+const editIndex = ref(null);
 
 /*METHODS*/
 const handleTabClick = (tabItem) => {
@@ -339,10 +341,46 @@ const showUpdateDialog = (item) => {
     updateProductId.value = item.sid;
     updateDialog.value = true;
 
-
-
 };
 
+const addNewCover = () => {
+    forms.policy_covers.push({
+        cover: '',
+        premium: '',
+        underwriter: '',
+        max_entry_age: '',
+    });
+};
+
+// const editCover = (index) => {
+//     editingCoverIndex.value = index;
+// };
+
+const saveEdit = async (index) => {
+    //  saveEdit(index) {
+    try {
+        // Assuming you have a temporary variable to hold the edited cover
+        const editedCover = { ...this.forms.policy_covers[index] };
+
+        // Update the cover data in the local state
+        this.$set(this.forms.policy_covers, index, editedCover);
+
+        // Assuming you want to reset the editIndex
+        this.editIndex = null;
+    } catch (error) {
+        // Handle errors, show a message, or log the error
+        console.error('Error saving edit:', error);
+    }
+};
+
+const cancelEdit = () => {
+    // Cancel the edit mode and reset the editIndex
+    editIndex = null;
+};
+
+// const removeCover = (index) => {
+//     forms.policy_covers.splice(index, 1);
+// };
 
 const forms = reactive({
     policy_name: '',
@@ -739,18 +777,73 @@ watch(isFormFieldFocused, (newValue) => {
                                         <th class="text-left">Premium</th>
                                         <th class="text-left">Underwriter</th>
                                         <th class="text-left">Max Entry Age</th>
+                                        <th class="text-left">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
+                                    <tr v-for="(cover, index) in forms.policy_covers" :key="cover.sid"
+                                        class="clickable-row">
+                                        <td class="text-center">
+                                            <template v-if="editIndex !== index">
+                                                {{ cover.cover }}
+                                            </template>
+                                            <template v-else>
+                                                <v-text-field v-model="cover.cover" label="Cover" outlined></v-text-field>
+                                            </template>
+                                        </td>
+                                        <td class="text-center">
+                                            <template v-if="editIndex !== index">
+                                                {{ cover.premium }}
+                                            </template>
+                                            <template v-else>
+                                                <v-text-field v-model="cover.premium" label="Premium"
+                                                    outlined></v-text-field>
+                                            </template>
+                                        </td>
+                                        <td class="text-center">
+                                            <template v-if="editIndex !== index">
+                                                {{ cover.underwriter }}
+                                            </template>
+                                            <template v-else>
+                                                <v-text-field v-model="cover.underwriter" label="Underwriter"
+                                                    outlined></v-text-field>
+                                            </template>
+                                        </td>
+                                        <td class="text-center">
+                                            <template v-if="editIndex !== index">
+                                                {{ cover.max_entry_age }}
+                                            </template>
+                                            <template v-else>
+                                                <v-text-field v-model="cover.max_entry_age" label="Max Entry Age"
+                                                    outlined></v-text-field>
+                                            </template>
+                                        </td>
+                                        <td class="text-center">
+                                            <template v-if="editIndex !== index">
+                                                <v-btn @click="editIndex = index">Edit</v-btn>
+                                            </template>
+                                            <template v-else>
+                                                <v-btn @click="saveEdit(index)">Save</v-btn>
+                                                <v-btn @click="cancelEdit">Cancel</v-btn>
+                                            </template>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                                <!-- <tbody>
                                     <tr v-for="cover in forms.policy_covers" :key="cover.sid" class="clickable-row">
                                         <td class="text-center">{{ cover.cover }}</td>
                                         <td class="text-center">{{ cover.premium }}</td>
                                         <td class="text-center">{{ cover.underwriter }}</td>
                                         <td class="text-center">{{ cover.max_entry_age }}</td>
+                                        <td class="text-center">
+                                            <v-btn @click="editCover(index)">Edit</v-btn>
+                                            <v-btn @click="removeCover(index)">Remove</v-btn>
+                                        </td>
                                     </tr>
-                                </tbody>
+                                </tbody> -->
                             </v-table>
 
+                            <v-btn @click="addNewCover">Add New Cover</v-btn>
 
                             <v-alert type="error" title="Error" v-if="!isFormFieldFocused && validationError">
                                 {{ validationError }}
