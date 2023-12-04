@@ -356,17 +356,44 @@ const addNewCover = () => {
 //     editingCoverIndex.value = index;
 // };
 
-const saveEdit = async (index) => {
-    //  saveEdit(index) {
+// const saveEdit = async (index) => {
+//     //  saveEdit(index) {
+//     try {
+//         // Assuming you have a temporary variable to hold the edited cover
+//         const editedCover = { ...forms.policy_covers[index] };
+
+//         // Update the cover data in the local state
+//         this.$set(forms.policy_covers, index, editedCover);
+
+//         // Assuming you want to reset the editIndex
+//         editIndex.value = null;
+//     } catch (error) {
+//         // Handle errors, show a message, or log the error
+//         console.error('Error saving edit:', error);
+//     }
+// };
+
+const saveEdit = (index) => {
     try {
-        // Assuming you have a temporary variable to hold the edited cover
-        const editedCover = { ...this.forms.policy_covers[index] };
 
-        // Update the cover data in the local state
-        this.$set(this.forms.policy_covers, index, editedCover);
+        // const isNewCoverAdded = addNewCover();
 
-        // Assuming you want to reset the editIndex
-        this.editIndex = null;
+        // if (isNewCoverAdded) {
+        //     console.log("A new cover was added!");
+        // } else {
+        //     console.log("No new cover added.");
+        // }
+
+        // Create a copy of the edited cover
+        const editedCover = { ...forms.policy_covers[index] };
+        console.log('editedCover ', editedCover)
+        // Update the cover data in the local state using Vue 3 reactivity
+        // Note: Assuming forms is a reactive object created using the reactive function
+        forms.policy_covers[index] = editedCover;
+        console.log(forms.policy_covers[index]);
+        console.log(policyCovers);
+        // Reset the editIndex
+        editIndex.value = null;
     } catch (error) {
         // Handle errors, show a message, or log the error
         console.error('Error saving edit:', error);
@@ -374,13 +401,24 @@ const saveEdit = async (index) => {
 };
 
 const cancelEdit = () => {
-    // Cancel the edit mode and reset the editIndex
-    editIndex = null;
+    editIndex.value = null;
 };
 
-// const removeCover = (index) => {
-//     forms.policy_covers.splice(index, 1);
-// };
+const removeCover = (index) => {
+
+
+    // if (!policyCovers.length) {
+    //     console.log("no", forms.policy_covers);
+
+    // removePolicyCover();
+    // } else {
+    //     // console.log("no");
+    //     console.log("yes");
+    //     console.log(policyCovers, "yes");
+    forms.policy_covers.splice(index, 1);
+    // }
+
+};
 
 const forms = reactive({
     policy_name: '',
@@ -435,8 +473,12 @@ const handleUpdateProduct = async () => {
         //     // administration_fee: cover.administration_fee,
         // }));
 
+        // if (shouldAddNewCover()) {
+        //     addNewCover();
+        // }
+
         const requestUpdateData = {
-            policy_name: forms.policy_name,
+            name: forms.policy_name,
             short_description: forms.short_description,
             long_description: forms.long_description,
             date: '2023-10-19',
@@ -788,7 +830,7 @@ watch(isFormFieldFocused, (newValue) => {
                                                 {{ cover.cover }}
                                             </template>
                                             <template v-else>
-                                                <v-text-field v-model="cover.cover" label="Cover" outlined></v-text-field>
+                                                <v-text-field v-model="cover.cover" label="Cover*" outlined></v-text-field>
                                             </template>
                                         </td>
                                         <td class="text-center">
@@ -796,7 +838,7 @@ watch(isFormFieldFocused, (newValue) => {
                                                 {{ cover.premium }}
                                             </template>
                                             <template v-else>
-                                                <v-text-field v-model="cover.premium" label="Premium"
+                                                <v-text-field v-model="cover.premium" label="Premium*"
                                                     outlined></v-text-field>
                                             </template>
                                         </td>
@@ -805,7 +847,7 @@ watch(isFormFieldFocused, (newValue) => {
                                                 {{ cover.underwriter }}
                                             </template>
                                             <template v-else>
-                                                <v-text-field v-model="cover.underwriter" label="Underwriter"
+                                                <v-text-field v-model="cover.underwriter" label="Underwriter*"
                                                     outlined></v-text-field>
                                             </template>
                                         </td>
@@ -814,13 +856,17 @@ watch(isFormFieldFocused, (newValue) => {
                                                 {{ cover.max_entry_age }}
                                             </template>
                                             <template v-else>
-                                                <v-text-field v-model="cover.max_entry_age" label="Max Entry Age"
+                                                <v-text-field v-model="cover.max_entry_age" label="Max Entry Age*"
                                                     outlined></v-text-field>
                                             </template>
                                         </td>
                                         <td class="text-center">
                                             <template v-if="editIndex !== index">
+                                                <!-- <v-col cols="auto"> -->
                                                 <v-btn @click="editIndex = index">Edit</v-btn>
+                                                <!-- <v-col cols="auto"> -->
+                                                <v-btn @click="removeCover(index)">Remove</v-btn>
+                                                <!-- </v-col> -->
                                             </template>
                                             <template v-else>
                                                 <v-btn @click="saveEdit(index)">Save</v-btn>
@@ -841,9 +887,10 @@ watch(isFormFieldFocused, (newValue) => {
                                         </td>
                                     </tr>
                                 </tbody> -->
+                                <v-btn @click="addNewCover" style="margin-top: 1rem;">Add New Cover</v-btn>
                             </v-table>
 
-                            <v-btn @click="addNewCover">Add New Cover</v-btn>
+                            <!-- <v-btn @click="addNewCover">Add New Cover</v-btn> -->
 
                             <v-alert type="error" title="Error" v-if="!isFormFieldFocused && validationError">
                                 {{ validationError }}
