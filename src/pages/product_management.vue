@@ -91,6 +91,7 @@ const isFormFieldFocused = ref(false);
 /*MODALS*/
 const addNewPolicyModal = ref(false);
 const deletePolicyModal = ref(false);
+const deleteCoverModal = ref(false);
 const policyDetailsDialog = ref(false);
 const selectedPolicy = ref(null);
 const editingCoverIndex = ref(null);
@@ -527,6 +528,7 @@ const disablePolicy = async () => {
             });
 
         if (response && response.status === 200) {
+            console.log("successful");
             policyToBeDisabled.value = null
             getPolicies();
             deletePolicyModal.value = false
@@ -779,6 +781,20 @@ watch(isFormFieldFocused, (newValue) => {
         </v-dialog>
         <!--END OF DELETE POLICY POPUP-->
 
+        <!--DELETE POLICY POPUP-->
+        <v-dialog v-model="deleteCoverModal" max-width="600px">
+            <v-card>
+                <v-card-title class="text-h5">Are you sure you want to disable this policy cover?</v-card-title>
+                <v-card-actions>
+                    <v-spacer></v-spacer>
+                    <v-btn color="blue-darken-1" variant="text" @click="deletePolicyModal = false">Cancel</v-btn>
+                    <v-btn color="blue-darken-1" variant="text" @click="disablePolicy">OK</v-btn>
+                    <v-spacer></v-spacer>
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
+        <!--END OF DELETE POLICY POPUP-->
+
         <!-- Update Product Dialog -->
         <v-dialog v-model="updateDialog" width="1024">
             <v-card>
@@ -865,7 +881,7 @@ watch(isFormFieldFocused, (newValue) => {
                                                 <!-- <v-col cols="auto"> -->
                                                 <v-btn @click="editIndex = index">Edit</v-btn>
                                                 <!-- <v-col cols="auto"> -->
-                                                <v-btn @click="removeCover(index)">Remove</v-btn>
+                                                <v-btn @click="handleDeletePolicy(index.sid)">Remove</v-btn>
                                                 <!-- </v-col> -->
                                             </template>
                                             <template v-else>
