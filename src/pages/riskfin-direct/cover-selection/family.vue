@@ -63,7 +63,14 @@ export default {
       steps: ["Step 1", "Step 2", "Step 3", "Step 4", "Step 5", "Done"],
       selectedPolicy: null,
       policies: [
-        this.selectedPolicy.cover_details
+        // this.selectedPolicy.cover_details,
+        // {
+        //   // value: "6",
+        //   cover: this.selectedPolicy.cover,
+        //   underwriter: this.selectedPolicy.underwriter,
+        //   premium: this.selectedPolicy.premium,
+        //   maxAge: this.selectedPolicy.max_entry_age
+        // },
 
       ]
     };
@@ -74,6 +81,7 @@ export default {
     const validationError = ref(false);
     const router = useRouter();
     const selectedPolicy = store.getters.getSelectedPolicy;
+    // console.log('this plo', this.policies);
     console.log('this ', selectedPolicy);
     console.log('this ', selectedPolicy.cover_details);
 

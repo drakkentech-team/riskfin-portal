@@ -150,6 +150,7 @@ export default {
                 console.log("query: " + query);
             } else {
                 // Handle form validation errors here
+                console.log("No query: " + query);
                 showAlert.value = true;
             }
         };
