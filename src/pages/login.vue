@@ -2,6 +2,7 @@
    import { ref } from 'vue';
    import { login } from '../api/login';
    import { useRouter } from 'vue-router';
+   import { useStore } from '../stores/store';
 
    const router = useRouter()
 
@@ -18,11 +19,15 @@
 
    const handleLogin = async () => {
       isLoading .value = true;
-
+      const user = useStore()
       try {
-         const response = await login(email.value, password.value);
+         const response = await login({
+            email: email.value, 
+            password: password.value
+         });
 
          if (response && response.status === 200) {
+            user.setUser(response.data)
             await router.push({ path: '/notifications' });
          }
       } catch (error) {

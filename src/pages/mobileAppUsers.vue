@@ -1,6 +1,6 @@
 <script setup>
    import { ref, onMounted } from 'vue';
-   import { mobileUserData, deleteUserPolicy, updateMobileAppUser } from '../api/mobileAppUsers';
+   import { getMobileUsers, updateMobileUser, deleteUserPolicy} from '../api/mobileAppUsers';
 
    const userData = ref(null);
    const user = ref(null);
@@ -18,7 +18,7 @@
    })
 
    onMounted(() => {
-      mobileUserData().then((data) => {
+      getMobileUsers().then((data) => {
         userData.value = data;
       });
    });
@@ -57,16 +57,17 @@
     spinner.value = true;  
 
     try {
-        await updateMobileAppUser({
+        await updateMobileUser({
             user_fk: user.value.user_sid,
             name: user.value.first_name,
             surname: user.value.last_name,
             email: user.value.email,
             id: user.value.id,
             mobile_number: user.value.contact_number,
+            client_id: user.value.client_id
         });
 
-        const data = await mobileUserData();
+        const data = await getMobileUsers();
         userData.value = data;
     } catch (error) {
         console.error("Error in saveUser:", error);
@@ -99,7 +100,6 @@
                      :rowsPerPageOptions="[5, 10, 20, 50]"
                      tableStyle="min-width: 50rem"
                   >
-                     <Column field="user_sid" header="ID"></Column>
                      <Column field="first_name" header="Name"></Column>
                      <Column field="last_name" header="Surname"></Column>
                      <Column field="active_policy" header="Active Products">
@@ -113,12 +113,18 @@
                      <Column :exportable="false" style="min-width:8rem">
                         <template #body="slotProps">
                            <Button icon="pi pi-pencil" outlined rounded class="mr-2" @click="editUser(slotProps.data)" />
-                           <Button icon="pi pi-trash" outlined rounded severity="danger" @click="confirmDeleteProduct(slotProps.data)" />
                         </template>
                      </Column>
                   </DataTable>
 
                   <Dialog :dismissableMask="true" v-model:visible="editDialog" :style="{width: '450px'}" header="User Details" :modal="true" class="p-fluid">
+                     <div class="formgrid grid">
+                        <div class="field col-6">
+                           <label for="client_id" class="bold-label">Client Internal Reference</label>
+                           <InputText id="name" v-model.trim="user.client_id" required="true" autofocus :class="{'p-invalid': saved && !user.client_id}" />
+                           <small class="p-error" v-if="saved && !user.client_id">Client is required.</small>
+                        </div>
+                     </div>
                      <div class="formgrid grid">
                         <div class="field col">
                            <label for="name" class="bold-label">Name</label>

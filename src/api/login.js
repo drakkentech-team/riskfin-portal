@@ -1,16 +1,20 @@
 import axios from 'axios';
-import { useDataStore } from '../stores/store'
+import { useStore } from '../stores/store';
 
-// const API_ENDPOINT = process.env.VUE_APP_LOCAL;
-const API_ENDPOINT = 'http://localhost:9000'
-const store = useDataStore()
-export const login = async (email, password) => {
+const API_ENDPOINT = import.meta.env.VITE_LOCAL;
+const BEARER_TOKEN = import.meta.env.VITE_BEARERTOKEN;
+
+const user = useStore()
+
+export const login = async (payload) => {
    try {
-      const response = await axios.post(`${API_ENDPOINT}/web_login`, {
-         email: email,
-         password: password
+      const response = await axios.post(`${API_ENDPOINT}/admin-portal-login`, payload, {
+         headers: {
+           'Authorization': `Bearer ${BEARER_TOKEN}`,
+           'Content-Type': 'application/json',
+           'app-id': "login"
+         }
       });
-      store.userData = response.data
       return response;
    } 
    catch (error) {

@@ -5,8 +5,9 @@
         <transition name="layout-sidebar">
             <div :class="sidebarClass" @click="onSidebarClick" v-show="isSidebarVisible()">
                 <div class="layout-logo">
-                    <router-link to="/">
-                        <img alt="Logo" :src="logo" />
+                    <router-link to="/notifications">
+                        <img alt="Logo" :src="logo" style="height:150px; width:200px"/><br>
+                        <span class="nav-text">{{user[0].organisation}}</span>
                     </router-link>
                 </div>
 
@@ -19,8 +20,6 @@
 			<router-view />
 		</div>
 
-		<AppConfig :layoutMode="layoutMode" :layoutColorMode="layoutColorMode" @layout-change="onLayoutChange" @layout-color-change="onLayoutColorChange"/>
-
 		<AppFooter />
 	</div>
 </template>
@@ -29,10 +28,16 @@
 import AppTopBar from './AppTopbar.vue';
 import AppProfile from './AppProfile.vue';
 import AppMenu from './AppMenu.vue';
-import AppConfig from './AppConfig.vue';
 import AppFooter from './AppFooter.vue';
+import { useStore } from './stores/store';
+
+
 
 export default {
+   mounted() {
+        const store = useStore();
+        console.log(store.user[0].organisation);
+    },
     data() {
         return {
             layoutMode: 'static',
@@ -136,6 +141,11 @@ export default {
         },
     },
     computed: {
+         user() {
+            const store = useStore();
+
+            return store.user;
+        },
         containerClass() {
             return ['layout-wrapper', {
                 'layout-overlay': this.layoutMode === 'overlay',
@@ -154,7 +164,9 @@ export default {
             }];
         },
         logo() {
-            return (this.layoutColorMode === 'dark') ? "public/riskfin.png" : "public/riskfin.png";
+            const store = useStore();
+            const logo = store.user[0].logo
+            return (this.layoutColorMode === 'dark') ? `public/${logo}` : `public/${logo}`;
         }
     },
     beforeUpdate() {
@@ -167,7 +179,6 @@ export default {
         'AppTopBar': AppTopBar,
         'AppProfile': AppProfile,
         'AppMenu': AppMenu,
-        'AppConfig': AppConfig,
         'AppFooter': AppFooter,
     }
 }

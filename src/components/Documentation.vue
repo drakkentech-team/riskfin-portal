@@ -66,8 +66,6 @@ npm run serve
             &lt;router-view /&gt;
         &lt;/div&gt;
 
-        &lt;AppConfig :layoutMode="layoutMode" :layoutColorMode="layoutColorMode" @layout-change="onLayoutChange" @layout-color-change="onLayoutColorChange"/&gt;
-
         &lt;AppFooter /&gt;
     &lt;/div&gt;
 &lt;/template&gt;

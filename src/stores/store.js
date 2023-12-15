@@ -1,9 +1,19 @@
-import { defineStore } from 'pinia';
+import { defineStore } from 'pinia'
 
-export const useDataStore = defineStore({
-  id: 'dataStore',
+export const useStore = defineStore({
+  id: 'user',
   state: () => ({
-    userData: null,
-    mobileUserData: null
+    user: JSON.parse(sessionStorage.getItem('user')) || null,
   }),
+  actions: {
+    setUser(data) {
+      console.log(data)
+      this.user = data;
+      sessionStorage.setItem('user', JSON.stringify(data));
+    },
+    clearUser() {
+      this.user = null;
+      sessionStorage.removeItem('user');
+    }
+  }
 });
