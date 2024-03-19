@@ -1,1746 +1,670 @@
 <script setup>
-  import axios from 'axios';
-import { onMounted, ref } from 'vue';
-import 'vue-datepicker-ui/lib/vuedatepickerui.css';
-import { useRouter } from 'vue-router';
-import Placeholder from '../layouts/components/Placeholder.vue';
-import { formatDate } from "../utils/common";
-import config from "../utils/config";
-import VueDatePicker from '@vuepic/vue-datepicker';
-import '@vuepic/vue-datepicker/dist/main.css'
-
-const router = useRouter()
-
-const overlay = ref(false)
-  
-  const apiBaseUrl = "http://localhost:9000";
-  const bearerToken = "1HW94aH3Gu9BNxqw2QnY4y7zMa1xwlm_rg2ZiA9tt3fu";
-  
-  const messageDueDays = ref(1);
-  const date = ref(null)
-  const filterDate = ref()
-  const filterStartDate = ref()
-  const filterEndDate = ref()
-  /*RULES*/
-  const rules = {
-    required: value => !!value || 'Required.',
-    counter: value => value.length <= 20 || 'Max 20 characters',
-    email: value => {
-      const pattern = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
-      return pattern.test(value) || 'Invalid e-mail.'
-    },
-  }
-  const showAlert = ref(false)
-  /*New Notification Fields*/
-  const title = ref("");
-  const message = ref("");
-  const users = ref([]);
-  const selectedPolicies = ref([]);
-  const selectedUsers = ref([]);
-  
-  const messageArray = ref(null)
-  const scheduledMessageArray = ref(null)
-  const triggerMessageArray = ref(null)
-  
-  const policyData = ref([])
-  const daysOverdue = ref(1);
+   import { ref, reactive, onMounted, onUnmounted, nextTick, watch, computed  } from 'vue';
+   import { getNotifications, getNotificationTemplates, sendNotification } from '../api/notifications';
+   import { applyFilters } from '../api/filters';
+   import { getProducts } from '../api/products';
+   import { todayDate, addDays } from "../utilities/common"
+   import { getMobileUsers } from '../api/mobileAppUsers';
+   import { useStore } from '../stores/store';
+   
+   const notifications = ref(null);
+   const personalNotifications = ref(null);
+   const scheduledNotifications = ref(null);
+   const automatedNotifications = ref(null);
+   const notificationTemplates = ref(null);
+   const products = ref(null);
+   const newDialog = ref(false);
+   const addUsersDialog = ref(false);
+   const addTemplateDialog = ref(false);
+   const addProductsDialog = ref(false);
+   const titleInput = ref(null);
+   const messageType = ref("All")
+   const sendDate = ref(todayDate());
+   const saved = ref(false);
+   const titlePlaceholderMenu = ref(null);
+   const messagePlaceholderMenu = ref(null);
+   const loading = ref(false);
+   const selectedNotification = ref(null);
+   const selectNotifDialog = ref(false);
+   const selectNotifTitle = ref(false);
+   const filteredNotification = ref("All")
+   const selectedDateOption = ref({ name: "Today"})
+   const users = ref(null);
+   const selectedUsers = ref([]);
+   const selectedProducts = ref([]);
+   const activeTab = ref(0)
+   const selectAllUsers  = ref(false)
+   const selectAllProducts  = ref(false)
 
 
-  /*Modal Dropdown Lists*/
-  const titleDropdownList = [
-    { title: 'First Name', value:"{First Name}"},
-    { title: 'Last Name', value: '{Last Name}'},
-    { title: 'Policy', value: '{Policy}'},
-    { title: 'Date', value: '{Date}'},
-    { title: 'Days in arrears', value: '{Days in arrears}'},
-  ]
 
-  const items = [
-    { title: 'First Name', value:"{First Name}"},
-    { title: 'Last Name', value: '{Last Name}'},
-    { title: 'Policy', value: '{Policy}'},
-    { title: 'Date', value: '{Date}'},
-    { title: 'Days in arrears', value: '{Days in arrears}'}
-  ]
+   const newNotification = ref({
+      title: '',
+      message: '',
+      send_date: todayDate(),
+   })
 
-  const numbers = Array.from({ length: 31 }, (_, i) => i + 1);
-  const days = ["Daily", "Weekly", "Monthly"]
-
-  /*Data*/
-  const messageTemplateData = ref(null)
-  const userData = ref(null);
-
-  /*Modals*/
-  const loadPreviousNotificationsModal = ref(false);
-  const addUsersModal = ref(false);
-  const addPolicyModal = ref(false);
-
-  /*Checkboxes*/
-  const allUsersCheckbox = ref(false);
-  const allPoliciesCheckbox = ref(false);
-
-  /*Headers*/
-  const previousNotificationHeaders = ref([
-    { title: "Title", align: 'start', key: 'title'},
-    { title: 'Message', align: 'start', key: 'message' },
-    { title: 'Date Sent', align: 'start', key: 'date' },
-  ])
-
-  const addUsersHeaders = ref([
-    { title: "Name", align: 'start', key: 'name'},
-    { title: 'Email', align: 'start', key: 'email' },
-    { title: 'Selected', align: 'start', key: 'userSelected' },
-  ])
-
-  const addPolicyHeaders = ref([
-    { title: "Name", align: 'start', key: 'policy_name'},
-    { title: 'Short Description', align: 'start', key: 'short_description' },
-    { title: 'Date Created', align: 'start', key: 'date_policy_details' },
-    { title: 'Selected', align: 'start', key: 'policySelected' },
-  ])
-
-  const filterPolicyHeaders = ref([
-    { title: "Name", align: 'start', key: 'policy_name' , width: "350px"},
-    { title: 'Selected', align: 'start', key: 'policySelected' },
-  ])
-
-  const data = ref([]);
-  
-  const dialog = ref(false);
-  const messageStatusModal = ref(false);
-  const displayMessageTitle = ref("");
-  const displayMessage = ref("");
-  const firstTableData = ref([]);
-  const itemsPerPage = ref(5);
-  const notificationsPerPage = ref(5);
-  const textareaValue = ref("")
-  const notificationHeaders = ref([
-    { title: "Title", align: 'center', key: 'title', width: "250px"},
-    { title: 'Message', align: 'left', key: 'body',width: "500px"},
-    { title: 'Date Sent', align: 'center', key: 'date_sent',width: "200px"},
-    { title: 'Pending', align: 'center', key: 'count_pending',width: "100px"},
-    { title: 'Received', align: 'center', key: 'count_received',width: "100px"},
-    { title: 'Opened', align: 'center', key: 'count_opened',width: "100px"},
-    { title: 'Closed', align: 'center', key: 'count_closed',width: "100px" },
-  ])
-
-  const headers= ref([{ title: "Name", align: 'start', key: 'name'},
-                      { title: 'Email', align: 'start', key: 'email' },
-                      { title: 'Message Status', align: 'start', key: 'messageStatus'},
-                      { title: 'Received On', align: 'start', key: 'received'},
-                      { title: 'Read On', align: 'start', key: 'read'},
-                      { title: 'Closed On', align: 'start', key: 'closed'},
-                    ])
-
-  const activeNotificationModalTab = ref("Personal")  
-  const activeTab = ref("All")  
-  const activeNotificationTabs = [
-    { title: 'All', tab: 'All' },
-    { title: 'Manual', tab: 'Personal' },
-    { title: 'Scheduled', tab: 'Scheduled' },
-    { title: 'Automated', tab: 'Trigger' },
-  ];
-
-  const notificationModalTabs = [
-    { title: 'Manual', tab: 'Personal' },
-    { title: 'Scheduled', tab: 'Scheduled' },
-    { title: 'Automated', tab: 'Triggered' },
-  ];
-
-  const editDateModal = ref(false)
-  
-  const editItem = (item) => {
-    console.log(item)
-    editDateModal.value = true
-    dialog.value = true
-    activeNotificationModalTab.value = "Scheduled"
-    title.value = item.title;
-    date.value = item.date_to_send;
-    message.value = item.body;
-  }
+   const handleCancelNewNotification = () => ({
+      title: '',
+      message: '',
+      send_date: todayDate(),
+   });
 
 
-  watch(activeTab, (newTab) => {
-  const dateCreatedIndex = notificationHeaders.value.findIndex(header => header.key === 'date_created');
-  const actionsIndex = notificationHeaders.value.findIndex(header => header.key === 'actions');
-
-  if (newTab === 'Scheduled') {
-    if (dateCreatedIndex === -1) {
-      notificationHeaders.value.splice(2, 0, { title: 'Date Created', align: 'center', key: 'date_created', width: "200px" });
-    }
-    if (actionsIndex === -1) {
-      notificationHeaders.value.push({ title: 'Actions', align: 'end', key: 'actions', sortable: false });
-    }
-  } else {
-    if (dateCreatedIndex !== -1) {
-      notificationHeaders.value.splice(dateCreatedIndex, 1);
-    }
-    // Find the actions index again as it might have changed after the previous splice
-    const newActionsIndex = notificationHeaders.value.findIndex(header => header.key === 'actions');
-    if (newActionsIndex !== -1) {
-      notificationHeaders.value.splice(newActionsIndex, 1);
-    }
-  }
-});
+   const tabItems = ref([
+      { label: 'Personal', icon: 'pi pi-user', value:0 },
+      { label: 'Scheduled', icon: 'pi pi-clock', value:1 },
+      { label: 'Automated', icon: 'pi pi-cog', value:2},
+   ]);
 
 
-  /*Methods*/
-  const handlePrevNotificationRowClick = (sid) => {
-    const clickedItem = messageTemplateData.value.find(item => item.sid === sid);
-    title.value = clickedItem.title
-    message.value = clickedItem.message
-    loadPreviousNotificationsModal.value = false
-  }
+   const handleCloseNewDialog = () => {
+      newNotification.value = handleCancelNewNotification()
+      saved.value = false;
+      newDialog.value = false;
+      addUsersDialog.value = false;
+      addTemplateDialog.value = false;
+      addProductsDialog.value = false;
+      selectedUsers.value = [];
+      selectedProducts.value = [];
+      activeTab.value = 0;
+   };
 
-  const handleCloseNewNotificationModal = () => {
-    dialog.value = false
-    selectedUsers.value = []
-    selectedPolicies.value = []
-    allUsersCheckbox.value = false
-    allPoliciesCheckbox.value = false
-    title.value = ""
-    message.value = ""
-    userData.value.forEach((user) => {
-      user.userSelected = false
-    })
-    policyData.value.forEach((policy) => {
-      policy.policySelected = false
-    })
-  }
+   watch(activeTab, (newValue, oldValue) => {
+      console.log("Active tab changed to:", newValue);
+   });
 
+   const countSelectedUsers = computed(() => {
+      return selectedUsers.value.length;
+   });
 
-  const handleUserCheckbox = (item) => {
-    const userSid = item.raw.sid
-    if (selectedUsers.value.includes(userSid)) 
-    {
-      const indexToRemove = selectedUsers.value.indexOf(userSid);
-      if (indexToRemove !== -1) 
+   
+   const titlePlaceholders = [
       {
-        selectedUsers.value.splice(indexToRemove, 1);
-      }
-      const userToUpdate = userData.value.find(user => user.sid === userSid);
-      if (userToUpdate) 
+         label: 'Name',
+         command: () => {
+            addPlaceholder("{Name}", "title")
+         }
+      },
       {
-        userToUpdate.userSelected = false;
-      }
-    }
-    else 
-    {
-      selectedUsers.value.push(userSid);
-      const userToUpdate = userData.value.find(user => user.sid === userSid);
-      if (userToUpdate) 
+         label: 'Surname',
+         command: () => {
+            addPlaceholder("{Surname}", "title")
+         }
+      },
       {
-        userToUpdate.userSelected = true;
-      }
-    }
-    if (userData.value.length !== selectedUsers.value.length)
-    {
-      allUsersCheckbox.value = false;
-    }
-  };
-
-
-  const handlePolicyCheckbox = (item) => {
-    const policySid = item.raw.sid
-    if (selectedPolicies.value.includes(policySid)) 
-    {
-      const indexToRemove = selectedPolicies.value.indexOf(policySid);
-      if (indexToRemove !== -1) 
+         label: 'Policy',
+         command: () => {
+            addPlaceholder("{Policy}", "title")
+         }
+      },
       {
-        selectedPolicies.value.splice(indexToRemove, 1);
-      }
-      const policyToUpdate = policyData.value.find(policy => policy.sid === policySid);
-      if (policyToUpdate) 
+         label: 'Date',
+         command: () => {
+            addPlaceholder("{Date}", "title")
+         }
+      },
+   ]
+
+
+   const messagePlaceholders = [
       {
-        policyToUpdate.policySelected = false;
-      }
-    }
-    else 
-    {
-      selectedPolicies.value.push(policySid);
-      const policyToUpdate = policyData.value.find(policy => policy.sid === policySid);
-      if (policyToUpdate) 
+         label: 'Name',
+         command: () => {
+            addPlaceholder("{Name}", "message")
+         }
+      },
       {
-        policyToUpdate.policySelected = true;
-      }
-    }
-    if (policyData.value.length !== selectedPolicies.value.length)
-    {
-      allPoliciesCheckbox.value = false;
-    }
-    console.log(selectedPolicies.value)
-  };
+         label: 'Surname',
+         command: () => {
+            addPlaceholder("{Surname}", "message")
+         }
+      },
+      {
+         label: 'Policy',
+         command: () => {
+            addPlaceholder("{Policy}", "message")
+         }
+      },
+      {
+         label: 'Date',
+         command: () => {
+            addPlaceholder("{Date}", "message")
+         }
+      },
+   ]
 
 
-  const addAllUsers = () => {
-    allUsersCheckbox.value = !allUsersCheckbox.value
-    if (allUsersCheckbox.value === true) 
-    {
-      selectedUsers.value.length = 0;
-      filteredUserData.value.forEach(user => {
-        user.userSelected = true;
-      });
-      selectedUsers.value.push(...filteredUserData.value.map(user => user.sid));
-    } 
-    else if (allUsersCheckbox.value === false) 
-    {
-      filteredUserData.value.forEach(user => {
-        user.userSelected = false;
-      });
-      selectedUsers.value.length = 0;
-    } 
-  }
+   const addPlaceholder = (placeholder, input) => {
+      input === "title" ? 
+      newNotification.value.title = newNotification.value.title + placeholder :
+      newNotification.value.message = newNotification.value.message + placeholder
+   };
 
-  const addAllPolicies = () => {
-    allPoliciesCheckbox.value = !allPoliciesCheckbox.value
-    if (allPoliciesCheckbox.value === true) 
-    {
-      selectedPolicies.value.length = 0;
-      policyData.value.forEach(policy => {
-        policy.policySelected = true;
-      });
-      selectedPolicies.value.push(...policyData.value.map(policy => policy.sid));
-    } 
-    else if (allPoliciesCheckbox.value === false) 
-    {
-      policyData.value.forEach(policy => {
-        policy.policySelected = false;
-      });
-      selectedPolicies.value.length = 0;
-    } 
-  }
 
-  /*Functions*/
-  const isSendButtonDisabled = computed(() => {
-    return !title.value.length || !message.value.length || !selectedUsers.value.length
-  });
-
-  const selectedData = computed(() => {
-    if (activeTab.value === 'All') {
-        return data.value;
-      } else if (activeTab.value === 'Personal') {
-        return messageArray.value;
-      } else if (activeTab.value === 'Trigger') {
-        return triggerMessageArray.value;
-      } else if (activeTab.value === 'Scheduled') {
-        return scheduledMessageArray.value;
+   const notificationTableData = computed(() => {
+      if (messageType.value === 'All') {
+        return notifications.value;
+      } else if (messageType.value === 'Personal') {
+        return personalNotifications.value;
+      } else if (messageType.value === 'Automated') {
+        return automatedNotifications.value;
+      } else if (messageType.value === 'Scheduled') {
+        return scheduledNotifications.value;
       }
       else {
         return [];
       }
-  });
-
-  const filteredUserData = computed(() => {
-    if (selectedPolicies.value.length){
-      const userFkArrays = [];
-      selectedPolicies.value.forEach(sid => {
-        const policy = policyData.value.find(policy => policy.sid === sid);
-        if (policy) {
-          userFkArrays.push(policy.user_detail_fk);
-        }
-      });
-      const matchingUsers = [];
-      userData.value.forEach(user => {
-        if (userFkArrays.some(fkArray => fkArray.includes(user.sid))) {
-          matchingUsers.push(user);
-        }
-      });
-      return matchingUsers
-    }
-    else {
-      return userData.value
-    }
-  });
-
-  const userText = computed(() => {
-    const userCount = selectedUsers.value.length;
-    if (userCount === 0) {
-      return "Add User";
-    } else if (userCount === 1) {
-      return "1 user added";
-    } else {
-      return `${userCount} users added`;
-    }
-  });
-
-  const showAddUserButton = ref(false)
-
-  const policyText = computed(() => {
-    const policyCount = selectedPolicies.value.length;
-    if (policyCount === 0) {
-      showAddUserButton.value = false;
-      selectedUsers.value = []
-      userData.value.forEach(user => {
-        user.userSelected = false;
-      });
-      allUsersCheckbox.value = false
-      return "Add Policy";
-    } else if (policyCount === 1) {
-      showAddUserButton.value = true
-      selectedUsers.value = []
-      userData.value.forEach(user => {
-        user.userSelected = false;
-      });
-      allUsersCheckbox.value = false
-      return "1 policy added";
-    } else {
-      showAddUserButton.value = true
-      selectedUsers.value = []
-      userData.value.forEach(user => {
-        user.userSelected = false;
-      });
-      allUsersCheckbox.value = false
-      return `${policyCount} policies added`;
-    }
-  });
-
-  const daysText = computed(() => {
-    const days = daysOverdue.value;
-    if (days === 1) {
-      return "1 Day Overdue";
-    } else if (days > 1) {
-      return `${days} Days Overdue`;
-    } 
-  });
-
-  const daysDueText = computed(() => {
-    const days = messageDueDays.value;
-    if (days === 1) {
-      return "Resend Every Day";
-    } else if (days > 1) {
-      return `Resend every ${days} days`;
-    } 
-  });
-  
+   });
 
 
-  /*API Calls*/
-  const getMessageTemplate = async () => {
-    try {
-      const response = await axios.get(`${apiBaseUrl}/message_template`,{
-        headers: {
-          'Authorization': `Bearer ${bearerToken}`,
-          'Content-Type': 'application/json'
-        }
-      });
-      if (response && response.status === 200) {
-          messageTemplateData.value = response.data;
+   
+
+
+   const onNotificationSelect = () => {
+      selectNotifDialog.value = true
+      selectNotifTitle.value = "Title: " + selectedNotification.value.title
+      console.log(selectedNotification)
+   }
+
+
+   const onTemplateSelect = () => {
+      newNotification.value.title = selectedNotification.value.title
+      newNotification.value.message = selectedNotification.value.message
+      if (selectedNotification.value.message_type === "message"){
+         activeTab.value = 0
       }
-    } 
-    catch (error) {
-      console.error('Failed to fetch messages:', error);
-    }
-  };
+      else if (selectedNotification.value.message_type === "scheduled_message"){
+         activeTab.value = 1
+      }
+      else if (selectedNotification.value.message_type === "automated_message"){
+         activeTab.value = 2
+      }
+      addTemplateDialog.value = false;
+   }
 
-  const getPolicies = async () => {
-    try {
-      const response = await axios.get(`${apiBaseUrl}/user_policy_view`,{
-        headers: {
-          'Authorization': `Bearer ${bearerToken}`,
-          'Content-Type': 'application/json'
-        }
+   onMounted(() => {
+      loading.value = true
+      const user = useStore()
+      getNotifications().then((data) => {
+         notifications.value = data;
+         personalNotifications.value = data.filter(item => item.flag === 'message');
+         scheduledNotifications.value = data.filter(item => item.flag === 'scheduled_message');
+         automatedNotifications.value = data.filter(item => item.flag === 'automated_message');
+         loading.value = false; 
       });
-      if (response && response.status === 200) {
-        const combinedPolicies = response.data.reduce((result, policy) => {
-          const key = `${policy.name}-${policy.date}`;
-          if (!result[key]) {
-            result[key] = {
-              sid: policy.sid,
-              policy_name: policy.name,
-              short_description: policy.short_description,
-              date_policy_details: policy.date,
-              premium_due_date: policy.premium_due_date,
-              user_detail_fk: [policy.user_detail_fk],
-            };
-          } else {
-            result[key].user_detail_fk.push(policy.user_detail_fk);
-          }
-          return result;
-        }, {});
-        const combinedPolicyArray = Object.values(combinedPolicies);
-        policyData.value = combinedPolicyArray;
-        policyData.value.forEach((policy) => {
-          policy.userSelected = false
-        })
-      }
-    } 
-    catch (error) {
-      console.error('Failed to fetch messages:', error);
-    }
-  };
-
-
-  const insertNumber = (m) => {
-    daysOverdue.value = m
-  }
-
-  const insertDays = (m) => {
-    messageDueDays.value = m
-  }
-
-  const insertValueTitle = (m) => {
-    const lastCharacter = title.value.slice(-1);
-      if (lastCharacter === ' ') {
-        title.value += m; // Append the new value without a space
-      } else {
-        title.value += ' ' + m; // Append the new value with a space
-      }
-  }
-
-  const notificationTabs = [
-    { title: 'Manual',  tab: 'account' },
-    { title: 'Scheduled',  tab: 'security' },
-    { title: 'Triggerd',  tab: 'notification' },
-  ];
-
-  const fetchMessage = async () => {
-    try {
-      const response = await axios.get(`${apiBaseUrl}/messages`,{
-        headers: {
-          'Authorization': `Bearer ${bearerToken}`,
-          'Content-Type': 'application/json'
-        }
+      getMobileUsers().then((data) => {
+         users.value = data;
       });
-      if (response && response.status === 200) {
-        if (response.data) {
-          const uniqueMessages = {};
-          let idCounter = 1;
-          response.data.forEach((message) => {
-            const key = message.template_fk;
-
-            if (!uniqueMessages[key]) {
-              uniqueMessages[key] = {
-                ...message,
-                count: 0,
-                sids: [],
-                messageStatus: [],
-                messageReceived:[],
-                read: [],
-                closed: [],
-                id: idCounter,
-                count_pending:0,
-                count_received:0,
-                count_opened:0,
-                count_closed:0
-              };
-              idCounter++;
-            }
-
-            uniqueMessages[key].count++;
-
-
-            if(message.received_date)
-            {
-              uniqueMessages[key].messageReceived.push(message.received_date)
-            }
-            else
-            {
-              uniqueMessages[key].messageReceived.push("Not yet received");
-            }
-
-            if(message.read_date)
-            {
-              uniqueMessages[key].read.push(message.read_date)
-            }
-            else
-            {
-              uniqueMessages[key].read.push("Not yet read");
-            }
-
-            if(message.closed_date)
-            {
-              uniqueMessages[key].closed.push(message.closed_date)
-            }
-            else
-            {
-              uniqueMessages[key].closed.push("Not yet closed");
-            }
-
-
-            uniqueMessages[key].sids.push(message.user_detail_fk);
-            if (message.date_sent && !message.received_date &&
-                !message.read_date && !message.closed_date){
-              uniqueMessages[key].messageStatus.push("Pending");
-              uniqueMessages[key].count_pending++;
-            }
-            else if (message.date_sent && message.received_date &&
-                !message.read_date && !message.closed_date){
-                  uniqueMessages[key].messageStatus.push("Received");
-                  uniqueMessages[key].count_received++;
-            }
-            else if (message.date_sent && message.received_date && 
-            message.read_date && !message.closed_date){
-                  uniqueMessages[key].messageStatus.push("Opened");
-                  uniqueMessages[key].count_received++;
-                  uniqueMessages[key].count_opened++;
-            }
-            else if (message.date_sent && message.received_date && 
-            message.read_date && message.closed_date){
-                  uniqueMessages[key].messageStatus.push("Closed");
-                  uniqueMessages[key].count_received++;
-                  uniqueMessages[key].count_opened++;
-                  uniqueMessages[key].count_closed++;
-            }
-          });
-          
-          const filteredMessages = Object.values(uniqueMessages);
-          filteredMessages.forEach(item => {
-            if (!item.date_sent) {
-              item.date_sent = "Not yet sent";
-            }
-          });
-          messageArray.value = filteredMessages.filter(message => message.flag === 'message');
-          scheduledMessageArray.value = filteredMessages.filter(message => message.flag === 'scheduled_message');
-          triggerMessageArray.value = filteredMessages.filter(message => message.flag === 'automated_message');
-          data.value = filteredMessages;
-        }
-      }
-    } catch (error) {
-      console.error('Failed to fetch messages:', error);
-    }
-  };
-
-  const fetchUser = async () => {
-    try {
-      const response = await axios.get(`${apiBaseUrl}/all_user_profile`,{
-        headers: {
-          'Authorization': `Bearer ${bearerToken}`,
-          'Content-Type': 'application/json'
-        }
+      getNotificationTemplates().then((data) => {
+        notificationTemplates.value = data;
       });
-      if (response && response.status === 200) {
-        response.data.forEach((user) => {
-          user.name = `${user.name} ${user.surname}`;
-          user.userSelected = false
-        })
-        userData.value = response.data;
-        console.log(userData.value)
-      }
-    } 
-    catch (error) {
-      console.error('Failed to fetch messages:', error);
-    }
-  };
+      getProducts().then((data) => {
+        products.value = data;
+      });
+       
+   });
 
-  const handleFlagClick = (id) => {
+   const titleMenuToggle = (event) => {
+      titlePlaceholderMenu.value.toggle(event);
+   };
 
-    messageStatusModal.value = true;
-    const clickedItem = data.value.find(item => item.id === id);
-    displayMessageTitle.value = clickedItem.title
-    displayMessage.value = clickedItem.body
-    firstTableData.value = userData.value.filter(users => clickedItem.sids.includes(users.sid));
-    
-    const { messageStatus, messageReceived, read, closed, date_sent, date_created } = clickedItem;
-    console.log(clickedItem)
-    console.log(date_sent)
-    firstTableData.value.forEach((item, index) => {
-      if (messageStatus[index]) {
-        item.dateSent = date_sent ? date_sent : "Not yet sent";
-        item.dateCreated = date_created;
-        item.messageStatus = messageStatus[index];
-        item.received = messageReceived[index];
-        item.read = read[index];
-        item.closed = closed[index];
-      } else {
-        item.messageStatus = "Unknown";
-      }
-    });
-    console.log(firstTableData)
-  }
-  const handleSaveNotification = async () => {
-    var payload
-    const formattedUserIds = selectedUsers.value.map(user_sid => ({ "user_id": user_sid.toString() }));
-    const formattedPolicyIds = selectedPolicies.value.map(policy_sid => ({ "policy_id": policy_sid.toString() }));
-    if (activeNotificationModalTab.value === "Personal"){
-      payload = {
-        title: title.value,
-        message: message.value,
-        policy_id: formattedPolicyIds,
-        user_id: formattedUserIds,
-        message_type: "message",
-        date_to_send: ""
-      }
-    }
-    else if (activeNotificationModalTab.value === "Scheduled"){
-      payload = {
-        title: title.value,
-        message: message.value,
-        policy_id: formattedPolicyIds,
-        user_id: formattedUserIds,
-        message_type: "scheduled_message",
-        date_to_send: formatDate(date.value)
-      }
-    }
-    else if (activeNotificationModalTab.value === "Triggered"){
-      payload = {
-        title: title.value,
-        message: message.value,
-        arrears_days: daysOverdue.value,
-        policy_id: formattedPolicyIds,
-        user_id: formattedUserIds,
-        message_type: "automated_message",
-        date_to_send: ""
-      }
-    }
-    try {
-      const response = await axios.post(`${config.local}/send_message`, payload, {
-        headers: {
-          'Authorization': `Bearer ${bearerToken}`,
-          'Content-Type': 'application/json'
-        }
-      })
-      if (response && response.status === 200) {
-        showAlert.value = true
-        dialog.value=false
-        selectedUsers.value = []
-        selectedPolicies.value = []
-        allUsersCheckbox.value = false
-        allPoliciesCheckbox.value = false
-        title.value = ""
-        message.value = ""
-        date.value = ""
-        userData.value.forEach((user) => {
-          user.userSelected = false
-        })
-        policyData.value.forEach((policy) => {
-          policy.policySelected = false
-        })
-        setTimeout(() => {
-          showAlert.value = false;
-        }, 5000);
-        
-        fetchMessage();
-        getMessageTemplate();
+   const messageMenuToggle = (event) => {
+      messagePlaceholderMenu.value.toggle(event);
+   };
+
+   const onNewNotificationClose = () => {
+      newNotification.value.title = "";
+      newNotification.value.message = "";
+      saved.value = false;
+      newDialog.value = false;
+      addUsersDialog.value = false;
+      addTemplateDialog.value = false;
+      addProductsDialog.value = false;
+      selectedUsers.value = [];
+      selectedProducts.value = [];
+      activeTab.value = 0;
+   }
+
+
+   const dates = [
+      { name: 'Today', value: todayDate() },
+      { name: 'Last 7 Days', value: todayDate(addDays(new Date(), 7)) },
+      { name: 'Last 30 Days', value: todayDate(addDays(new Date(), 30)) },
+      { name: 'Last 90 Days', value: todayDate(addDays(new Date(), 90)) },
+      { name: 'Custom', value: todayDate() }
+   ];
+
+
+   const onDateFilter = async () => {
+      const date = selectedDateOption.value.value
+      const today = todayDate()
+      loading.value = true
+      try {
+         await applyFilters({
+            date_sent: [date, today]
+         }).then((data) => {
+            notifications.value = data;
+            personalNotifications.value = data.filter(item => item.flag === 'message');
+            scheduledNotifications.value = data.filter(item => item.flag === 'scheduled_message');
+            automatedNotifications.value = data.filter(item => item.flag === 'automated_message');
+            console.log(scheduledNotifications.value)
+            } );    
       } 
-    } 
-    catch (error) {
-      if (error.response && error.response.status === 404) {
-        errorMessage.value = 'This user does not exist'
-      }
-      else if (error.response && error.response.status === 401) {
-        errorMessage.value = 'Your password is incorrect'
-      }
-    } 
-  }
-
-
-
-
-  const filterData = async () => {
-    const format = (date) => {
-      const day = date.getDate();
-      const month = date.getMonth() + 1;
-      const year = date.getFullYear();
-
-      return `${year}-${month}-${day}`;
-    }
-    let policy = selectedPolicies.value;
-    let users = selectedUsers.value
-    var finalDate = []
-    if (filterStartDate.value && filterEndDate.value){
-      finalDate = [format(filterStartDate.value), format(filterEndDate.value)]
-    }
-    const payload = {
-      date_created: finalDate,
-      policy_fk: policy.map(String),
-      user_detail_fk: users.map(String),
-    }
-    try {
-      const response = await axios.post(`${config.local}/filter_messages`, payload, {
-        headers: {
-          'Authorization': `Bearer ${bearerToken}`,
-          'Content-Type': 'application/json'
-        }
-      })
-      if (response && response.status === 200) {
-        if (response.data) {
-          console.log(response.data.data)
-          const uniqueMessages = {};
-          let idCounter = 1;
-          response.data.data.forEach((message) => {
-            const key = message.template_fk;
-
-            if (!uniqueMessages[key]) {
-              uniqueMessages[key] = {
-                ...message,
-                count: 0,
-                sids: [],
-                messageStatus: [],
-                messageReceived:[],
-                read: [],
-                closed: [],
-                id: idCounter,
-                count_pending:0,
-                count_received:0,
-                count_opened:0,
-                count_closed:0
-              };
-              idCounter++;
-            }
-
-            uniqueMessages[key].count++;
-
-
-            if(message.received_date)
-            {
-              uniqueMessages[key].messageReceived.push(message.received_date)
-            }
-            else
-            {
-              uniqueMessages[key].messageReceived.push("Not yet received");
-            }
-
-            if(message.read_date)
-            {
-              uniqueMessages[key].read.push(message.read_date)
-            }
-            else
-            {
-              uniqueMessages[key].read.push("Not yet read");
-            }
-
-            if(message.closed_date)
-            {
-              uniqueMessages[key].closed.push(message.closed_date)
-            }
-            else
-            {
-              uniqueMessages[key].closed.push("Not yet closed");
-            }
-
-
-            uniqueMessages[key].sids.push(message.user_detail_fk);
-            if (message.date_sent && !message.received_date &&
-                !message.read_date && !message.closed_date){
-              uniqueMessages[key].messageStatus.push("Pending");
-              uniqueMessages[key].count_pending++;
-            }
-            else if (message.date_sent && message.received_date &&
-                !message.read_date && !message.closed_date){
-                  uniqueMessages[key].messageStatus.push("Received");
-                  uniqueMessages[key].count_received++;
-            }
-            else if (message.date_sent && message.received_date && 
-            message.read_date && !message.closed_date){
-                  uniqueMessages[key].messageStatus.push("Opened");
-                  uniqueMessages[key].count_received++;
-                  uniqueMessages[key].count_opened++;
-            }
-            else if (message.date_sent && message.received_date && 
-            message.read_date && message.closed_date){
-                  uniqueMessages[key].messageStatus.push("Closed");
-                  uniqueMessages[key].count_received++;
-                  uniqueMessages[key].count_opened++;
-                  uniqueMessages[key].count_closed++;
-            }
-          });
-          
-          const filteredMessages = Object.values(uniqueMessages);
-          filteredMessages.forEach(item => {
-            if (!item.date_sent) {
-              item.date_sent = "Not yet sent";
-            }
-          });
-          messageArray.value = filteredMessages.filter(message => message.flag === 'message');
-          scheduledMessageArray.value = filteredMessages.filter(message => message.flag === 'scheduled_message');
-          triggerMessageArray.value = filteredMessages.filter(message => message.flag === 'automated_message');
-          data.value = filteredMessages;
-          showFilters.value = false
-          console.log(data.value)
-        }
+      catch (error) {
+        console.error("Error in Filtering:", error);
       } 
-    } 
-    catch (error) {
-      if (error.response && error.response.status === 404) {
-        errorMessage.value = 'This user does not exist'
+      finally {
+         loading.value = false;
       }
-      else if (error.response && error.response.status === 401) {
-        errorMessage.value = 'Your password is incorrect'
+   }
+
+
+   const handleSendNotification = async () => {
+      console.log(selectedProducts.value)
+      var payload
+      const formattedUserIds = selectedUsers.value.map(item => ({ "user_id": item.sid.toString() }));
+      // const formattedPolicyIds = selectedProducts.value.map(policy_sid => ({ "policy_id": policy_sid.toString() }));
+      const formattedPolicyIds = selectedProducts.value.map(item => ({ "policy_id": item.sid.toString() }));
+      console.log(formattedUserIds)
+      payload = {
+         title: newNotification.value.title,
+         message: newNotification.value.message,
+         policy_id: formattedPolicyIds,
+         user_id: formattedUserIds,
+         message_type: "message",
+         date_to_send: todayDate()
       }
-    } 
-  }
-  
+      
+      try {
+         loading.value = true
+         await sendNotification(payload);
+            const data = await getNotifications();
+            notifications.value = data;
+         } 
+         catch (error) {
+            console.error("Error in adding product:", error);
+         } 
+         finally {
+            loading.value = false;
+            newDialog.value = false;
+            saved.value = false
+         }
+   }
 
-  onMounted(() => {
-    fetchMessage();
-    fetchUser();
-    getMessageTemplate();
-    getPolicies()
-  });
+   const handleSelectAllUsers = (event) => {
+      selectAllUsers.value = event.checked;
+      if (selectAllUsers.value) {
+         selectedUsers.value = users.value
+         console.log(selectedUsers.value)
+      } else {
+         selectedUsers.value = []
+      }
+   }
 
-  const titleRef = ref(null)
+   const handleSelectAllProducts = (event) => {
+      console.log("Hello")
+      selectAllProducts.value = event.checked;
+      if (selectAllProducts.value) {
+         selectedProducts.value = products.value
+      } else {
+         selectedProducts.value = []
+      }
+   }
 
-  const updateTitle = (updatedTitle) => {
-    title.value = updatedTitle
-  }
-  const updateMessage = (updatedMessage) => {
-    message.value = updatedMessage
-  }
-
-  const placeHolders = ref([])
-  const getPlaceholders = (value) => {
-    placeHolders.value = value
-    console.log(placeHolders.value)
-  }
-
-  const titleText = ref(null)
-  const messageText = ref(null)
-
-  const textBox = ref([])
-
-  const addChipToTitle = (placeholder) =>{
-    const inputElement = titleText.value // Get the input element from the ref
-    const cursorPosition = inputElement.selectionStart; // Get the cursor position
-
-    // Insert the chip text at the cursor position
-    const beforeCursor = title.value.substring(0, cursorPosition);
-    const afterCursor = title.value.substring(cursorPosition);
-    if (title.value.length){
-      title.value = `${beforeCursor}{${placeholder}}${afterCursor}`;
-    }
-    else {
-      title.value = `{${placeholder}} `;
-    }
-
-    // Update the cursor position to be right after the inserted chip
-    const newCursorPosition = cursorPosition + placeholder.length + 2; // +2 for the brackets
-    inputElement.selectionStart = newCursorPosition;
-    inputElement.selectionEnd = newCursorPosition;
-  }
-
-  const handleKeydown = (event) => {
-    const inputElement = titleText.value;
-    const cursorPosition = inputElement.selectionStart;
-
-    const beforeCursor = title.value.substring(0, cursorPosition);
-    const afterCursor = title.value.substring(cursorPosition);
-
-    // Check if the cursor is within a placeholder or at the end of a placeholder
-    const withinPlaceholder = /{[^}]*$/.test(beforeCursor) && /^[^}]*}/.test(afterCursor);
-    const atEndOfPlaceholder = /}$/.test(beforeCursor) && !/^{/.test(afterCursor);
-
-    if (withinPlaceholder || (event.key === 'Backspace' && atEndOfPlaceholder)) {
-      event.preventDefault(); // Prevent the default behavior
-
-      const startPos = beforeCursor.lastIndexOf('{');
-      const endPos = cursorPosition + (withinPlaceholder ? afterCursor.indexOf('}') + 1 : 0);
-
-      title.value = title.value.substring(0, startPos) + title.value.substring(endPos);
-      inputElement.selectionStart = startPos;
-      inputElement.selectionEnd = startPos;
-    }
-    // If left arrow key is pressed and cursor is within or at the end of a placeholder
-    else if (event.key === 'ArrowLeft' && (withinPlaceholder || atEndOfPlaceholder)) {
-      event.preventDefault(); // Prevent the default behavior
-
-      const startPos = beforeCursor.lastIndexOf('{');
-      inputElement.selectionStart = startPos;
-      inputElement.selectionEnd = startPos;
-    }
-    // If right arrow key is pressed and cursor is within a placeholder
-    else if (event.key === 'ArrowRight' && withinPlaceholder) {
-      event.preventDefault(); // Prevent the default behavior
-
-      const endPos = cursorPosition + afterCursor.indexOf('}') + 1;
-      inputElement.selectionStart = endPos;
-      inputElement.selectionEnd = endPos;
-    }
-    // For other keys, prevent editing within the placeholder
-    else if (withinPlaceholder) {
-      event.preventDefault();
-    }
-}
-
-
-
-
-
-const addChipToMessage = (placeholder) =>{
-  console.log(placeholder)
-    const inputElement = messageText.value // Get the input element from the ref
-    const cursorPosition = inputElement.selectionStart; // Get the cursor position
-
-    // Insert the chip text at the cursor position
-    const beforeCursor = message.value.substring(0, cursorPosition);
-    const afterCursor = message.value.substring(cursorPosition);
-    message.value = `${beforeCursor}{${placeholder}}${afterCursor}`;
-
-    // Update the cursor position to be right after the inserted chip
-    const newCursorPosition = cursorPosition + placeholder.length + 2; // +2 for the brackets
-    inputElement.selectionStart = newCursorPosition;
-    inputElement.selectionEnd = newCursorPosition;
-  }
-
-  const handleKeydownMessage = (event) => {
-    const inputElement = messageText.value;
-    const cursorPosition = inputElement.selectionStart;
-
-    const beforeCursor = message.value.substring(0, cursorPosition);
-    const afterCursor = message.value.substring(cursorPosition);
-
-    // Check if the cursor is within a placeholder or at the end of a placeholder
-    const withinPlaceholder = /{[^}]*$/.test(beforeCursor) && /^[^}]*}/.test(afterCursor);
-    const atEndOfPlaceholder = /}$/.test(beforeCursor) && !/^{/.test(afterCursor);
-
-    if (withinPlaceholder || (event.key === 'Backspace' && atEndOfPlaceholder)) {
-      event.preventDefault(); // Prevent the default behavior
-
-      const startPos = beforeCursor.lastIndexOf('{');
-      const endPos = cursorPosition + (withinPlaceholder ? afterCursor.indexOf('}') + 1 : 0);
-
-      message.value = message.value.substring(0, startPos) + message.value.substring(endPos);
-      inputElement.selectionStart = startPos;
-      inputElement.selectionEnd = startPos;
-    }
-    // If left arrow key is pressed and cursor is within or at the end of a placeholder
-    else if (event.key === 'ArrowLeft' && (withinPlaceholder || atEndOfPlaceholder)) {
-      event.preventDefault(); // Prevent the default behavior
-
-      const startPos = beforeCursor.lastIndexOf('{');
-      inputElement.selectionStart = startPos;
-      inputElement.selectionEnd = startPos;
-    }
-    // If right arrow key is pressed and cursor is within a placeholder
-    else if (event.key === 'ArrowRight' && withinPlaceholder) {
-      event.preventDefault(); // Prevent the default behavior
-
-      const endPos = cursorPosition + afterCursor.indexOf('}') + 1;
-      inputElement.selectionStart = endPos;
-      inputElement.selectionEnd = endPos;
-    }
-    // For other keys, prevent editing within the placeholder
-    else if (withinPlaceholder) {
-      event.preventDefault();
-    }
-}
-
-
-const showFilters = ref(false)
-
-const dateRecurring = [
-        { title: 'Click Me' },
-        { title: 'Click Me' },
-        { title: 'Click Me' },
-        { title: 'Click Me 2' },
-      ]
-
-const filterItems = [
-    { text: 'Date', icon: 'mdi-calendar' },
-    { text: 'Notification', icon: 'mdi-email' },
-    { text: 'Organisation', icon:' heroicons:building-office-2' },
-    { text: 'Policy', icon: 'mdi-document' },
-    { text: 'User', icon: 'mdi-account' },
-  ]
-
-const search = ref("")
-const selectedFilter = ref('Date')
-console.log(selectedFilter)
-const handleFilterClick = (item) => {
-  selectedFilter.value = item.text;
-}
-
-watch(selectedFilter, (newValue, oldValue) => {
-  console.log(newValue)
-})
-
-const clearFilters = () => {
-  selectedPolicies.value = []
-  selectedUsers.value = []
-  fetchMessage();
-}
-
-const openDialog = () => {
-  selectedPolicies.value = []
-  selectedUsers.value = []
-  dialog.value = true;
-  
-}
 </script>
 
 <template>
-  <v-row>
-    
-    <v-col cols="12">
-  <v-card class="text-center text-sm-start pt-4">
-    <VRow no-gutters class="align-center justify-space-between">
-      <VCol cols="auto">
-        <VCardTitle class="text-md-h5 text-primary">
-          Notifications
-        </VCardTitle>
-      </VCol>
-
-      <VCol cols="12" sm="6" md="3" class="d-flex justify-end">
-        
-      </VCol>
-
-      <VCol cols="12" sm="8" md="6" lg="4" class="d-flex justify-end pr-5">
-        <v-text-field
-        v-model="search"
-        class="pr-5"
-        density="compact"
-        prepend-inner-icon="mdi-magnify"
-        label="Type to search"
-        single-line
-        hide-details
-      ></v-text-field>
-        <v-btn color="primary" prepend-icon="ic:round-plus" @click="openDialog"  >
-          Add New Notification
-        </v-btn>
-      </VCol>
-    </VRow>
-    
-
-    <!--NOTIFICATION TABS-->
-    <VRow no-gutters class="pl-5">
-      <v-col cols="12" sm="6" md="8" lg="8">
-        <VTabs v-model="activeTab" show-arrows class="custom-tabs">
-          <VTab v-for="item in activeNotificationTabs" :key="item.icon" :value="item.tab">
-            {{ item.title }}
-          </VTab>
-        </VTabs>
-      </v-col>
-      <VCol cols="12" sm="6" md="2" lg="2" class="d-flex justify-end"> <!-- Notice md="1" for 1/12 of the grid -->
-        <v-btn color="primary" variant="text" prepend-icon="bx-filter" @click="showFilters = !showFilters">
-          {{ showFilters ? 'Hide Filters' : 'Show Filters' }}
-        </v-btn>
-      </VCol>
-      <VCol cols="12" sm="6" md="2" class="d-flex justify-end pr-1"> <!-- Again, md="1" for 1/12 of the grid -->
-        <v-btn color="primary" variant="text" @click="clearFilters">
-          Clear Filters
-        </v-btn>
-      </VCol>
-    </VRow>
-    
-      
-    <!--New Notification Modal-->
-      <v-row justify="center"> 
-        <v-dialog v-model="dialog" @click:outside="handleCloseNewNotificationModal" width="1024">
-          <v-card>
-            <v-row class="pl-13 pt-3">
-              <v-col cols="12" sm="6" md="5">
-                <v-card-title>
-                  <v-text-field 
-                    label="Add Title" 
-                    v-model="title" 
-                    variant="underlined"
-                    ref="titleText"
-                    @keydown="handleKeydown"
-                  >
-                  </v-text-field >
-                </v-card-title>
-              </v-col>
-              <v-col class=" pt-10" cols="12" sm="6" md="2">
-                <Placeholder
-                  @selectedPlaceholder="addChipToTitle"
-                  @placeholderFields="getPlaceholders"
-                  :text="'Add field to title'" 
-                  :body="title" 
-                  :setRef="titleText"
-                />
-              </v-col>    
-            </v-row> 
-            
-                
-            
-            <!--NOTIFICATION TABS-->
-      <VRow no-gutters class="pl-15">
-        <VTabs 
-          v-model="activeNotificationModalTab"
-          show-arrows
-          class="custom-tabs pl-4"
-        >
-          <VTab
-            v-for="item in notificationModalTabs"
-            :key="item.icon"
-            :value="item.tab"
-          >
-            {{ item.title }}
-          </VTab>
-        </VTabs>
-        
-      </VRow>
-    <!--END OF NOTIFICATION TABS-->
-
-      <v-row class="pl-9 my-n1"  v-if="activeNotificationModalTab === 'Personal'">
-        <v-col cols="12" sm="6" md="4">
-          <v-text-field
-            prepend-icon="bx:time"
-            placeholder="Send Immediately"
-            variant="plain"
-            readonly
-          ></v-text-field>
-        </v-col>
-      </v-row>
-      <v-row class="pl-7 my-n1"  v-if="activeNotificationModalTab === 'Triggered'">
-        <v-col cols="12" sm="6" md="4">
-          <v-menu>
-              <template v-slot:activator="{ props }">
-                <v-btn
-                variant="text"
-                v-bind="props"
-                prepend-icon="bx:time"
-              >
-              <span class="pl-2">{{daysText}}</span>
-              </v-btn>
+	<div class="p-grid">
+		<div class="p-col-12">
+			<Card>
+            <template #title>
+               <div style="display: flex; align-items: center; justify-content: space-between;">
+                  <span>Notifications</span>
+                  <Button 
+                     label="New Notification" 
+                     icon="pi pi-plus" 
+                     severity="info" 
+                     @click="newDialog=true"
+                  />
+               </div>
             </template>
-        <v-list>
-          <v-list-item
-            v-for="number in numbers"
-            :key="number"
-            :value="number"
-            @click="insertNumber(number)"
-          >
-          <v-list-item-title>{{ number }}</v-list-item-title>
-          </v-list-item>
-        </v-list>
-      </v-menu>
-        </v-col>
-      </v-row>
-      <v-row class="pl-8 my-n3"  v-if="activeNotificationModalTab === 'Scheduled'">
-        <v-col cols="12" sm="6" md="4">
-          <Datepicker 
-            ref="datepickerRef"
-            circle
-            lang="en"
-            v-model="date" 
-            position="center"
-            first-day-of-week="sunday"
-            placeholder="SELECT SEND DATE"
-            
-            
-          />
-        </v-col>
-      </v-row>
-      <v-row class="pl-8 my-n3" v-if="activeNotificationModalTab === 'Scheduled'">
-        <v-col cols="12" sm="6" md="4">
-          <v-select
-              label="Recurring"
-              :items="['Every day', 'Every second day', 'Weekly', 'Monthly']"
-            ></v-select>
-          </v-col>
-        </v-row>
-      <v-row class="my-n2">
-        <v-col class="pl-10" cols="12" sm="6" md="4">
-          <v-btn
-            variant="text"
-            @click="addPolicyModal=true"
-            prepend-icon="bx-book-content"
-          >
-            <span class="pl-2">{{policyText}}</span>
-          </v-btn>
-        </v-col>
-        <v-col class="mx-n12" cols="12" sm="6" md="8 ">
-          <v-checkbox
-            v-model="allPoliciesCheckbox"
-            label="Add all policies"
-            @click="addAllPolicies"
-          ></v-checkbox>
-        </v-col>
-      </v-row>
-      <v-row class="my-n2">
-        <v-col class="pl-10" cols="12" sm="6" md="4">
-          <v-btn v-if="showAddUserButton"
-            variant="text"
-            @click="addUsersModal=true"
-            prepend-icon="ph:users-bold"
-          >
-            <span class="pl-2">{{userText}}</span>
-          </v-btn>
-        </v-col>
-        <v-col class="mx-n12" cols="12" sm="6" md="8 ">
-          <v-checkbox v-if="showAddUserButton"
-            v-model="allUsersCheckbox"
-            label="Add all users"
-            @click="addAllUsers"
-          ></v-checkbox>
-        </v-col>
-      </v-row>
-      <v-row >
-        <v-col cols="12" sm="6" md="4">
-          <v-btn class="mx-15"
-          variant="text"
-          @click="loadPreviousNotificationsModal=true"
-          prepend-icon="ic:round-plus"
-        >
-          Load previous notification
-        </v-btn>
-        </v-col>
-        <v-col cols="12" sm="6" md="4">
-          <Placeholder
-              @selectedPlaceholder="addChipToMessage" 
-              @placeholderFields="getPlaceholders"
-              :text="'Add field to message'" 
-              :body="message" 
-              :setRef="messageText"
-            />
-        </v-col>
-      </v-row>
-      <v-container fluid>
-        <v-textarea class="pl-15 custom-textarea my-n4"
-          name="input-7-1"
-          variant="filled"
-          label="Message"
-          ref="messageText" 
-          auto-grow
-          v-model="message"
-          @keydown="handleKeydownMessage"
-        />
-      </v-container>
-          <v-card-actions>
-            <v-spacer/>
-              <v-btn
-                color="blue-darken-1"
-                variant="text"
-                @click="handleCloseNewNotificationModal"
-              >
-                Close
-              </v-btn>
-              <v-btn
-                color="blue-darken-1"
-                variant="text"
-                @click="handleSaveNotification"
-                :disabled="isSendButtonDisabled"
-              >
-                Send
-              </v-btn>
-            </v-card-actions>
-          </v-card>
-        </v-dialog>
-      </v-row>
 
-      <v-row justify="center">
-              <v-alert
-                type="success"
-                title="Success"
-                text="Notification has been successfully sent!"
-                v-model="showAlert"
-              ></v-alert>
-            </v-row>
+            <template #content>
+               <BlockUI :blocked="loading" fullScreen></BlockUI>
+               <ProgressSpinner 
+                  v-show="loading" 
+                  class="overlay" 
+                  :pt="{
+                     spinner: { style: {width: '10rem', height: '10rem' } },
+                     circle: { style: { stroke: '#F59E0B', strokeWidth: 1, animation: 'none', width: '20px !important', height: '2rem'} }
+                  }"
+               />
+               <div style="display: flex; align-items: center; justify-content: space-between;">
+                  <div class="view-card">
+                     <div class="view-section">
+                        <div class="view-label">View</div>
+                        <div class="separator"></div>
 
-    <!--Load Previous Notification modal-->
-      <v-row justify="center"> 
-        <v-dialog v-model="loadPreviousNotificationsModal" width="1200">
-          <v-card>
-            <v-card-title class="pt-5">
-                <span class="text-h7 ">Click on a notification to load it</span>
-            </v-card-title>
-            <v-data-table
-              v-model:items-per-page="itemsPerPage"
-              :headers="previousNotificationHeaders"
-              :items="messageTemplateData"
-              item-value="title"
-              class="elevation-1"
-            >
-              <template v-slot:item.title="{ item }">
-                <tr>
-                  <td><span style="cursor: pointer;" @click="handlePrevNotificationRowClick(item.selectable.sid)">{{ item.columns.title }}</span></td>
-                  </tr>
-              </template>
-              <template v-slot:item.message="{ item }">
-                <tr>
-                  <td><span style="cursor: pointer;" @click="handlePrevNotificationRowClick(item.selectable.sid)">{{ item.columns.message }}</span></td>
-                </tr>
-              </template>
-              <template v-slot:item.date="{ item }">
-                <tr>
-                  <td><span style="cursor: pointer;" @click="handlePrevNotificationRowClick(item.selectable.sid)">{{ item.columns.date }}</span></td>
-                </tr>
-              </template>
-            </v-data-table>
-          </v-card>
-        </v-dialog>
-      </v-row>
-    <!--End of Load Previous Notification modal-->
+                        <RadioButton v-model="messageType" inputId="ingredient1" name="pizza" value="All" />
+                        <label for="ingredient1" class="ml-2">All</label>
 
-    <!--Add Policy Modal-->
-    <v-row justify="center"> 
-        <v-dialog v-model="addPolicyModal" width="800">
-          <v-card>
-            <v-card-title class="pt-5">
-                <span class="text-h7 ">Select a policy to add as a reference</span>
-            </v-card-title>
-            <v-data-table
-              v-model:items-per-page="itemsPerPage"
-              :headers="addPolicyHeaders"
-              :items="policyData"
-              item-value="name"
-              class="elevation-1"
-            >
-              <template v-slot:item.policySelected="{ item }">
-                <v-checkbox-btn
-                  v-model="item.columns.policySelected"
-                  @change="handlePolicyCheckbox(item)"
-                ></v-checkbox-btn>
-              </template>
-            </v-data-table>
-            <v-card-actions>
-            <v-spacer/>
-              <v-btn
-                class="pt-2"
-                color="blue-darken-1"
-                variant="text"
-                @click="addPolicyModal=false"
-              >
-                Ok
-              </v-btn>
-            </v-card-actions>
-          </v-card>
-        </v-dialog>
-      </v-row>
-    <!--End of Add Users Modal-->
-    
+                        <RadioButton class="ml-5" v-model="messageType" inputId="ingredient1" name="pizza" value="Personal" />
+                        <label for="ingredient1" class="ml-2">Personal</label>
+
+                        <RadioButton class="ml-5" v-model="messageType" inputId="ingredient1" name="pizza" value="Scheduled" />
+                        <label for="ingredient1" class="ml-2">Scheduled</label>
+
+                        <RadioButton class="ml-5" v-model="messageType" inputId="ingredient1" name="pizza" value="Automated" />
+                        <label for="ingredient1" class="ml-2">Automated</label>
+                     </div>
+                  </div>
+                  <div>
+                     
+                  </div>
+               </div>
+               <br>
+
+               <DataTable 
+                  sortField="date_sent"
+                  :sortOrder="-1"
+                  :value="notificationTableData"
+                  paginator :rows="5" 
+                  :rowsPerPageOptions="[5, 10, 20, 50]"
+                  tableStyle="min-width: 50rem"
+                  v-model:selection="selectedNotification"
+                  selectionMode="single"  
+                  @rowSelect="onNotificationSelect"
+               >
+                     <Column field="title" header="Subject" style="min-width: 11rem" sortable />
+                     <Column field="body" header="Message" sortable />
+                     <Column sortable field="date_sent" header="Date Sent" style="min-width: 11rem" />
+                     <Column header="Pending" :exportable="false">
+                        <template #body="slotProps">
+                           {{ slotProps.data.counts.pending }} / {{ slotProps.data.counts.sent }}
+                        </template>
+                     </Column>
+                     <Column header="Received" :exportable="false">
+                        <template #body="slotProps">
+                           {{ slotProps.data.counts.received }} / {{ slotProps.data.counts.sent }}
+                        </template>
+                     </Column>
+                     <Column header="Opened" :exportable="false">
+                        <template #body="slotProps">
+                           {{ slotProps.data.counts.read }} / {{ slotProps.data.counts.sent }}
+                        </template>
+                     </Column>
+                     <Column header="Closed" :exportable="false">
+                        <template #body="slotProps">
+                           {{ slotProps.data.counts.closed }} / {{ slotProps.data.counts.sent }}
+                        </template>
+                     </Column>
+                  </DataTable>
 
 
-
-    
-
-    <v-row justify="center"> 
-        <v-dialog v-model="s" width="800">
-          <v-card>
-            <v-container fluid>
-              <v-row>
-              <v-col cols="4">
-                <v-navigation-drawer
-                  permanent
-                  location="left"
-                >
-              
-              <v-list density="compact" nav>
-                <v-list-item
-                  v-for="(item, i) in filterItems"
-                  :key="i"
-                  :value="item"
-                  color="primary"
-                  rounded="xl"
-                  @click="handleFilterClick(item)"
-                  :active-class="selectedFilter"
-                >
-
-                  <template v-slot:prepend>
-                    <v-icon :icon="item.icon"></v-icon>
-                  </template>
-
-                  <v-list-item-title v-text="item.text"></v-list-item-title>
-                </v-list-item>
-              </v-list>
-            </v-navigation-drawer>
-            
-          
-            <v-main style=" width: 500px;height: 550px;"></v-main>
-          </v-col>
-          <v-col cols="8" md="4" class="d-flex flex-column align-start">
-            <div v-if="selectedFilter === 'Date'">
-              <v-card-title class="pb-7">
-                <span class="text-h7 ">Select a date range</span>
-            </v-card-title>
-            
-              <span class="text-h7 pb-5 pl-6">Start Date:</span>
-              <VueDatePicker 
-                class="pl-6 pb-6"
-                v-model="filterStartDate"
-                auto-apply
-                placeholder="Select start date"
-                :enable-time-picker="false"
-                />
-                <span class="text-h7 pl-6">End Date:</span>
-              <VueDatePicker 
-              class="pl-6"
-              v-model="filterEndDate"
-              placeholder="Select end date"
-              auto-apply
-              :min-date="filterStartDate"
-              :enable-time-picker="false"
-              ></VueDatePicker>
-              </div>
-              <div v-if="selectedFilter === 'Policy'">
-                <v-data-table
-              v-model:items-per-page="itemsPerPage"
-              :headers="filterPolicyHeaders"
-              :items="policyData"
-              item-value="name"
-              class="elevation-1"
-            >
-              <template v-slot:item.policySelected="{ item }">
-                <v-checkbox-btn
-                  v-model="item.columns.policySelected"
-                  @change="handlePolicyCheckbox(item)"
-                ></v-checkbox-btn>
-              </template>
-            </v-data-table>
-              </div>
-          </v-col>
-          <v-card-actions>
-              <v-spacer></v-spacer>
-              <v-btn color="blue-darken-1" variant="text" @click="">Cancel</v-btn>
-              <v-btn color="blue-darken-1" variant="text" @click="filterData">Apply Filters</v-btn>
-              <v-spacer></v-spacer>
-            </v-card-actions>
-        </v-row>
-        
-          </v-container>
-        </v-card>
-      </v-dialog>
-    </v-row>
-
-
-
-
-
-
-
-
-
-
-
-    <!--Add Users Modal-->
-    <v-row justify="center"> 
-        <v-dialog v-model="addUsersModal" width="800">
-          <v-card>
-            <v-card-title class="pt-5">
-                <span class="text-h7 ">Select a user to add as a recipient</span>
-            </v-card-title>
-            <v-data-table
-              v-model:items-per-page="itemsPerPage"
-              :headers="addUsersHeaders"
-              :items="filteredUserData"
-              item-value="name"
-              class="elevation-1"
-            >
-              <template v-slot:item.userSelected="{ item }">
-                <v-checkbox-btn
-                  v-model="item.columns.userSelected"
-                  @change="handleUserCheckbox(item)"
-                ></v-checkbox-btn>
-              </template>
-            </v-data-table>
-            <v-card-actions>
-            <v-spacer/>
-              <v-btn
-                class="pt-2"
-                color="blue-darken-1"
-                variant="text"
-                @click="addUsersModal=false"
-              >
-                Ok
-              </v-btn>
-            </v-card-actions>
-          </v-card>
-        </v-dialog>
-      </v-row>
-    <!--End of Add Users Modal-->
+                  <Dialog 
+                     class="p-fluid"
+                     :modal="true" 
+                     @hide="onNewNotificationClose"
+                     :dismissableMask="true" 
+                     :style="{width: '650px'}" 
+                     header="New Notification" 
+                     v-model:visible="newDialog" 
+                  >
+                     <div class="formgrid grid">
+                        <div class="col-8">
+                           <TabMenu 
+                              class="pb-5" 
+                              :model="tabItems" 
+                              v-model:activeIndex="activeTab"
+                           />
+                        </div>
+                        <div class="col-4">
+                           <Button 
+                              severity="secondary"
+                              label="Load From Template" 
+                              icon="pi pi-plus" 
+                              @click="addTemplateDialog=true"
+                           />
+                        </div>
+                     </div>
+                     <div class="formgrid grid">
+                        <div class="col-4">
+                           <Button 
+                           severity="secondary"
+                              label="Add User" 
+                              icon="pi pi-user-plus" 
+                              @click="addUsersDialog=true"
+                           />
+                        </div>
+                        <div class="col-4 pb-4">
+                           <Button 
+                           severity="secondary"
+                              label="Add Product" 
+                              icon="pi pi-book" 
+                              @click="addProductsDialog=true"
+                           />
+                        </div>
+                     </div>
+                     <div class="formgrid grid">
+                           <div class="col-4 pb-4" v-if="activeTab !== 0">
+                              <label for="send-date" class="bold-label">Send Date</label>
+                              <Calendar 
+                                 v-model="sendDate"
+                                 dateFormat="yy/mm/dd" 
+                                 showIcon
+                              />
+                           </div>
+                        </div>
+                     <div class="formgrid grid">
+                        <div class="col-8 pb-3">
+                           <label for="title" class="bold-label">Subject</label>
+                           <InputText 
+                              id="title" 
+                              ref="titleInput" 
+                              v-model.trim="newNotification.title" 
+                              required="true" 
+                              autofocus :class="{'p-invalid': saved && !newNotification.title}" 
+                           />
+                           <small class="p-error" v-if="saved && !newNotification.title">Title is required.</small>
+                        </div>
+                        <div class="col-4">
+                           <br>
+                              <Button 
+                                 severity="secondary"
+                                 label="Insert Placeholder" 
+                                 aria-haspopup="true" 
+                                 aria-controls="overlay_menu"
+                                 @click="titleMenuToggle" 
+                              />
+                              <Menu 
+                                 ref="titlePlaceholderMenu" 
+                                 id="overlay_menu" 
+                                 :model="titlePlaceholders" 
+                                 :popup="true" 
+                              />
+                        </div>
+                     </div>
+                     <div class="field">
+                        <label for="message" class="bold-label">Body</label>
+                        <Textarea style="height: 200px;" id="message" v-model.trim="newNotification.message" required="true" autofocus :class="{'p-invalid': saved && !newNotification.message}" />
+                        <small class="p-error" v-if="saved && !newNotification.message">A Message is required.</small>
+                     </div>
+                     <div class="formgrid grid">
+                           <div class="col-8"></div>
+                           <div class="col-4">
+                              <Button 
+                                 severity="secondary"
+                                 label="Insert Placeholder" 
+                                 aria-haspopup="true" 
+                                 aria-controls="overlay_menu"
+                                 @click="messageMenuToggle" 
+                              />
+                              <Menu 
+                                 ref="messagePlaceholderMenu" 
+                                 id="overlay_menu" 
+                                 :model="messagePlaceholders" 
+                                 :popup="true" 
+                              />
+                           </div>
+                        </div>
+                     <template #footer>
+                        <Button label="Cancel" icon="pi pi-times" text @click="handleCloseNewDialog"/>
+                        <Button label="Send" icon="pi pi-send" text @click="handleSendNotification" />
+                     </template>
+               </Dialog>
 
 
-    <!--Flag status modal-->
-    <v-row justify="center"> 
-      <v-dialog v-model="messageStatusModal" width="1200">
-        <v-card>
-          <v-card-title class="text-h7 pb-5">
-            <span class="text-h7 pb-3">Message Status</span>
-          </v-card-title>
-          <v-row>
-              <v-col cols="12" sm="6" md="8" class="pl-9">
-                <span class="text-h7"><strong>Title:</strong> {{displayMessageTitle}}</span>
-              </v-col>
-          </v-row>
-          <v-row>
-              <v-col cols="12" sm="6" md="8" class="pl-9 pb-8 mt-n5">
-              <span ><strong>Message:</strong> {{displayMessage}}</span>
-              </v-col>
-          </v-row>
-          
-          <v-data-table
-            v-model:items-per-page="itemsPerPage"
-            :headers="headers"
-            :items="firstTableData"
-            item-value="name"
-            class="elevation-1"
-          ></v-data-table>
-        </v-card>
-      </v-dialog>
-    </v-row>
-    <div class="table-container">
-    <v-data-table
-      v-model:items-per-page="notificationsPerPage"
-      :headers="notificationHeaders"
-      :items="selectedData"
-      item-value="title"
-      :search="search"
-      class="elevation-1 pt-5 pl-5 pr-5 "
-    >
-    <template v-slot:item.title="{ item }">
-      <tr>
-        <td><span style="cursor: pointer;" @click="handleFlagClick(item.selectable.id)">{{ item.columns.title }}</span></td>
-        </tr>
-    </template>
-    <template v-slot:item.body="{ item }">
-      <tr>
-        <td><span style="cursor: pointer;" @click="handleFlagClick(item.selectable.id)">{{ item.columns.body }}</span></td>
-      </tr>
-    </template>
-    <template v-slot:item.date="{ item }">
-      <tr>
-        <td><span style="cursor: pointer;" @click="handleFlagClick(item.selectable.id)">{{ item.columns.date }}</span></td>
-      </tr>
-    </template>
-    <template v-slot:item.count_pending="{ item }">
-      <td>
-        <span style="cursor: pointer;" @click="handleFlagClick(item.selectable.id)">
-          {{ item.selectable.count_pending === 0 ? 'None' : item.selectable.count_pending + '/' + item.selectable.count }}
-        </span>
-      </td>
-    </template>
-    <template v-slot:item.count_received="{ item }">
-      <tr>
-        <td><span style="cursor: pointer;" @click="handleFlagClick(item.selectable.id)">{{ item.selectable.count_received }}/{{ item.selectable.count }}</span></td>
-      </tr>
-    </template>
-    <template v-slot:item.count_opened="{ item }">
-      <tr>
-        <td><span style="cursor: pointer;" @click="handleFlagClick(item.selectable.id)">{{ item.selectable.count_opened }}/{{ item.selectable.count }}</span></td>
-      </tr>
-    </template>
-    <template v-slot:item.count_closed="{ item }">
-      <tr>
-        <td><span style="cursor: pointer;" @click="handleFlagClick(item.selectable.id)">{{ item.selectable.count_closed }}/{{ item.selectable.count }}</span></td>
-      </tr>
-    </template>
-    <template v-slot:item.actions="{ item }">
-            <v-icon
-              size="small"
-              class="me-2"
-              @click="editItem(item.selectable)"
-            >
-              mdi-pencil
-            </v-icon>
-            <v-icon
-              size="small"
-              v-if="item.selectable.active === 'No'"
-            >
-              mdi-delete-off
-            </v-icon>
-            <v-icon
-              size="small"
-              @click="deleteItem(item.selectable.sid)"
-              v-else
-            >
-              mdi-delete
-            </v-icon>
-          </template>
-    </v-data-table>
-  </div>
-  </v-card>
-</v-col>
-  <v-overlay v-model="showFilters">
-    <v-card width="400" class="test">
-      <v-card-title class="pb-7">
-        <span class="text-h7 ">Filters</span>
-      </v-card-title>  
-      <v-row>
-        <v-col cols="12" md="8">
-          <span class="text-h7 pb-5 pl-6">Start Date:</span>
-          <VueDatePicker 
-            class="pl-6"
-            v-model="filterStartDate"
-            auto-apply
-            placeholder="Select start date"
-            :enable-time-picker="false"
-          />
-        </v-col>
-      </v-row>  
+               <Dialog 
+                  :dismissableMask="true" 
+                  v-model:visible="selectNotifDialog" 
+                  :style="{width: '1000px'}" 
+                  header="Notification Status" 
+                  :modal="true" 
+                  class="p-fluid"
+               >
+                  <div>
+                     <span class="bold-big">Title: </span> <span class="medium-font">{{ selectedNotification.title }}</span>
+                  </div><br>
+                  <div>
+                     <span class="bold-big">Message: </span> <span class="medium-font">{{ selectedNotification.body }}</span>
+                  </div><br>
+                  <div>
+                     <span class="bold-big">Sent: </span> <span class="medium-font">{{ selectedNotification.date_sent }}</span>
+                  </div><br>
+                  <div>
+                     <DataTable 
+                        :value="selectedNotification.user_details"
+                        paginator :rows="5" 
+                        :rowsPerPageOptions="[5, 10, 20, 50]"
+                        tableStyle="min-width: 50rem"
+                     >
+                        <Column 
+                           field="name" 
+                           header="Name" 
+                           style="min-width: 10rem"
+                           suppressMenu: true
+                           >
+                        </Column>
+                        <Column 
+                           field="received_date" 
+                           header="Received" 
+                           style="min-width: 10rem"
+                           suppressMenu: true
+                           >
+                              <template #body="{ data }">
+                                 {{ data.received_date ? data.received_date : "Not yet received" }}
+                              </template>
+                        </Column>
+                        <Column 
+                           field="read_date" 
+                           header="Read" 
+                           style="min-width: 10rem"
+                           suppressMenu: true
+                           >
+                              <template #body="{ data }">
+                                 {{ data.read_date ? data.read_date : "Not yet read" }}
+                              </template>
+                        </Column>
+                        <Column 
+                           field="closed_date" 
+                           header="Closed" 
+                           style="min-width: 10rem"
+                           suppressMenu: true
+                           >
+                              <template #body="{ data }">
+                                 {{ data.closed_date ? data.closed_date : "Not yet closed" }}
+                              </template>
+                        </Column>
+                  </DataTable>
+                  </div>
+                  
+               </Dialog>
 
-      <v-row>
-        <v-col cols="12" md="8">
-          <span class="text-h7 pb-5 pl-6">End Date:</span>
-          <VueDatePicker 
-            class="pl-6"
-            v-model="filterEndDate"
-            placeholder="Select end date"
-            auto-apply
-            :min-date="filterStartDate"
-            :enable-time-picker="false"
-          />
-        </v-col>
-      </v-row>  
 
-      <v-row>
-        <v-col cols="12" md="8">
-          <v-btn
-            class="pl-7"
-            variant="text"
-            @click="addPolicyModal=true"
-            prepend-icon="bx-book-content"
-          >
-            Filter by policy
-          </v-btn>
-        </v-col>
-      </v-row>  
+               <Dialog 
+                  :dismissableMask="true" 
+                  v-model:visible="addUsersDialog" 
+                  :style="{width: '450px'}" 
+                  header="Add Users" 
+                  :modal="true" 
+                  class="p-fluid"
+               >
+                  <DataTable 
+                     :value="users"
+                     paginator :rows="5" 
+                     :rowsPerPageOptions="[5, 10, 20, 50]"
+                     tableStyle="min-width: 10rem"
+                     v-model:selection="selectedUsers" :selectAll="selectAllUsers" @select-all-change="handleSelectAllUsers"
+                  >
+                     <Column field="Name" header="Name" style="min-width:10rem">
+                        <template #body="slotProps">
+                           {{ slotProps.data.first_name }} {{ slotProps.data.last_name }}
+                        </template>
+                     </Column>
+                     <Column selectionMode="multiple" headerStyle="width: 3rem"></Column>
+                     
+                  </DataTable>
+                  <template #footer>
+                        <Button label="Cancel" icon="pi pi-times" text @click="addUsersDialog=false"/>
+                        <Button label="Save" icon="pi pi-check" text @click="addUsersDialog=false" />
+                     </template>
+                  </Dialog>
 
-      <v-row class="">
-        <v-col cols="12" md="8">
-          <v-btn
-            class="pl-7 pt-n4"
-            variant="text"
-            @click="addUsersModal=true"
-            prepend-icon="ph:users-bold"
-          >
-            Filter by user
-          </v-btn>
-        </v-col>
-      </v-row>  
 
-      <v-row>
-        <v-col cols="12" md="12">
-          <v-btn class="pl-6" color="blue-darken-1" variant="text" @click="filterData">Apply Filters</v-btn>
-        </v-col>
-      </v-row>  
-      
-    </v-card>
-  </v-overlay>
-  </v-row>
+                  <Dialog 
+                     :dismissableMask="true" 
+                     v-model:visible="addProductsDialog" 
+                     :style="{width: '450px'}" 
+                     header="Add Products" 
+                     :modal="true" 
+                     class="p-fluid"
+                  >
+                     <DataTable 
+                        :value="products"
+                        paginator :rows="5" 
+                        :rowsPerPageOptions="[5, 10, 20, 50]"
+                        tableStyle="min-width: 10rem"
+                        v-model:selection="selectedProducts" :selectAll="selectAllProducts" @select-all-change="handleSelectAllProducts"
+                     >
+                        <Column field="name" header="Name" style="min-width:18rem"></Column>
+                        <Column selectionMode="multiple" headerStyle="width: 3rem"></Column>
+                     </DataTable>
+                     <template #footer>
+                        <Button label="Cancel" icon="pi pi-times" text @click="addProductsDialog=false"/>
+                        <Button label="Save" icon="pi pi-check" text @click="addProductsDialog=false" />
+                     </template>
+                  </Dialog>
+
+
+                  <Dialog 
+                     :dismissableMask="true" 
+                     v-model:visible="addTemplateDialog" 
+                     :style="{width: '650px'}" 
+                     header="Add Template" 
+                     :modal="true" 
+                     class="p-fluid"
+                  >
+                     <DataTable 
+                        paginator :rows="5" 
+                        selectionMode="single"  
+                        tableStyle="min-width: 10rem"
+                        :value="notificationTemplates"
+                        @rowSelect="onTemplateSelect"
+                        :rowsPerPageOptions="[5, 10, 20, 50]"
+                        v-model:selection="selectedNotification"
+                     >
+                        <Column field="title" header="Subject" />
+                        <Column field="message" header="Body" />
+                     </DataTable>
+                  <template #footer>
+                        <Button label="Cancel" icon="pi pi-times" text @click="addTemplateDialog=false"/>
+                        <Button label="Save" icon="pi pi-check" text @click="addTemplateDialog=false" />
+                     </template>
+                  </Dialog>
+               </template>
+         </Card>
+		</div>
+	</div>
 </template>
 
-<style lang="scss" scoped>
-.test {
-  position: relative;
-  block-size: 100vh;
-  inline-size: 500px;
-  inset-block-start: 0;
-  inset-inline-end: 0;
-  overflow-y: auto;
-}
-
-.clickable-cell {
-  cursor: pointer;
-}
-
-.custom-text-field::placeholder {
-  cursor: pointer;
-}
-
-.custom-textarea {
-  inline-size: 75%; /* Adjust the width as needed */
-}
-
-.v-tabs .v-tabs-bar .v-tab .v-tab__slider {
-  display: none;
-}
-
-.v-data-table {
-  overflow-x: auto;
-}
-
-.v-data-table .pending-column {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.custom-overlay-card {
-  block-size: 100vh;
-  inline-size: 800px;
-  inset-block-start: 0;
-  inset-inline-end: 0;
-  overflow-y: auto; /* For scrolling if content overflows */
-}
-
-</style>

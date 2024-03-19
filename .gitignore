@@ -11,7 +11,10 @@ node_modules
 .DS_Store
 dist
 dist-ssr
+coverage
 *.local
+dist
+.env
 
 /cypress/videos/
 /cypress/screenshots/
@@ -19,17 +22,9 @@ dist-ssr
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
-!.vscode/settings.json
-!.vscode/*.code-snippets
-!.vscode/tours
 .idea
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
-.yarn
-.env
-
-# iconify dist files
-src/@iconify/icons-bundle.js
