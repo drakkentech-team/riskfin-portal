@@ -163,6 +163,10 @@
       selectedProduct.value = {...data};
       editDialog.value = true;
    };
+   const closeDialog = () => {
+      editDialog.value = false;
+      saved.value = false;
+   };
 
 </script>
 
@@ -195,7 +199,8 @@
                      <Column :exportable="false" style="min-width:8rem">
                         <template #body="slotProps">
                            <Button icon="pi pi-pencil" outlined rounded class="mr-2" @click="editUser(slotProps.data)" />
-                           <Button icon="pi pi-trash" outlined rounded severity="danger" @click="confirmDeleteProduct(slotProps.data)" />
+                           <Button icon="pi pi-trash" outlined rounded severity="danger" @click="confirmDeleteProduct(slotProps.data)" /> 
+                           <!-- DELETE ICON -->
                         </template>
                      </Column>
                   </DataTable>
