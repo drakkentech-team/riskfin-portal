@@ -113,41 +113,42 @@
 
 
    const handleUpdatePolicy = async () => {
-      saved.value = true;
-      const isProductValid = 
-         selectedProduct.value.name &&
-         selectedProduct.value.short_description &&
-         selectedProduct.value.long_description &&
-         selectedProduct.value.administration_fee &&
-         selectedProduct.value.covers.length
+   saved.value = true;
 
-      if (isProductValid) {
-         try {
-            await updateProducts(selectedProduct.value.sid,{      
-               client_id: selectedProduct.value.client_id,
-               name: selectedProduct.value.name,
-               short_description: selectedProduct.value.short_description,
-               long_description: selectedProduct.value.long_description,
-               administration_fee: selectedProduct.value.administration_fee,
-               covers: selectedProduct.value.covers,
-            });
-            // const data = getProducts();
-            // products.value = data;
-         } 
-         catch (error) {
-            console.error("Error in adding product:", error);
-         } 
-         finally {
-            spinner.value = false;
-            editDialog.value = false;
-            saved.value = false
-            selectedProduct.value = null;
-         }
-      }
-      else {
+   const isProductValid = 
+      selectedProduct.value.name &&
+      selectedProduct.value.short_description &&
+      selectedProduct.value.long_description &&
+      selectedProduct.value.administration_fee &&
+      selectedProduct.value.covers.length;
+
+   if (isProductValid) {
+      try {
+         await updateProducts(selectedProduct.value.sid, {      
+            client_id: selectedProduct.value.client_id,
+            name: selectedProduct.value.name,
+            short_description: selectedProduct.value.short_description,
+            long_description: selectedProduct.value.long_description,
+            administration_fee: selectedProduct.value.administration_fee,
+            covers: selectedProduct.value.covers,
+         });
+
+         const data = await getProducts();
+         products.value = data;
+
+      } catch (error) {
+         console.error("Error in updating product:", error);
+      } finally {
          spinner.value = false;
+         editDialog.value = false;
+         saved.value = false;
+         selectedProduct.value = null;
       }
+   } else {
+      spinner.value = false;
    }
+};
+
 
    watch(newProduct.value.covers, (newValue, oldValue) => {
       console.log("Product looks like:", newValue);
