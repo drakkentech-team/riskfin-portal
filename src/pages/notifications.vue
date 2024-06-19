@@ -35,6 +35,7 @@
    const activeTab = ref(0)
    const selectAllUsers  = ref(false)
    const selectAllProducts  = ref(false)
+   const arrearsDays = ref(0)
 
 
 
@@ -263,17 +264,26 @@
    const handleSendNotification = async () => {
       console.log(selectedProducts.value)
       var payload
+      var message_type = "message"
       const formattedUserIds = selectedUsers.value.map(item => ({ "user_id": item.sid.toString() }));
       // const formattedPolicyIds = selectedProducts.value.map(policy_sid => ({ "policy_id": policy_sid.toString() }));
       const formattedPolicyIds = selectedProducts.value.map(item => ({ "policy_id": item.sid.toString() }));
-      console.log(formattedUserIds)
+
       payload = {
          title: newNotification.value.title,
          message: newNotification.value.message,
          policy_id: formattedPolicyIds,
          user_id: formattedUserIds,
-         message_type: "message",
-         date_to_send: todayDate()
+         message_type: message_type,
+         // date_to_send: todayDate()
+      }
+      if (activeTab.value === 1){
+         payload.message_type = "scheduled_message";
+         payload.date_to_send = sendDate.value;
+      } 
+      else if (activeTab.value === 2){
+         payload.arrears_days = arrearsDays.value;
+         payload.message_type = "automated_message";
       }
       
       try {
@@ -296,14 +306,12 @@
       selectAllUsers.value = event.checked;
       if (selectAllUsers.value) {
          selectedUsers.value = users.value
-         console.log(selectedUsers.value)
       } else {
          selectedUsers.value = []
       }
    }
 
    const handleSelectAllProducts = (event) => {
-      console.log("Hello")
       selectAllProducts.value = event.checked;
       if (selectAllProducts.value) {
          selectedProducts.value = products.value
@@ -447,7 +455,7 @@
                         </div>
                      </div>
                      <div class="formgrid grid">
-                           <div class="col-4 pb-4" v-if="activeTab !== 0">
+                           <div class="col-4 pb-4" v-if="activeTab !== 0 & activeTab !== 2">
                               <label for="send-date" class="bold-label">Send Date</label>
                               <Calendar 
                                  v-model="sendDate"
@@ -456,6 +464,18 @@
                               />
                            </div>
                         </div>
+                     <div class="formgrid grid">
+                        <div class="col-4 pb-4" v-if="activeTab !== 0 & activeTab !== 1">
+                           <label for="send-date" class="bold-label">Arrears Day</label>
+                           <InputText 
+                              id="title" 
+                              ref="titleInput" 
+                              v-model.trim="arrearsDays" 
+                              required="true" 
+                              autofocus :class="{'p-invalid': saved && !arrearsDays}" 
+                           />
+                        </div>
+                     </div>
                      <div class="formgrid grid">
                         <div class="col-8 pb-3">
                            <label for="title" class="bold-label">Subject</label>
