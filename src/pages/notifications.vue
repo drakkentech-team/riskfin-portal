@@ -262,21 +262,20 @@
 
 
    const handleSendNotification = async () => {
-      console.log(selectedProducts.value)
-      var payload
-      var message_type = "message"
-      const formattedUserIds = selectedUsers.value.map(item => ({ "user_id": item.sid.toString() }));
-      // const formattedPolicyIds = selectedProducts.value.map(policy_sid => ({ "policy_id": policy_sid.toString() }));
-      const formattedPolicyIds = selectedProducts.value.map(item => ({ "policy_id": item.sid.toString() }));
+      saved.value = true;
 
-      payload = {
-         title: newNotification.value.title,
-         message: newNotification.value.message,
-         policy_id: formattedPolicyIds,
-         user_id: formattedUserIds,
-         message_type: message_type,
-         // date_to_send: todayDate()
-      }
+   var payload;
+   const formattedUserIds = selectedUsers.value.map(item => ({ "user_id": item.sid.toString() }));
+   const formattedPolicyIds = selectedProducts.value.map(item => ({ "policy_id": item.sid.toString() }));
+   payload = {
+      title: newNotification.value.title,
+      message: newNotification.value.message,
+      policy_id: formattedPolicyIds,
+      user_id: formattedUserIds,
+      message_type: "message",
+      date_to_send: todayDate()
+   };
+
       if (activeTab.value === 1){
          payload.message_type = "scheduled_message";
          payload.date_to_send = sendDate.value;
@@ -293,14 +292,15 @@
             notifications.value = data;
          } 
          catch (error) {
-            console.error("Error in adding product:", error);
+            console.error("Error in sending notification:", error);
          } 
          finally {
             loading.value = false;
             newDialog.value = false;
             saved.value = false
          }
-   }
+};
+
 
    const handleSelectAllUsers = (event) => {
       selectAllUsers.value = event.checked;
@@ -482,8 +482,8 @@
                            <InputText 
                               id="title" 
                               ref="titleInput" 
-                              v-model.trim="newNotification.title" 
-                              required="true" 
+                              v-model.trim="newNotification.title"
+                              required="true"  
                               autofocus :class="{'p-invalid': saved && !newNotification.title}" 
                            />
                            <small class="p-error" v-if="saved && !newNotification.title">Title is required.</small>
