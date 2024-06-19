@@ -263,16 +263,9 @@
    const handleSendNotification = async () => {
       saved.value = true;
 
-   if (!newNotification.value.message) {
-      console.error("Notification message is empty. Please enter a message.");
-      return; 
-   }
-
-   console.log(selectedProducts.value);
    var payload;
    const formattedUserIds = selectedUsers.value.map(item => ({ "user_id": item.sid.toString() }));
    const formattedPolicyIds = selectedProducts.value.map(item => ({ "policy_id": item.sid.toString() }));
-   console.log(formattedUserIds);
    payload = {
       title: newNotification.value.title,
       message: newNotification.value.message,
