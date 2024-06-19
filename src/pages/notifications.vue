@@ -261,36 +261,41 @@
 
 
    const handleSendNotification = async () => {
-      console.log(selectedProducts.value)
-      var payload
-      const formattedUserIds = selectedUsers.value.map(item => ({ "user_id": item.sid.toString() }));
-      // const formattedPolicyIds = selectedProducts.value.map(policy_sid => ({ "policy_id": policy_sid.toString() }));
-      const formattedPolicyIds = selectedProducts.value.map(item => ({ "policy_id": item.sid.toString() }));
-      console.log(formattedUserIds)
-      payload = {
-         title: newNotification.value.title,
-         message: newNotification.value.message,
-         policy_id: formattedPolicyIds,
-         user_id: formattedUserIds,
-         message_type: "message",
-         date_to_send: todayDate()
-      }
-      
-      try {
-         loading.value = true
-         await sendNotification(payload);
-            const data = await getNotifications();
-            notifications.value = data;
-         } 
-         catch (error) {
-            console.error("Error in adding product:", error);
-         } 
-         finally {
-            loading.value = false;
-            newDialog.value = false;
-            saved.value = false
-         }
+      saved.value = true;
+
+   if (!newNotification.value.message) {
+      console.error("Notification message is empty. Please enter a message.");
+      return; 
    }
+
+   console.log(selectedProducts.value);
+   var payload;
+   const formattedUserIds = selectedUsers.value.map(item => ({ "user_id": item.sid.toString() }));
+   const formattedPolicyIds = selectedProducts.value.map(item => ({ "policy_id": item.sid.toString() }));
+   console.log(formattedUserIds);
+   payload = {
+      title: newNotification.value.title,
+      message: newNotification.value.message,
+      policy_id: formattedPolicyIds,
+      user_id: formattedUserIds,
+      message_type: "message",
+      date_to_send: todayDate()
+   };
+
+   try {
+      loading.value = true;
+      await sendNotification(payload);
+      const data = await getNotifications();
+      notifications.value = data;
+   } catch (error) {
+      console.error("Error in sending notification:", error);
+   } finally {
+      loading.value = false;
+      newDialog.value = false;
+      saved.value = false;
+   }
+};
+
 
    const handleSelectAllUsers = (event) => {
       selectAllUsers.value = event.checked;
@@ -462,8 +467,8 @@
                            <InputText 
                               id="title" 
                               ref="titleInput" 
-                              v-model.trim="newNotification.title" 
-                              required="true" 
+                              v-model.trim="newNotification.title"
+                              required="true"  
                               autofocus :class="{'p-invalid': saved && !newNotification.title}" 
                            />
                            <small class="p-error" v-if="saved && !newNotification.title">Title is required.</small>
