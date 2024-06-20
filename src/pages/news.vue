@@ -47,6 +47,14 @@
 
 
    const handleCreateNews = async () => {
+      if (!newsForm.value.title || !newsForm.value.content) {
+         saved.value = true;
+         return;
+      }
+      if (selectedUsers.value.length === 0) {
+         toast.add({ severity: 'error', summary: 'Error', detail: 'Please select users', life: 3000 });
+         return;
+      }
       const formattedUserIds = selectedUsers.value.map(user_id => ({ "user_id": user_id.toString() }));
       try {
          await createNews({
