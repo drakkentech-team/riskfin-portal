@@ -7,6 +7,10 @@
    const editDialog = ref(false);
    const saved = ref(false);
 
+   const findIndexById = (id) => {
+      return users.value.findIndex(user => user.id === id);
+   };
+
    onMounted(() => {
       fetchAdminPortalUsers().then((data) => {
          users.value = data;
@@ -23,7 +27,7 @@
 
       if (user.value.first_name.trim()) {
          if (user.value.sid) {
-            userData.value[findIndexById(user.value.id)] = user.value;
+            users.value[findIndexById(user.value.id)] = user.value;
             toast.add({severity:'success', summary: 'Successful', detail: 'User Updated', life: 3000});
          }
          editDialog.value = false;
