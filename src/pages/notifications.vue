@@ -462,7 +462,6 @@
                               @click="addUsersDialog=true"
                            />
                         </div>
-                        <!-- selectedUsers" :selectAll="selectAllUsers -->
                         <div class="col-4 pb-4" v-if="selectedUsers.length > 0 || selectAllUsers == true">
                            <Button 
                            severity="secondary"
