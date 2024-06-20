@@ -280,10 +280,6 @@
 
    const handleSendNotification = async () => {
       console.log(selectedProducts.value)
-      console.log("products and users value what is inside")
-      console.log(products.value)
-      console.log(users.value)
-      console.log("products and user value what is inside")
       var payload
       var message_type = "message"
       const formattedUserIds = selectedUsers.value.map(item => ({ "user_id": item.sid.toString() }));
