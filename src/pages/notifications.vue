@@ -28,6 +28,7 @@
    const selectNotifDialog = ref(false);
    const selectNotifTitle = ref(false);
    const filteredNotification = ref("All")
+   const filterProducts = ref([])
    const selectedDateOption = ref({ name: "Today"})
    const users = ref(null);
    const selectedUsers = ref([]);
@@ -73,6 +74,22 @@
 
    watch(activeTab, (newValue, oldValue) => {
       console.log("Active tab changed to:", newValue);
+   });
+
+   watch(selectAllUsers, (newValue, oldValue) => {
+      console.log("Active tab changed to:", newValue);
+   });
+   watch(selectedUsers, (newValue, oldValue) => {
+      filterProducts.value = []
+      // Step 1: Extract policy_sid values from selectedUsers
+      const userSids = newValue.map(user => user.policy_sid);
+
+      // Step 2: Filter products based on userSids and avoid duplicates
+      filterProducts.value = products.value.filter(product => {
+         // Check if the product's sid is included in userSids
+         return userSids.includes(product.sid);
+      });
+
    });
 
    const countSelectedUsers = computed(() => {
@@ -445,7 +462,7 @@
                               @click="addUsersDialog=true"
                            />
                         </div>
-                        <div class="col-4 pb-4">
+                        <div class="col-4 pb-4" v-if="selectedUsers.length > 0 || selectAllUsers == true">
                            <Button 
                            severity="secondary"
                               label="Add Product" 
@@ -641,7 +658,7 @@
                      class="p-fluid"
                   >
                      <DataTable 
-                        :value="products"
+                        :value="filterProducts"
                         paginator :rows="5" 
                         :rowsPerPageOptions="[5, 10, 20, 50]"
                         tableStyle="min-width: 10rem"
