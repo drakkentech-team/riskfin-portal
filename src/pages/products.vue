@@ -169,6 +169,17 @@
       saved.value = false;
    };
 
+   const confirmDeleteProduct = (data) => {
+      confirm.require({
+         message: 'Are you sure you want to delete this product?',
+         header: 'Confirmation',
+         icon: 'pi pi-exclamation-triangle',
+         accept: async () => {
+               // TODO: Add delete product function
+               products.value = products.value.filter((product) => product.sid !== data.sid);
+         }
+      });
+   }
 </script>
 
 <template>
@@ -332,7 +343,6 @@
                            <Button icon="pi pi-times" @click="handleDeleteCover(index, cover.cover_sid)" severity="danger" text rounded aria-label="Cancel" />
                         </div>
                      </div>  
-                     <ConfirmDialog></ConfirmDialog>                
                      
                      <template #footer>
                         <Button label="Cancel" icon="pi pi-times" text @click="closeDialog"/>
@@ -479,6 +489,7 @@
                         <Button label="Save" icon="pi pi-check" text @click="addNewProduct" />
                      </template>
                </Dialog>
+               <ConfirmDialog></ConfirmDialog>
                </template>
          </Card>
 		</div>
