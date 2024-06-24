@@ -1,11 +1,13 @@
 <script setup>
    import { ref, onMounted, watch } from 'vue';
-   import { getProducts, updateProducts, addProduct, deleteCover } from '../api/products';
+   import { getProducts, updateProducts, addProduct, deleteCover, deleteProduct } from '../api/products';
    import { todayDate } from "../utilities/common"
    import { useConfirm } from "primevue/useconfirm";
+   import { useToast } from 'primevue/usetoast';
 
 
    const confirm = useConfirm();
+   const toast = useToast();
 
    const products = ref(null);
    const selectedProduct = ref(null);
@@ -63,18 +65,18 @@
                   }
                   catch (error) {
                      console.error("Error in adding product:", error);
-                  } 
+                  }
                },
             reject: () => {
             }
          });
       }
-      
+
    }
 
    const addNewProduct = async () => {
       saved.value = true;
-      const isProductValid = 
+      const isProductValid =
          newProduct.value.name &&
          newProduct.value.short_description &&
          newProduct.value.long_description &&
@@ -92,11 +94,11 @@
                covers: newProduct.value.covers,
                date: todayDate()
             });
-            
-         } 
+
+         }
          catch (error) {
             console.error("Error in adding product:", error);
-         } 
+         }
          finally {
             const data = await getProducts();
             products.value = data;
@@ -115,7 +117,7 @@
    const handleUpdatePolicy = async () => {
    saved.value = true;
 
-   const isProductValid = 
+   const isProductValid =
       selectedProduct.value.name &&
       selectedProduct.value.short_description &&
       selectedProduct.value.long_description &&
@@ -124,7 +126,7 @@
 
    if (isProductValid) {
       try {
-         await updateProducts(selectedProduct.value.sid, {      
+         await updateProducts(selectedProduct.value.sid, {
             client_id: selectedProduct.value.client_id,
             name: selectedProduct.value.name,
             short_description: selectedProduct.value.short_description,
@@ -175,8 +177,17 @@
          header: 'Confirmation',
          icon: 'pi pi-exclamation-triangle',
          accept: async () => {
-               // TODO: Add delete product function
+            try {
+               await deleteProduct(data.sid);
                products.value = products.value.filter((product) => product.sid !== data.sid);
+            }
+            catch (error) {
+               toast.add({
+                  severity: 'error',
+                  summary: 'Error',
+                  detail: error.message,
+               });
+            }
          }
       });
    }
@@ -184,23 +195,24 @@
 
 <template>
 	<div class="p-grid">
+      <Toast />
 		<div class="p-col-12">
 			<Card>
             <template #title>
                <div style="display: flex; align-items: center; justify-content: space-between;">
                   <span>Products</span>
-                  <Button 
-                     label="New Product" 
-                     icon="pi pi-plus" 
-                     severity="info" 
+                  <Button
+                     label="New Product"
+                     icon="pi pi-plus"
+                     severity="info"
                      @click="newDialog=true"
                   />
                </div>
             </template>
                <template #content>
-                  <DataTable 
+                  <DataTable
                      :value="products"
-                     paginator :rows="5" 
+                     paginator :rows="5"
                      :rowsPerPageOptions="[5, 10, 20, 50]"
                      tableStyle="min-width: 50rem"
                   >
@@ -211,7 +223,7 @@
                      <Column :exportable="false" style="min-width:8rem">
                         <template #body="slotProps">
                            <Button icon="pi pi-pencil" outlined rounded class="mr-2" @click="editUser(slotProps.data)" />
-                           <Button icon="pi pi-trash" outlined rounded severity="danger" @click="confirmDeleteProduct(slotProps.data)" /> 
+                           <Button icon="pi pi-trash" outlined rounded severity="danger" @click="confirmDeleteProduct(slotProps.data)" />
                         </template>
                      </Column>
                   </DataTable>
@@ -220,8 +232,8 @@
                      <div class="formgrid grid">
                         <div class="field col-6">
                            <label for="client_id" class="bold-label">Client Internal Reference</label>
-                           <InputText 
-                              id="name" 
+                           <InputText
+                              id="name"
                               v-model.trim="selectedProduct.client_id"
                            />
                            <!-- <small class="p-error" v-if="saved && !selectedProduct.client_id">Client Internal Reference is required.</small> -->
@@ -250,100 +262,100 @@
                      </div>
                      <div class="formgrid grid">
                         <div class="field col-4">
-                           <label 
-                              for="currency-us" 
+                           <label
+                              for="currency-us"
                               class="font-bold block mb-2"
-                           > 
-                              Administration Fee 
+                           >
+                              Administration Fee
                            </label>
-                           <InputNumber 
-                              autofocus 
-                              currency="ZAR" 
+                           <InputNumber
+                              autofocus
+                              currency="ZAR"
                               locale="en-ZA"
-                              required="true" 
-                              mode="currency" 
-                              inputId="currency-zar" 
-                              v-model="selectedProduct.administration_fee" 
-                              :class="{'p-invalid': saved && !selectedProduct.administration_fee}" 
+                              required="true"
+                              mode="currency"
+                              inputId="currency-zar"
+                              v-model="selectedProduct.administration_fee"
+                              :class="{'p-invalid': saved && !selectedProduct.administration_fee}"
                            />
                            <small class="p-error" v-if="saved && !selectedProduct.administration_fee">Administration Fee is required</small>
                         </div>
                      </div>
                      <div class="formgrid grid">
                         <div class="field col-4 pt-4">
-                           <Button 
-                              label="Add New Cover" 
-                              severity="secondary" 
-                              raised 
+                           <Button
+                              label="Add New Cover"
+                              severity="secondary"
+                              raised
                               @click="addExtraCover"
-                           />      
+                           />
                         </div>
-                        <small 
-                           class="p-error pt-5 pl-3" 
+                        <small
+                           class="p-error pt-5 pl-3"
                            v-if="saved && !newProduct.covers.length"
                         >
                            At least 1 cover is required
                         </small>
-                     </div>              
+                     </div>
                      <div class="formgrid grid" v-for="(cover, index) in selectedProduct.covers" :key="index">
                         <div class="col-2 pb-2">
                            <label for="currency-us" v-if="index === 0" class="font-bold block mb-2"> Cover </label>
-                           <InputNumber 
-                              autofocus 
-                              currency="ZAR" 
+                           <InputNumber
+                              autofocus
+                              currency="ZAR"
                               locale="en-ZA"
-                              required="true" 
-                              mode="currency" 
-                              inputId="currency-zar" 
-                              v-model="cover.cover" 
-                              :class="{'p-invalid': saved && !cover.cover}"  
+                              required="true"
+                              mode="currency"
+                              inputId="currency-zar"
+                              v-model="cover.cover"
+                              :class="{'p-invalid': saved && !cover.cover}"
                            />
                            <small class="p-error" v-if="saved && !cover.cover">Cover is required</small>
                         </div>
                         <div class="col-3">
                            <label for="currency-us" v-if="index === 0" class="font-bold block mb-2"> Underwriter </label>
-                           <InputText 
-                              autofocus 
-                              :class="{'p-invalid': saved && !cover.underwriter}"  
-                              v-model="cover.underwriter" 
+                           <InputText
+                              autofocus
+                              :class="{'p-invalid': saved && !cover.underwriter}"
+                              v-model="cover.underwriter"
                            />
                            <small class="p-error" v-if="saved && !cover.underwriter">Underwriter is required</small>
                         </div>
                         <div class="col-2">
-                           <label for="currency-us" v-if="index === 0" class="font-bold block mb-2"> 
-                              Premium 
+                           <label for="currency-us" v-if="index === 0" class="font-bold block mb-2">
+                              Premium
                            </label>
-                           <InputNumber 
-                              autofocus 
-                              currency="ZAR" 
+                           <InputNumber
+                              autofocus
+                              currency="ZAR"
                               locale="en-ZA"
-                              required="true" 
-                              mode="currency" 
-                              inputId="currency-zar" 
-                              v-model="cover.premium" 
-                              :class="{'p-invalid': saved && !cover.premium}" 
+                              required="true"
+                              mode="currency"
+                              inputId="currency-zar"
+                              v-model="cover.premium"
+                              :class="{'p-invalid': saved && !cover.premium}"
                            />
                            <small class="p-error" v-if="saved && !cover.premium">Premium is required</small>
                         </div>
 
                         <div class="col-3">
                            <label for="currency-us" v-if="index === 0" class="font-bold block mb-2"> Max entry age </label>
-                           <InputNumber 
-                              autofocus 
-                              required="true" 
-                              inputId="integeronly" 
-                              v-model="cover.max_entry_age" 
-                              :class="{'p-invalid': saved && !cover.max_entry_age}"  
+                           <InputNumber
+                              autofocus
+                              required="true"
+                              inputId="integeronly"
+                              v-model="cover.max_entry_age"
+                              :class="{'p-invalid': saved && !cover.max_entry_age}"
                            />
                            <small class="p-error" v-if="saved && !cover.max_entry_age">Max entry age is required</small>
                         </div>
 
-                        
+
                         <div :class="index === 0 ? 'col-1 pt-5' : 'col-1'">
                            <Button icon="pi pi-times" @click="handleDeleteCover(index, cover.cover_sid)" severity="danger" text rounded aria-label="Cancel" />
                         </div>
-                     </div>  
-                     
+                     </div>
+
                      <template #footer>
                         <Button label="Cancel" icon="pi pi-times" text @click="closeDialog"/>
                         <Button label="Save" icon="pi pi-check" text @click="handleUpdatePolicy" />
@@ -355,9 +367,9 @@
                      <div class="formgrid grid">
                         <div class="field col-4">
                            <label for="client_id" class="bold-label">Client Internal Reference</label>
-                           <InputText 
-                              id="name" 
-                              v-model.trim="newProduct.client_id" 
+                           <InputText
+                              id="name"
+                              v-model.trim="newProduct.client_id"
                            />
                            <!-- <small class="p-error" v-if="saved && !newProduct.client_id">Client Internal Reference is required.</small> -->
                         </div>
@@ -385,105 +397,105 @@
                      </div>
                      <div class="formgrid grid">
                         <div class="field col-4">
-                           <label 
-                              for="currency-us" 
+                           <label
+                              for="currency-us"
                               class="font-bold block mb-2"
-                           > 
-                              Administration Fee 
+                           >
+                              Administration Fee
                            </label>
-                           <InputNumber 
-                              autofocus 
-                              currency="ZAR" 
+                           <InputNumber
+                              autofocus
+                              currency="ZAR"
                               locale="en-ZA"
-                              required="true" 
-                              mode="currency" 
-                              inputId="currency-zar" 
-                              v-model="newProduct.administration_fee" 
-                              :class="{'p-invalid': saved && !newProduct.administration_fee}" 
+                              required="true"
+                              mode="currency"
+                              inputId="currency-zar"
+                              v-model="newProduct.administration_fee"
+                              :class="{'p-invalid': saved && !newProduct.administration_fee}"
                            />
                            <small class="p-error" v-if="saved && !newProduct.administration_fee">Administration Fee is required</small>
                         </div>
                      </div>
                      <div class="formgrid grid">
                         <div class="field col-4 pt-4">
-                           <Button 
-                              label="Add New Cover" 
-                              severity="secondary" 
-                              raised 
+                           <Button
+                              label="Add New Cover"
+                              severity="secondary"
+                              raised
                               @click="addNewCover"
-                           />      
+                           />
                         </div>
-                        <small 
-                           class="p-error pt-5 pl-3" 
+                        <small
+                           class="p-error pt-5 pl-3"
                            v-if="saved && !newProduct.covers.length"
                         >
                            At least 1 cover is required
                         </small>
-                     </div>              
-                     <div 
-                        class="formgrid grid" 
-                        v-for="(cover, index) in newProduct.covers" 
+                     </div>
+                     <div
+                        class="formgrid grid"
+                        v-for="(cover, index) in newProduct.covers"
                         :key="index"
                      >
                         <div class="col-2 pb-2">
-                           <label 
-                              for="currency-us" 
-                              v-if="index === 0" 
+                           <label
+                              for="currency-us"
+                              v-if="index === 0"
                               class="font-bold block mb-2"
-                           > 
-                              Premium 
+                           >
+                              Premium
                            </label>
-                           <InputNumber 
-                              autofocus 
-                              currency="ZAR" 
+                           <InputNumber
+                              autofocus
+                              currency="ZAR"
                               locale="en-ZA"
-                              required="true" 
-                              mode="currency" 
-                              inputId="currency-zar" 
-                              v-model="cover.premium" 
-                              :class="{'p-invalid': saved && !cover.premium}" 
+                              required="true"
+                              mode="currency"
+                              inputId="currency-zar"
+                              v-model="cover.premium"
+                              :class="{'p-invalid': saved && !cover.premium}"
                            />
                            <small class="p-error" v-if="saved && !cover.premium">Premium is required</small>
                         </div>
                         <div class="col-2">
                            <label for="currency-us" v-if="index === 0" class="font-bold block mb-2"> Cover </label>
-                           <InputNumber 
-                              autofocus 
-                              currency="ZAR" 
+                           <InputNumber
+                              autofocus
+                              currency="ZAR"
                               locale="en-ZA"
-                              required="true" 
-                              mode="currency" 
-                              inputId="currency-zar" 
-                              v-model="cover.cover" 
-                              :class="{'p-invalid': saved && !cover.cover}"  
+                              required="true"
+                              mode="currency"
+                              inputId="currency-zar"
+                              v-model="cover.cover"
+                              :class="{'p-invalid': saved && !cover.cover}"
                            />
                            <small class="p-error" v-if="saved && !cover.cover">Cover is required</small>
                         </div>
                         <div class="col-3">
                            <label for="currency-us" v-if="index === 0" class="font-bold block mb-2"> Max entry age </label>
-                           <InputNumber 
-                              autofocus 
-                              required="true" 
-                              inputId="integeronly" 
-                              v-model="cover.max_entry_age" 
-                              :class="{'p-invalid': saved && !cover.max_entry_age}"  
+                           <InputNumber
+                              autofocus
+                              required="true"
+                              inputId="integeronly"
+                              v-model="cover.max_entry_age"
+                              :class="{'p-invalid': saved && !cover.max_entry_age}"
                            />
                            <small class="p-error" v-if="saved && !cover.max_entry_age">Max entry age is required</small>
                         </div>
                         <div class="col-3">
                            <label for="currency-us" v-if="index === 0" class="font-bold block mb-2"> Underwriter </label>
-                           <InputText 
-                              autofocus 
-                              :class="{'p-invalid': saved && !cover.underwriter}"  
-                              v-model="cover.underwriter" 
+                           <InputText
+                              autofocus
+                              :class="{'p-invalid': saved && !cover.underwriter}"
+                              v-model="cover.underwriter"
                            />
                            <small class="p-error" v-if="saved && !cover.underwriter">Underwriter is required</small>
                         </div>
-                        
+
                         <div :class="index === 0 ? 'col-1 pt-5' : 'col-1'">
                            <Button icon="pi pi-times" @click="removeCover(index)" severity="danger" text rounded aria-label="Cancel" />
                         </div>
-                     </div>                  
+                     </div>
                      <template #footer>
                         <Button label="Cancel" icon="pi pi-times" text @click="closeDialog"/>
                         <Button label="Save" icon="pi pi-check" text @click="addNewProduct" />
