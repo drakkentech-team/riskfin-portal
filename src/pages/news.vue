@@ -16,6 +16,7 @@
    const editDialog = ref(false);
    const saved = ref(false);
    const spinner = ref(false);
+   const initialNewsState = ref(null);
 
    const countSelectedUsers = computed(() => {
       return selectedUsers.value.length;
@@ -72,7 +73,7 @@
 
    const handleEditNews = (data) => {
       selectedNews.value = {...data};
-      console.log(selectedNews)
+      initialNewsState.value = { ...data };
       editDialog.value = true;
    };
 
@@ -103,6 +104,16 @@
       saved.value = true;
       spinner.value = true;  
       const sid = selectedNews.value.sid
+
+      const hasChanges = JSON.stringify(selectedNews.value) !== JSON.stringify(initialNewsState.value);
+
+      if (!hasChanges) {
+      spinner.value = false;
+      editDialog.value = false;
+      toast.add({ severity: 'info', summary: 'No Changes', detail: 'No changes were made to the news.', life: 3000 });
+      return;
+   }
+
       try {
          await updateNews(sid, {
             title: selectedNews.value.title,
