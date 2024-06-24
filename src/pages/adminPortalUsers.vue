@@ -1,11 +1,24 @@
 <script setup>
    import { ref, onMounted } from 'vue';
    import { fetchAdminPortalUsers, createAdminPortalUser, updateAdminPortalUser } from '../api/adminPortalUsers';
+   import { useToast } from 'primevue/usetoast';
+
+   const toast = useToast();
 
    const users = ref(null);
    const user = ref(null);
    const editDialog = ref(false);
+   const newDialog = ref(false);
    const saved = ref(false);
+
+   const newUser = ref({
+      name: '',
+      surname: '',
+      email: '',
+      password: '',
+      admin: false,
+      active: true
+   })
 
    const findIndexById = (id) => {
       return users.value.findIndex(user => user.id === id);
@@ -37,8 +50,50 @@
 
    const closeDialog = () => {
       editDialog.value = false;
+      newDialog.value = false;
       saved.value = false;
    };
+
+
+   const addNewUser = async () => {
+      saved.value = true;
+
+      const isValid =
+         newUser.value.name.trim() &&
+         newUser.value.surname.trim() &&
+         newUser.value.email.trim() &&
+         newUser.value.password.trim();
+
+      if (isValid) {
+         try {
+            await createAdminPortalUser({
+               ...newUser.value,
+               admin: newUser.value.admin ? 1 : 0,
+               active: newUser.value.active ? 1 : 0
+            });
+         } catch (error) {
+            toast.add({
+               severity: 'error',
+               summary: 'Error',
+               detail: error.message
+            })
+         } finally {
+            users.value = await fetchAdminPortalUsers();
+            saved.value = false;
+            newDialog.value = false;
+            newUser.value = blankNewUser();
+         }
+      }
+   };
+
+   const blankNewUser = () => ({
+      name: '',
+      surname: '',
+      email: '',
+      password: '',
+      admin: false,
+      active: true
+   });
 
 </script>
 
@@ -46,7 +101,17 @@
 	<div class="p-grid">
 		<div class="p-col-12">
 			<Card>
-            <template #title> Admin Portal Users </template>
+            <template #title>
+               <div class="flex align-items-center justify-content-between">
+                  <span>Admin Portal Users</span>
+                  <Button
+                     label="New User"
+                     icon="pi pi-plus"
+                     severity="info"
+                     @click="newDialog=true"
+                  />
+               </div>
+            </template>
                <template #content>
                   <DataTable 
                      :value="users"
@@ -70,7 +135,7 @@
                      <Column :exportable="false" style="min-width:8rem">
                         <template #body="slotProps">
                            <Button icon="pi pi-pencil" outlined rounded class="mr-2" @click="editUser(slotProps.data)" />
-                           <Button :icon="slotProps.data.active === 1 ? 'pi pi-times' : 'pi pi-check'" outlined rounded :severity="slotProps.data.active === 1 ? danger : success" @click="confirmDeleteProduct(slotProps.data)" />
+                           <Button :icon="slotProps.data.active === 1 ? 'pi pi-times' : 'pi pi-check'" outlined rounded :severity="slotProps.data.active === 1 ? 'danger' : 'success'" @click="confirmDeleteProduct(slotProps.data)" />
                         </template>
                      </Column>
                   </DataTable>
@@ -127,6 +192,41 @@
                         <Button label="Cancel" icon="pi pi-times" text @click="closeDialog"/>
                         <Button label="Save" icon="pi pi-check" text @click="saveUser" />
                      </template>
+               </Dialog>
+
+               <Dialog :dismissableMask="true" v-model:visible="newDialog" :style="{width: '670px'}" header="User Details" :modal="true" class="p-fluid">
+                  <div class="formgrid grid">
+                     <div class="field col-10">
+                        <label for="name" class="bold-label">Name</label>
+                        <InputText id="name" v-model.trim="newUser.name" required="true" autofocus :class="{'p-invalid': saved && !newUser.name}" />
+                        <small class="p-error" v-if="saved && !newUser.name">Name is required.</small>
+                     </div>
+                     <div class="field col-10">
+                        <label for="surname" class="bold-label">Surname</label>
+                        <InputText id="surname" v-model.trim="newUser.surname" required="true" autofocus :class="{'p-invalid': saved && !newUser.surname}" />
+                        <small class="p-error" v-if="saved && !newUser.surname">Surname is required.</small>
+                     </div>
+                     <div class="field col-10">
+                        <label for="email" class="bold-label">Email</label>
+                        <InputText id="email" type="email" v-model.trim="newUser.email" required="true" autofocus :class="{'p-invalid': saved && !newUser.email}" />
+                        <small class="p-error" v-if="saved && !newUser.email">Email is required.</small>
+                     </div>
+                     <div class="field col-10">
+                        <label for="password" class="bold-label">Password</label>
+                        <InputText id="password" type="password" v-model.trim="newUser.password" required="true" autofocus :class="{'p-invalid': saved && !newUser.password}" />
+                        <small class="p-error" v-if="saved && !newUser.password">Password is required.</small>
+                     </div>
+                     <div class="field col-10">
+                        <label for="admin" class="bold-label">Admin</label>
+                        <div>
+                           <ToggleButton v-model="newUser.admin" required onIcon="pi pi-check" offIcon="pi pi-times" invalid class="w-full sm:w-10rem" aria-label="Confirmation" />
+                        </div>
+                     </div>
+                  </div>
+                  <template #footer>
+                     <Button label="Cancel" icon="pi pi-times" text @click="closeDialog"/>
+                     <Button label="Save" icon="pi pi-check" text @click="addNewUser" />
+                  </template>
                </Dialog>
                </template>
          </Card>
