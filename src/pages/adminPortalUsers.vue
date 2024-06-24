@@ -1,11 +1,17 @@
 <script setup>
    import { ref, onMounted } from 'vue';
    import { fetchAdminPortalUsers, createAdminPortalUser, updateAdminPortalUser } from '../api/adminPortalUsers';
+   import { useToast } from "primevue/usetoast";
 
    const users = ref(null);
    const user = ref(null);
    const editDialog = ref(false);
    const saved = ref(false);
+   const toast = useToast();
+
+   const findIndexById = (id) => {
+      return users.value.findIndex(user => user.id === id);
+   };
 
    onMounted(() => {
       fetchAdminPortalUsers().then((data) => {
@@ -23,7 +29,7 @@
 
       if (user.value.first_name.trim()) {
          if (user.value.sid) {
-            userData.value[findIndexById(user.value.id)] = user.value;
+            users.value[findIndexById(user.value.id)] = user.value;
             toast.add({severity:'success', summary: 'Successful', detail: 'User Updated', life: 3000});
          }
          editDialog.value = false;

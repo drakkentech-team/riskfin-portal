@@ -164,6 +164,10 @@
       editDialog.value = true;
    };
 
+   const closeDialog = () => {
+      editDialog.value = false;
+      saved.value = false;
+   };
 </script>
 
 <template>
