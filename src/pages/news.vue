@@ -110,7 +110,6 @@
       if (!hasChanges) {
       spinner.value = false;
       editDialog.value = false;
-      toast.add({ severity: 'info', summary: 'No Changes', detail: 'No changes were made to the news.', life: 3000 });
       return;
    }
 
@@ -135,6 +134,12 @@
    };
 
    const closeDialog = () => {
+      const hasChanges = JSON.stringify(selectedNews.value) !== JSON.stringify(initialNewsState.value);
+
+      if (hasChanges) {
+         toast.add({ severity: 'info', summary: 'Changes Discarded', detail: 'Your changes were discarded', life: 3000 });
+      }
+      
       editDialog.value = false;
       saved.value = false;
    };
