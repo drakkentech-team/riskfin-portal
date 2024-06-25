@@ -1,5 +1,5 @@
 <script setup>
-   import { ref, onMounted, watch } from 'vue';
+   import { ref, onMounted, watch, computed } from 'vue';
    import { getProducts, updateProducts, addProduct, deleteCover } from '../api/products';
    import { todayDate } from "../utilities/common"
    import { useConfirm } from "primevue/useconfirm";
@@ -15,6 +15,7 @@
    const editDialog = ref(false);
    const saved = ref(false);
    const spinner = ref(false);
+   const selectedFilter = ref('active');
 
    const newProduct = ref({
       client_id: null,
@@ -159,6 +160,13 @@
       });
    });
 
+   const filteredProducts = computed(() => {
+      if (!selectedFilter.value || !products.value) return [];
+
+      const isActive = selectedFilter.value === 'active';
+      return products.value.filter(product => product.active === (isActive ? 0 : 1));
+   });
+
    const editUser = (data) => {
       selectedProduct.value = {...data};
       editDialog.value = true;
@@ -180,10 +188,14 @@
                      @click="newDialog=true"
                   />
                </div>
+               <select v-model="selectedFilter" style="padding: 0.5rem; border-radius: 4px; background-color: #f8f9fa; border-color: gray; ">
+                  <option value="active" style="padding: 0.5rem; background-color: #f1f9fa;">Active</option>
+                  <option value="inactive" style="padding: 0.5rem; background-color: #f8f9fa;">Inactive</option>
+               </select> 
             </template>
                <template #content>
                   <DataTable 
-                     :value="products"
+                     :value="filteredProducts"
                      paginator :rows="5" 
                      :rowsPerPageOptions="[5, 10, 20, 50]"
                      tableStyle="min-width: 50rem"
