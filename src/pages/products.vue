@@ -294,9 +294,9 @@
                               @click="addExtraCover"
                            />
                         </div>
-                        <small
-                           class="p-error pt-5 pl-3"
-                           v-if="saved && !newProduct.covers.length"
+                        <small 
+                           class="p-error pt-5 pl-3" 
+                           v-if="saved && !newProduct.covers.length && !selectedProduct.covers.length"
                         >
                            At least 1 cover is required
                         </small>
