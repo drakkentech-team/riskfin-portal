@@ -73,3 +73,13 @@ export const deleteCover = async (sid) => {
       throw error;
    }
 };
+
+export const deleteProduct = async (sid) => {
+   await axios.delete(`${API_ENDPOINT}/policy_details?sid_policy_detail=${sid}`, {
+      headers: {
+         'Authorization': `Bearer ${BEARER_TOKEN}`,
+         'Content-Type': 'application/json',
+         'app-id': 1
+      }
+   });
+};
