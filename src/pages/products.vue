@@ -171,6 +171,10 @@
       saved.value = false;
    };
 
+   const closeDialog = () => {
+      editDialog.value = false;
+      saved.value = false;
+   };
    const confirmDeleteProduct = (data) => {
       confirm.require({
          message: 'Are you sure you want to delete this product?',

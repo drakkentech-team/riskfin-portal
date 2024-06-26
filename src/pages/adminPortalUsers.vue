@@ -1,7 +1,8 @@
 <script setup>
    import { ref, onMounted } from 'vue';
    import { fetchAdminPortalUsers, createAdminPortalUser, updateAdminPortalUser } from '../api/adminPortalUsers';
-   import { useToast } from 'primevue/usetoast';
+
+   import { useToast } from "primevue/usetoast";
 
    const toast = useToast();
 
@@ -10,6 +11,11 @@
    const editDialog = ref(false);
    const newDialog = ref(false);
    const saved = ref(false);
+   const toast = useToast();
+
+   const findIndexById = (id) => {
+      return users.value.findIndex(user => user.id === id);
+   };
 
    const newUser = ref({
       name: '',
