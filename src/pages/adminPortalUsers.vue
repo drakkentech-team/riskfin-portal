@@ -1,6 +1,11 @@
 <script setup>
    import { ref, onMounted } from 'vue';
-   import { fetchAdminPortalUsers, createAdminPortalUser, updateAdminPortalUser } from '../api/adminPortalUsers';
+   import { fetchAdminPortalUsers, createAdminPortalUser, updateAdminPortalUser, deleteAdminPortalUser } from '../api/adminPortalUsers';
+   import { useConfirm } from "primevue/useconfirm";
+   import ConfirmDialog from 'primevue/confirmdialog';
+
+   const confirm = useConfirm();
+
 
    const users = ref(null);
    const user = ref(null);
@@ -36,6 +41,30 @@
       saved.value = false;
    };
 
+
+   const confirmDeleteUser = (userData) => {
+      console.log('Delete user function called for:', userData);
+      confirm.require({
+         message: 'Are you sure you want to delete this user?',
+         header: 'Confirmation',
+         icon: 'pi pi-exclamation-triangle',
+         accept: async () => {
+            console.log("hi2");
+            try {
+               await deleteAdminPortalUser(userData.sid);
+               users.value = users.value.filter((user) => user.sid !== userData.sid);
+            }
+            catch (error) {
+               toast.add({
+                  severity: 'error',
+                  summary: 'Error',
+                  detail: error.message,
+               });
+            }
+         }
+      });
+   }
+
 </script>
 
 <template>
@@ -66,7 +95,7 @@
                      <Column :exportable="false" style="min-width:8rem">
                         <template #body="slotProps">
                            <Button icon="pi pi-pencil" outlined rounded class="mr-2" @click="editUser(slotProps.data)" />
-                           <Button :icon="slotProps.data.active === 1 ? 'pi pi-times' : 'pi pi-check'" outlined rounded :severity="slotProps.data.active === 1 ? danger : success" @click="confirmDeleteProduct(slotProps.data)" />
+                           <Button :icon="slotProps.data.active === 1 ? 'pi pi-times' : 'pi pi-check'" outlined rounded :severity="slotProps.data.active === 1 ? danger : success" @click="confirmDeleteUser(slotProps.data)" />
                         </template>
                      </Column>
                   </DataTable>
@@ -124,7 +153,8 @@
                         <Button label="Save" icon="pi pi-check" text @click="saveUser" />
                      </template>
                </Dialog>
-               </template>
+               <ConfirmDialog />
+               </template>              
          </Card>
 		</div>
 	</div>
