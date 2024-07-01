@@ -28,10 +28,6 @@
       active: true
    })
 
-   const findIndexById = (id) => {
-      return users.value.findIndex(user => user.id === id);
-   };
-
    onMounted(() => {
       fetchAdminPortalUsers().then((data) => {
          users.value = data;
