@@ -64,7 +64,6 @@ export const updateAdminPortalUser = async (sid, payload) => {
 };
 
 export const deleteAdminPortalUser = async (sid) => {
-   console.log("Deleting user with SID:", sid);
    try {
       await axios.put(`${HOST}/delete_web_user?sid=${sid}`, {}, {
          headers: {
@@ -73,7 +72,6 @@ export const deleteAdminPortalUser = async (sid) => {
             'app-id': 1
          }
       });
-      console.log("User deleted successfully");
    } 
    catch (error) {
       console.error(`Error deleting user with SID ${sid}:`, error);

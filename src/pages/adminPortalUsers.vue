@@ -43,13 +43,11 @@
 
 
    const confirmDeleteUser = (userData) => {
-      console.log('Delete user function called for:', userData);
       confirm.require({
          message: 'Are you sure you want to delete this user?',
          header: 'Confirmation',
          icon: 'pi pi-exclamation-triangle',
          accept: async () => {
-            console.log("hi2");
             try {
                await deleteAdminPortalUser(userData.sid);
                users.value = users.value.filter((user) => user.sid !== userData.sid);
