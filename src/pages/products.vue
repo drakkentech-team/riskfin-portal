@@ -166,10 +166,6 @@
       selectedProduct.value = {...data};
       editDialog.value = true;
    };
-   const closeDialog = () => {
-      editDialog.value = false;
-      saved.value = false;
-   };
 
    const closeDialog = () => {
       editDialog.value = false;
