@@ -157,6 +157,7 @@
    onMounted(() => {
       getProducts().then((data) => {
         products.value = data;
+        console.log(data)
       });
    });
 
@@ -188,10 +189,16 @@
                      @click="newDialog=true"
                   />
                </div>
-               <select v-model="selectedFilter" style="padding: 0.5rem; border-radius: 4px; background-color: #f8f9fa; border-color: gray; ">
-                  <option value="active" style="padding: 0.5rem; background-color: #f1f9fa;">Active</option>
-                  <option value="inactive" style="padding: 0.5rem; background-color: #f8f9fa;">Inactive</option>
-               </select> 
+					<div class="radio-group">
+						<label class="radio-option">
+							<input type="radio" v-model="selectedFilter" value="active" />
+							<span style="font-size: 18px;">Active</span>
+						</label>
+						<label class="radio-option">
+							<input type="radio" v-model="selectedFilter" value="inactive" />
+							<span style="font-size: 18px;">Inactive</span>
+						</label>
+					</div> 
             </template>
                <template #content>
                   <DataTable 
