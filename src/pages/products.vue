@@ -157,7 +157,6 @@
    onMounted(() => {
       getProducts().then((data) => {
         products.value = data;
-        console.log(data)
       });
    });
 
