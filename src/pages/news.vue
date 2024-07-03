@@ -16,6 +16,7 @@
    const editDialog = ref(false);
    const saved = ref(false);
    const spinner = ref(false);
+   const initialNewsState = ref(null);
 
    const countSelectedUsers = computed(() => {
       return selectedUsers.value.length;
@@ -47,6 +48,14 @@
 
 
    const handleCreateNews = async () => {
+      if (!newsForm.value.title || !newsForm.value.content) {
+         saved.value = true;
+         return;
+      }
+      if (selectedUsers.value.length === 0) {
+         toast.add({ severity: 'error', summary: 'Error', detail: 'Please select users', life: 3000 });
+         return;
+      }
       const formattedUserIds = selectedUsers.value.map(user_id => ({ "user_id": user_id.toString() }));
       try {
          await createNews({
@@ -72,7 +81,7 @@
 
    const handleEditNews = (data) => {
       selectedNews.value = {...data};
-      console.log(selectedNews)
+      initialNewsState.value = { ...data };
       editDialog.value = true;
    };
 
@@ -103,6 +112,15 @@
       saved.value = true;
       spinner.value = true;  
       const sid = selectedNews.value.sid
+
+      const hasChanges = JSON.stringify(selectedNews.value) !== JSON.stringify(initialNewsState.value);
+
+      if (!hasChanges) {
+      spinner.value = false;
+      editDialog.value = false;
+      return;
+   }
+
       try {
          await updateNews(sid, {
             title: selectedNews.value.title,
@@ -124,6 +142,12 @@
    };
 
    const closeDialog = () => {
+      const hasChanges = JSON.stringify(selectedNews.value) !== JSON.stringify(initialNewsState.value);
+
+      if (hasChanges) {
+         toast.add({ severity: 'info', summary: 'Changes Discarded', detail: 'Your changes were discarded', life: 3000 });
+      }
+      
       editDialog.value = false;
       saved.value = false;
    };

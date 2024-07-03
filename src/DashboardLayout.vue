@@ -6,7 +6,7 @@
             <div :class="sidebarClass" @click="onSidebarClick" v-show="isSidebarVisible()">
                 <div class="layout-logo">
                     <router-link to="/notifications">
-                        <img alt="Logo" :src="logo" style="height:150px; width:200px"/><br>
+                        <img alt="Logo" :src="logo" style="height:150px; width:150px"/><br>
                         <span class="nav-text">{{user[0].organisation}}</span>
                     </router-link>
                 </div>
