@@ -1,15 +1,16 @@
 <script setup>
 import { ref, computed } from 'vue';
-import { getNotifications, getNotificationTemplates, sendNotification } from '../api/notifications';
-import { applyFilters } from '../api/filters';
-import { getProducts } from '../api/products';
-import { todayDate, addDays } from "../utilities/common";
-import { getMobileUsers } from '../api/mobileAppUsers';
+
 
 const messageType = ref("All");
 const selectedRow = ref(null);
 const selectRowDialog = ref(false);
 const selectRowTitle = ref(false);
+const newDialog = ref(false);
+const editDialog = ref(false);
+const saved = ref(false);
+const spinner = ref(false);
+
 
 const data = [
     {
@@ -81,33 +82,72 @@ const paginatedData = computed(() => {
 
 const totalRecords = computed(() => filteredData.value.length);
 
-function onPageChange(event) {
+const onPageChange = (event)  => {
     currentPage.value = event.page + 1;
     rowsPerPage.value = event.rows;
 }
 
-function selectRow(index) {
-    if (selectedRow.value === index) {
-        selectedRow.value = null;
-    } else {
-        selectedRow.value = index; 
-    }
+const selectRow = (index) => {
+  if (!selectedRow.value === index) {
+      selectedRow.value = null;
+  } else {
+      selectedRow.value = index; 
+  }
 }
 
-function deselectRow(event) {
-    const isClickedOutside = !event.target.closest('.table-row'); // Check if clicked outside any table row
-    if (isClickedOutside) {
-        selectedRow.value = null; // Deselect the row
-    }
+const onRowSelect = () => {
+      selectRowDialog.value = true
+      selectRowTitle.value = "Title: " + selectedRow.value.title
+      console.log(selectedNotification)
+   }
+
+const editRow = (data) => {
+    selectedRow.value = {...data};
+    editDialog.value = true;
 }
 
+   const handleUpdateRow = async () => {
+      saved.value = true;
+      const isRowValid = 
+         selectedRow.value.date &&
+         selectedRow.value.user &&
+         selectedRow.value.product &&
+         selectedRow.value.type &&
+         selectedRow.value.case_worker &&
+         selectedRow.value.status
 
-function editRow() {
-    if (selectedRow.value !== null) {
-        // Implement your edit logic here
-        alert(`Editing row: ${JSON.stringify(paginatedData.value[selectedRow.value])}`);
-    }
-}
+      if (isRowValid) {
+         try {
+            await updateRow(selectedRow.value.sid,{      
+               date: selectedRow.value.date,
+               user: selectedRow.value.user,
+               product: selectedRow.value.product,
+               type: selectedRow.value.type,
+               case_worker: selectedRow.value.case_worker,
+               status: selectedRow.value.status,
+            });
+            // const data = getProducts();
+            // products.value = data;
+         } 
+         catch (error) {
+            console.error("Error in updating row:", error);
+         } 
+         finally {
+            spinner.value = false;
+            editDialog.value = false;
+            saved.value = false
+            selectedRow.value = null;
+         }
+      }
+      else {
+         spinner.value = false;
+      }
+   }
+
+const closeDialog = () => {
+    editDialog.value = false;
+    saved.value = false;
+   };
 
 </script>
 
@@ -124,7 +164,7 @@ function editRow() {
               rounded 
               class="mr-2" 
               :disabled="selectedRow === null"  
-              @click="editRow"
+              @click="editRow(selectedRow)"
             />
           </div>
         </template>
@@ -161,18 +201,25 @@ function editRow() {
             :value="filteredData" 
             :paginator="true" 
             :rows="rowsPerPage" 
-            :rowsPerPageOptions="[5, 10, 20]" 
+            :rowsPerPageOptions="[5, 10, 20]"
+            tableStyle="min-width: 50rem"
+            v-model:selection="selectedRow"
+            selectionMode="single" 
             :totalRecords="totalRecords" 
             @page="onPageChange"
+            @rowSelect="onRowSelect"
+            v-on:dblclick="selectedRow"
           >
             <Column field="date" header="Date" sortable />
             <Column field="user" header="User" sortable />
             <Column field="product" header="Product" sortable />
             <Column field="type" header="Type" sortable />
-            <Column field="case_worker" header="Case Worker" sortable />
-            <Column field="status" header="Status" sortable />
+            <Column field="case_worker" header="Agent" sortable />
+            <Column field="title" header="Title" sortable />
+            <Column field="body" header="Body" sortable />
+
             <template #body="slotProps">
-              <tr @dblclick="selectRow(slotProps.index)" :class="{'selected-row': selectedRow === slotProps.index}">
+              <tr @dblclick="selectRow(slotProps.index)" :class="{'selected-row': selectedRow.value === slotProps.index}">
                 <td>{{ slotProps.data.date }}</td>
                 <td>{{ slotProps.data.user }}</td>
                 <td>{{ slotProps.data.product }}</td>
@@ -182,6 +229,78 @@ function editRow() {
               </tr>
             </template>
           </DataTable>
+          <Dialog :dismissableMask="true" v-model:visible="editDialog" :style="{width: '450px'}" header="Edit follow-up" :modal="true" class="p-fluid">
+                     <div class="formgrid grid">
+                        <div class="field col">
+                           <label for="date" class="bold-label">Date</label>
+                           <InputText id="name" v-model.trim="selectedRow.date" required="true" autofocus :class="{'p-invalid': saved && !selectedRow.date}" disabled/>
+                           <small class="p-error" v-if="saved && !selectedRow.date">Date is required.</small>
+                        </div>
+                        <div class="field col-12">
+                           <label for="user" class="bold-label">User</label>
+                           <InputText id="name" v-model.trim="selectedRow.user" required="true" autofocus :class="{'p-invalid': saved && !selectedRow.user}" disabled/>
+                           <small class="p-error" v-if="saved && !selectedRow.user">User is required.</small>
+                     </div>
+                     <div class="field col-12">
+                           <label for="product" class="bold-label">Product</label>
+                           <InputText id="name" v-model.trim="selectedRow.product" required="true" autofocus :class="{'p-invalid': saved && !selectedRow.product}" disabled/>
+                           <small class="p-error" v-if="saved && !selectedRow.product">Product is required.</small>
+                     </div>
+                     <div class="field col-12">
+                           <label for="type" class="bold-label">Type</label>
+                           <InputText id="name" v-model.trim="selectedRow.type" required="true" autofocus :class="{'p-invalid': saved && !selectedRow.type}" disabled/>
+                           <small class="p-error" v-if="saved && !selectedRow.type">Type is required.</small>
+                     </div>
+                     <div class="field col-12">
+                      <label for="case_worker" class="bold-label">Agent</label>
+                           <Dropdown 
+                              v-model="selectedRow.case_worker"
+                              :options="[
+                                { label: 'Harris Trout', value: 'Harris Trout' },
+                                { label: 'Craig Snoden', value: 'Craig Snoden' },
+                                { label: 'Chad Clever', value: 'Chad Clever' }
+                              ]"
+                              optionLabel="label"
+                              optionValue="value"
+                              required="true"
+                              :class="{'p-invalid': saved && !selectedRow.status}" 
+                           />
+
+                           <small class="p-error" v-if="saved && !selectedRow.case_worker">Agent is required.</small>
+                     </div>
+                     <div class="field col-12">
+                           <label for="status" class="bold-label">Status</label>
+                           <Dropdown 
+                              v-model="selectedRow.status"
+                              :options="[
+                                { label: 'Open', value: 'Open' },
+                                { label: 'In Progress', value: 'In Progress' },
+                                { label: 'Closed', value: 'Closed' }
+                              ]"
+                              optionLabel="label"
+                              optionValue="value"
+                              required="true"
+                              :class="{'p-invalid': saved && !selectedRow.status}" 
+                           />                           
+                           <small class="p-error" v-if="saved && !selectedRow.status">Status is required.</small>
+                     </div>
+                     <div class="field col-12">
+                           <label for="type" class="bold-label">Title</label>
+                           <!-- <InputText id="name" v-model.trim="selectedRow.type" required="true" autofocus :class="{'p-invalid': saved && !selectedRow.type}" disabled/> -->
+                           <!-- <small class="p-error" v-if="saved && !selectedRow.type">Type is required.</small> -->
+                     </div>
+                     <div class="field col-12">
+                           <label for="type" class="bold-label">Body</label>
+                           <!-- <Textarea style="height: 200px;" id="body" v-model.trim="selectedNews.content" required="true" autofocus :class="{'p-invalid': saved && !selectedNews.content}" /> -->
+                           <!-- <small class="p-error" v-if="saved && !selectedRow.type">Type is required.</small> -->
+                     </div>
+                     </div>
+                     
+                     <template #footer>
+                        <Button label="Cancel" icon="pi pi-times" text @click="closeDialog"/>
+                        <Button label="Save" icon="pi pi-check" text @click="handleUpdateRow" />
+                     </template>
+               </Dialog>
         </template>
       </Card>
     </div>
