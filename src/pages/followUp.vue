@@ -1,156 +1,3 @@
-<script setup>
-import { ref, computed } from 'vue';
-
-
-const messageType = ref("All");
-const selectedRow = ref(null);
-const selectRowDialog = ref(false);
-const selectRowTitle = ref(false);
-const newDialog = ref(false);
-const editDialog = ref(false);
-const saved = ref(false);
-const spinner = ref(false);
-
-
-const data = [
-    {
-        "date": "2024/07/05",
-        "user": "Burton Guster",
-        "product": "Funeral Cover",
-        "type": "Late Payment",
-        "case_worker": "Harris Trout",
-        "status": "Open"
-    },
-    {
-        "date": "2024/07/04",
-        "user": "Carlton Lassiter",
-        "product": "Accisure",
-        "type": "New Policy",
-        "case_worker": "Craig Snoden",
-        "status": "Open"
-    },
-    {
-        "date": "2024/06/23",
-        "user": "Juliette Ohara",
-        "product": "RSI Car Rental",
-        "type": "Cancel Policy",
-        "case_worker": "Chad Clever",
-        "status": "In Progress"
-    },
-    {
-        "date": "2024/06/12",
-        "user": "Henry Spencer",
-        "product": "RSI Car Rental",
-        "type": "New Policy",
-        "case_worker": "Craig Snoden",
-        "status": "In Progress"
-    },
-    {
-        "date": "2024/05/22",
-        "user": "Karen Vick",
-        "product": "Family Cover",
-        "type": "Change Details",
-        "case_worker": "Harris Trout",
-        "status": "Closed"
-    },
-    {
-        "date": "2024/05/22",
-        "user": "Marlene Louw",
-        "product": "Funeral Cover",
-        "type": "Cancel Policy",
-        "case_worker": "Chad Clever",
-        "status": "Closed"
-    }
-];
-
-const currentPage = ref(1);
-const rowsPerPage = ref(5);
-
-const filteredData = computed(() => {
-    if (messageType.value === "All") {
-        return data;
-    } else {
-        return data.filter(item => item.type === messageType.value);
-    }
-});
-
-const paginatedData = computed(() => {
-    const start = (currentPage.value - 1) * rowsPerPage.value;
-    const end = start + rowsPerPage.value;
-    return filteredData.value.slice(start, end);
-});
-
-const totalRecords = computed(() => filteredData.value.length);
-
-const onPageChange = (event)  => {
-    currentPage.value = event.page + 1;
-    rowsPerPage.value = event.rows;
-}
-
-const selectRow = (index) => {
-  if (!selectedRow.value === index) {
-      selectedRow.value = null;
-  } else {
-      selectedRow.value = index; 
-  }
-}
-
-const onRowSelect = () => {
-      selectRowDialog.value = true
-      selectRowTitle.value = "Title: " + selectedRow.value.title
-      console.log(selectedNotification)
-   }
-
-const editRow = (data) => {
-    selectedRow.value = {...data};
-    editDialog.value = true;
-}
-
-   const handleUpdateRow = async () => {
-      saved.value = true;
-      const isRowValid = 
-         selectedRow.value.date &&
-         selectedRow.value.user &&
-         selectedRow.value.product &&
-         selectedRow.value.type &&
-         selectedRow.value.case_worker &&
-         selectedRow.value.status
-
-      if (isRowValid) {
-         try {
-            await updateRow(selectedRow.value.sid,{      
-               date: selectedRow.value.date,
-               user: selectedRow.value.user,
-               product: selectedRow.value.product,
-               type: selectedRow.value.type,
-               case_worker: selectedRow.value.case_worker,
-               status: selectedRow.value.status,
-            });
-            // const data = getProducts();
-            // products.value = data;
-         } 
-         catch (error) {
-            console.error("Error in updating row:", error);
-         } 
-         finally {
-            spinner.value = false;
-            editDialog.value = false;
-            saved.value = false
-            selectedRow.value = null;
-         }
-      }
-      else {
-         spinner.value = false;
-      }
-   }
-
-const closeDialog = () => {
-    editDialog.value = false;
-    saved.value = false;
-   };
-
-</script>
-
 <template>
   <div class="p-grid">
     <div class="p-col-12">
@@ -158,10 +5,9 @@ const closeDialog = () => {
         <template #title>
           <div style="display: flex; align-items: center; justify-content: space-between;">
             <span>Follow-up</span>
-            <Button 
+            <Button
+              label="Edit"
               icon="pi pi-pencil" 
-              outlined 
-              rounded 
               class="mr-2" 
               :disabled="selectedRow === null"  
               @click="editRow(selectedRow)"
@@ -229,7 +75,7 @@ const closeDialog = () => {
               </tr>
             </template>
           </DataTable>
-          <Dialog :dismissableMask="true" v-model:visible="editDialog" :style="{width: '450px'}" header="Edit follow-up" :modal="true" class="p-fluid">
+          <Dialog :dismissableMask="true" v-model:visible="editDialog" :style="{width: '450px'}" header="Edit Follow-up" :modal="true" class="p-fluid">
                      <div class="formgrid grid">
                         <div class="field col">
                            <label for="date" class="bold-label">Date</label>
@@ -286,12 +132,12 @@ const closeDialog = () => {
                      </div>
                      <div class="field col-12">
                            <label for="type" class="bold-label">Title</label>
-                           <!-- <InputText id="name" v-model.trim="selectedRow.type" required="true" autofocus :class="{'p-invalid': saved && !selectedRow.type}" disabled/> -->
+                           <InputText id="name" v-model.trim="selectedRow.title" required="true" autofocus :class="{'p-invalid': saved && !selectedRow.type}"/>
                            <!-- <small class="p-error" v-if="saved && !selectedRow.type">Type is required.</small> -->
                      </div>
                      <div class="field col-12">
                            <label for="type" class="bold-label">Body</label>
-                           <!-- <Textarea style="height: 200px;" id="body" v-model.trim="selectedNews.content" required="true" autofocus :class="{'p-invalid': saved && !selectedNews.content}" /> -->
+                           <Textarea style="height: 200px;" id="body" v-model.trim="selectedRow.body" required="true" autofocus :class="{'p-invalid': saved && !selectedNews.content}" />
                            <!-- <small class="p-error" v-if="saved && !selectedRow.type">Type is required.</small> -->
                      </div>
                      </div>
@@ -306,6 +152,257 @@ const closeDialog = () => {
     </div>
   </div>
 </template>
+
+<script setup>
+import { ref, computed, onMounted } from 'vue';
+import { getFollowUp } from '../api/followUp';
+
+const messageType = ref("All");
+const selectedRow = ref(null);
+const selectRowDialog = ref(false);
+const selectRowTitle = ref(false);
+const newDialog = ref(false);
+const editDialog = ref(false);
+const saved = ref(false);
+const spinner = ref(false);
+//const data = ref([]);
+// const data2 = ref([
+//     {
+//         "date": "2024/07/05",
+//         "user": "Burton Guster",
+//         "product": "Funeral Cover",
+//         "type": "Late Payment",
+//         "case_worker": "Harris Trout",
+//         "status": "Open",
+//         "title" : "title",
+//         "body" : "body"
+//     },
+//     {
+//         "date": "2024/07/04",
+//         "user": "Carlton Lassiter",
+//         "product": "Accisure",
+//         "type": "New Policy",
+//         "case_worker": "Craig Snoden",
+//         "status": "Open",
+//         "title" : "title",
+//         "body" : "body"
+//     },
+//     {
+//         "date": "2024/06/23",
+//         "user": "Juliette Ohara",
+//         "product": "RSI Car Rental",
+//         "type": "Cancel Policy",
+//         "case_worker": "Chad Clever",
+//         "status": "In Progress",
+//         "title" : "title",
+//         "body" : "body"
+//     },
+//     {
+//         "date": "2024/06/12",
+//         "user": "Henry Spencer",
+//         "product": "RSI Car Rental",
+//         "type": "New Policy",
+//         "case_worker": "Craig Snoden",
+//         "status": "In Progress",
+//         "title" : "title",
+//         "body" : "body"
+//     },
+//     {
+//         "date": "2024/05/22",
+//         "user": "Karen Vick",
+//         "product": "Family Cover",
+//         "type": "Change Details",
+//         "case_worker": "Harris Trout",
+//         "status": "Closed",
+//         "title" : "title",
+//         "body" : "body"
+//     },
+//     {
+//         "date": "2024/05/22",
+//         "user": "Marlene Louw",
+//         "product": "Funeral Cover",
+//         "type": "Cancel Policy",
+//         "case_worker": "Chad Clever",
+//         "status": "Closed",
+//         "title" : "title",
+//         "body" : "body"
+//     }
+// ]);
+
+
+
+const data = [
+    {
+        "date": "2024/07/05",
+        "user": "Burton Guster",
+        "product": "Funeral Cover",
+        "type": "Late Payment",
+        "case_worker": "Harris Trout",
+        "status": "Open",
+        "title" : "title",
+        "body" : "body"
+    },
+    {
+        "date": "2024/07/04",
+        "user": "Carlton Lassiter",
+        "product": "Accisure",
+        "type": "New Policy",
+        "case_worker": "Craig Snoden",
+        "status": "Open",
+        "title" : "title",
+        "body" : "body"
+    },
+    {
+        "date": "2024/06/23",
+        "user": "Juliette Ohara",
+        "product": "RSI Car Rental",
+        "type": "Cancel Policy",
+        "case_worker": "Chad Clever",
+        "status": "In Progress",
+        "title" : "title",
+        "body" : "body"
+    },
+    {
+        "date": "2024/06/12",
+        "user": "Henry Spencer",
+        "product": "RSI Car Rental",
+        "type": "New Policy",
+        "case_worker": "Craig Snoden",
+        "status": "In Progress",
+        "title" : "title",
+        "body" : "body"
+    },
+    {
+        "date": "2024/05/22",
+        "user": "Karen Vick",
+        "product": "Family Cover",
+        "type": "Change Details",
+        "case_worker": "Harris Trout",
+        "status": "Closed",
+        "title" : "title",
+        "body" : "body"
+    },
+    {
+        "date": "2024/05/22",
+        "user": "Marlene Louw",
+        "product": "Funeral Cover",
+        "type": "Cancel Policy",
+        "case_worker": "Chad Clever",
+        "status": "Closed",
+        "title" : "title",
+        "body" : "body"
+    }
+];
+
+const currentPage = ref(1);
+const rowsPerPage = ref(5);
+
+const fetchData = async () => {
+  try{
+    const response = await getFollowUp();
+
+    console.log("response", response);
+    //data.value = response;
+
+  }catch(error){
+    console.log("what did the fox say");
+    console.error("Error in fetching data:", error);
+  } 
+}
+
+onMounted(() => {
+    console.log("mounting")
+    fetchData();
+});
+
+const filteredData = computed(() => {
+    if (messageType.value === "All") {
+        return data;
+    } else {
+        return data.filter(item => item.type === messageType.value);
+    }
+});
+
+const paginatedData = computed(() => {
+    const start = (currentPage.value - 1) * rowsPerPage.value;
+    const end = start + rowsPerPage.value;
+    return filteredData.value.slice(start, end);
+});
+
+const totalRecords = computed(() => filteredData.value.length);
+
+const onPageChange = (event)  => {
+    currentPage.value = event.page + 1;
+    rowsPerPage.value = event.rows;
+}
+
+const selectRow = (index) => {
+  if (!selectedRow.value === index) {
+      selectedRow.value = null;
+  } else {
+      selectedRow.value = index; 
+  }
+}
+
+const onRowSelect = () => {
+      selectRowDialog.value = true
+      selectRowTitle.value = "Title: " + selectedRow.value.title
+   }
+
+const editRow = (data) => {
+    selectedRow.value = {...data};
+    editDialog.value = true;
+}
+
+
+   const handleUpdateRow = async () => {
+      saved.value = true;
+      const isRowValid = 
+         selectedRow.value.date &&
+         selectedRow.value.user &&
+         selectedRow.value.product &&
+         selectedRow.value.type &&
+         selectedRow.value.case_worker &&
+         selectedRow.value.status &&
+         selectedRow.value.title &&
+         selectedRow.value.body
+
+      if (isRowValid) {
+         try {
+            await updateRow(selectedRow.value.sid,{      
+               date: selectedRow.value.date,
+               user: selectedRow.value.user,
+               product: selectedRow.value.product,
+               type: selectedRow.value.type,
+               case_worker: selectedRow.value.case_worker,
+               status: selectedRow.value.status,
+               title: selectedRow.value.title,
+               body: selectedRow.value.body
+            });
+            const data = getFollowUp();
+            products.value = data;
+         } 
+         catch (error) {
+            console.error("Error in updating row:", error);
+         } 
+         finally {
+            spinner.value = false;
+            editDialog.value = false;
+            saved.value = false
+            selectedRow.value = null;
+         }
+      }
+      else {
+         spinner.value = false;
+      }
+   }
+
+const closeDialog = () => {
+    editDialog.value = false;
+    saved.value = false;
+   };
+
+</script>
 
 <style scoped>
 
