@@ -6,9 +6,8 @@
           <div style="display: flex; align-items: center; justify-content: space-between;">
             <span>Follow-up</span>
             <Button
-              label="Edit"
               icon="pi pi-pencil" 
-              class="mr-2" 
+              outlined rounded class="mr-2"
               :disabled="selectedRow === null"  
               @click="editRow(selectedRow)"
             />
@@ -56,21 +55,20 @@
             @rowSelect="onRowSelect"
             v-on:dblclick="selectedRow"
           >
-            <Column field="date" header="Date" sortable />
-            <Column field="user" header="User" sortable />
-            <Column field="product" header="Product" sortable />
-            <Column field="type" header="Type" sortable />
-            <Column field="case_worker" header="Agent" sortable />
-            <Column field="title" header="Title" sortable />
-            <Column field="body" header="Body" sortable />
+            <Column field="event_date" header="Date" sortable />
+            <Column field="app_user" header="User" sortable />
+            <Column field="policy" header="Policy" sortable />
+            <Column field="action" header="Type" sortable />
+            <Column field="agent" header="Agent" sortable />
+            <Column field="status" header="Status" sortable />
 
             <template #body="slotProps">
               <tr @dblclick="selectRow(slotProps.index)" :class="{'selected-row': selectedRow.value === slotProps.index}">
-                <td>{{ slotProps.data.date }}</td>
-                <td>{{ slotProps.data.user }}</td>
-                <td>{{ slotProps.data.product }}</td>
-                <td>{{ slotProps.data.type }}</td>
-                <td>{{ slotProps.data.case_worker }}</td>
+                <td>{{ slotProps.data.event_date}}</td>
+                <td>{{ slotProps.data.app_user }}</td>
+                <td>{{ slotProps.data.policy }}</td>
+                <td>{{ slotProps.data.action }}</td>
+                <td>{{ slotProps.data.agent }}</td>
                 <td>{{ slotProps.data.status }}</td>
               </tr>
             </template>
@@ -78,41 +76,42 @@
           <Dialog :dismissableMask="true" v-model:visible="editDialog" :style="{width: '450px'}" header="Edit Follow-up" :modal="true" class="p-fluid">
                      <div class="formgrid grid">
                         <div class="field col">
-                           <label for="date" class="bold-label">Date</label>
-                           <InputText id="name" v-model.trim="selectedRow.date" required="true" autofocus :class="{'p-invalid': saved && !selectedRow.date}" disabled/>
-                           <small class="p-error" v-if="saved && !selectedRow.date">Date is required.</small>
+                           <label for="event_date" class="bold-label">Date</label>
+                           <InputText id="name" v-model.trim="selectedRow.event_date" required="true" autofocus :class="{'p-invalid': saved && !selectedRow.event_date}" disabled/>
+                           <small class="p-error" v-if="saved && !selectedRow.event_date">Date is required.</small>
                         </div>
                         <div class="field col-12">
-                           <label for="user" class="bold-label">User</label>
-                           <InputText id="name" v-model.trim="selectedRow.user" required="true" autofocus :class="{'p-invalid': saved && !selectedRow.user}" disabled/>
-                           <small class="p-error" v-if="saved && !selectedRow.user">User is required.</small>
+                           <label for="app_user" class="bold-label">User</label>
+                           <InputText id="name" v-model.trim="selectedRow.app_user" required="true" autofocus :class="{'p-invalid': saved && !selectedRow.app_user}" disabled/>
+                           <small class="p-error" v-if="saved && !selectedRow.app_user">User is required.</small>
                      </div>
                      <div class="field col-12">
-                           <label for="product" class="bold-label">Product</label>
-                           <InputText id="name" v-model.trim="selectedRow.product" required="true" autofocus :class="{'p-invalid': saved && !selectedRow.product}" disabled/>
-                           <small class="p-error" v-if="saved && !selectedRow.product">Product is required.</small>
+                           <label for="policy" class="bold-label">Policy</label>
+                           <InputText id="name" v-model.trim="selectedRow.policy" required="true" autofocus :class="{'p-invalid': saved && !selectedRow.policy}" disabled/>
+                           <small class="p-error" v-if="saved && !selectedRow.policy">Product is required.</small>
                      </div>
                      <div class="field col-12">
-                           <label for="type" class="bold-label">Type</label>
-                           <InputText id="name" v-model.trim="selectedRow.type" required="true" autofocus :class="{'p-invalid': saved && !selectedRow.type}" disabled/>
-                           <small class="p-error" v-if="saved && !selectedRow.type">Type is required.</small>
+                           <label for="action" class="bold-label">Type</label>
+                           <InputText id="name" v-model.trim="selectedRow.action" required="true" autofocus :class="{'p-invalid': saved && !selectedRow.action}" disabled/>
+                           <small class="p-error" v-if="saved && !selectedRow.action">Type is required.</small>
                      </div>
                      <div class="field col-12">
-                      <label for="case_worker" class="bold-label">Agent</label>
+                      <label for="agent" class="bold-label">Agent</label>
                            <Dropdown 
-                              v-model="selectedRow.case_worker"
+                              v-model="selectedRow.agent"
                               :options="[
-                                { label: 'Harris Trout', value: 'Harris Trout' },
-                                { label: 'Craig Snoden', value: 'Craig Snoden' },
-                                { label: 'Chad Clever', value: 'Chad Clever' }
+                                { label: 'Liam Marshell', value: 'Liam Marshell' },
+                                { label: 'Cindy Reid', value: 'Cindy Reid' },
+                                { label: 'Jason Van Wyk', value: 'Jason Van Wyk' },
+                                { label: 'Joshua Davids', value: 'Joshua Davids' },
                               ]"
                               optionLabel="label"
                               optionValue="value"
                               required="true"
-                              :class="{'p-invalid': saved && !selectedRow.status}" 
+                              :class="{'p-invalid': saved && !selectedRow.agent}"  
                            />
 
-                           <small class="p-error" v-if="saved && !selectedRow.case_worker">Agent is required.</small>
+                           <small class="p-error" v-if="saved && !selectedRow.agent">Agent is required.</small>
                      </div>
                      <div class="field col-12">
                            <label for="status" class="bold-label">Status</label>
@@ -132,19 +131,19 @@
                      </div>
                      <div class="field col-12">
                            <label for="type" class="bold-label">Title</label>
-                           <InputText id="name" v-model.trim="selectedRow.title" required="true" autofocus :class="{'p-invalid': saved && !selectedRow.type}"/>
+                           <InputText id="name" v-model.trim="selectedRow.title"  autofocus :class="{'p-invalid': saved && !selectedRow.title}"/>
                            <!-- <small class="p-error" v-if="saved && !selectedRow.type">Type is required.</small> -->
                      </div>
                      <div class="field col-12">
                            <label for="type" class="bold-label">Body</label>
-                           <Textarea style="height: 200px;" id="body" v-model.trim="selectedRow.body" required="true" autofocus :class="{'p-invalid': saved && !selectedNews.content}" />
+                           <Textarea style="height: 200px;" id="body" v-model.trim="selectedRow.body"  autofocus :class="{'p-invalid': saved && !selectedRow.body}" />
                            <!-- <small class="p-error" v-if="saved && !selectedRow.type">Type is required.</small> -->
                      </div>
                      </div>
                      
                      <template #footer>
                         <Button label="Cancel" icon="pi pi-times" text @click="closeDialog"/>
-                        <Button label="Save" icon="pi pi-check" text @click="handleUpdateRow" />
+                        <Button label="Save" icon="pi pi-check" text @click="handleUpdateRow"/>
                      </template>
                </Dialog>
         </template>
@@ -155,7 +154,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
-import { getFollowUp } from '../api/followUp';
+import { getFollowUp, updateFollowUp } from '../api/followUp';
 
 const messageType = ref("All");
 const selectedRow = ref(null);
@@ -165,162 +164,30 @@ const newDialog = ref(false);
 const editDialog = ref(false);
 const saved = ref(false);
 const spinner = ref(false);
-//const data = ref([]);
-// const data2 = ref([
-//     {
-//         "date": "2024/07/05",
-//         "user": "Burton Guster",
-//         "product": "Funeral Cover",
-//         "type": "Late Payment",
-//         "case_worker": "Harris Trout",
-//         "status": "Open",
-//         "title" : "title",
-//         "body" : "body"
-//     },
-//     {
-//         "date": "2024/07/04",
-//         "user": "Carlton Lassiter",
-//         "product": "Accisure",
-//         "type": "New Policy",
-//         "case_worker": "Craig Snoden",
-//         "status": "Open",
-//         "title" : "title",
-//         "body" : "body"
-//     },
-//     {
-//         "date": "2024/06/23",
-//         "user": "Juliette Ohara",
-//         "product": "RSI Car Rental",
-//         "type": "Cancel Policy",
-//         "case_worker": "Chad Clever",
-//         "status": "In Progress",
-//         "title" : "title",
-//         "body" : "body"
-//     },
-//     {
-//         "date": "2024/06/12",
-//         "user": "Henry Spencer",
-//         "product": "RSI Car Rental",
-//         "type": "New Policy",
-//         "case_worker": "Craig Snoden",
-//         "status": "In Progress",
-//         "title" : "title",
-//         "body" : "body"
-//     },
-//     {
-//         "date": "2024/05/22",
-//         "user": "Karen Vick",
-//         "product": "Family Cover",
-//         "type": "Change Details",
-//         "case_worker": "Harris Trout",
-//         "status": "Closed",
-//         "title" : "title",
-//         "body" : "body"
-//     },
-//     {
-//         "date": "2024/05/22",
-//         "user": "Marlene Louw",
-//         "product": "Funeral Cover",
-//         "type": "Cancel Policy",
-//         "case_worker": "Chad Clever",
-//         "status": "Closed",
-//         "title" : "title",
-//         "body" : "body"
-//     }
-// ]);
-
-
-
-const data = [
-    {
-        "date": "2024/07/05",
-        "user": "Burton Guster",
-        "product": "Funeral Cover",
-        "type": "Late Payment",
-        "case_worker": "Harris Trout",
-        "status": "Open",
-        "title" : "title",
-        "body" : "body"
-    },
-    {
-        "date": "2024/07/04",
-        "user": "Carlton Lassiter",
-        "product": "Accisure",
-        "type": "New Policy",
-        "case_worker": "Craig Snoden",
-        "status": "Open",
-        "title" : "title",
-        "body" : "body"
-    },
-    {
-        "date": "2024/06/23",
-        "user": "Juliette Ohara",
-        "product": "RSI Car Rental",
-        "type": "Cancel Policy",
-        "case_worker": "Chad Clever",
-        "status": "In Progress",
-        "title" : "title",
-        "body" : "body"
-    },
-    {
-        "date": "2024/06/12",
-        "user": "Henry Spencer",
-        "product": "RSI Car Rental",
-        "type": "New Policy",
-        "case_worker": "Craig Snoden",
-        "status": "In Progress",
-        "title" : "title",
-        "body" : "body"
-    },
-    {
-        "date": "2024/05/22",
-        "user": "Karen Vick",
-        "product": "Family Cover",
-        "type": "Change Details",
-        "case_worker": "Harris Trout",
-        "status": "Closed",
-        "title" : "title",
-        "body" : "body"
-    },
-    {
-        "date": "2024/05/22",
-        "user": "Marlene Louw",
-        "product": "Funeral Cover",
-        "type": "Cancel Policy",
-        "case_worker": "Chad Clever",
-        "status": "Closed",
-        "title" : "title",
-        "body" : "body"
-    }
-];
-
 const currentPage = ref(1);
 const rowsPerPage = ref(5);
+const data = ref([]);
 
 const fetchData = async () => {
-  try{
+  try {
     const response = await getFollowUp();
-
-    console.log("response", response);
-    //data.value = response;
-
-  }catch(error){
-    console.log("what did the fox say");
+    data.value = response; 
+  } catch (error) {
     console.error("Error in fetching data:", error);
-  } 
-}
+  }
+};
 
 onMounted(() => {
-    console.log("mounting")
-    fetchData();
+  fetchData();
 });
 
+
 const filteredData = computed(() => {
-    if (messageType.value === "All") {
-        return data;
-    } else {
-        return data.filter(item => item.type === messageType.value);
-    }
+  if (messageType.value === "All") {
+    return data.value;
+  } else {
+    return data.value.filter(item => item.action === messageType.value);
+  }
 });
 
 const paginatedData = computed(() => {
@@ -355,49 +222,52 @@ const editRow = (data) => {
 }
 
 
-   const handleUpdateRow = async () => {
-      saved.value = true;
-      const isRowValid = 
-         selectedRow.value.date &&
-         selectedRow.value.user &&
-         selectedRow.value.product &&
-         selectedRow.value.type &&
-         selectedRow.value.case_worker &&
-         selectedRow.value.status &&
-         selectedRow.value.title &&
-         selectedRow.value.body
+const handleUpdateRow = async () => {
+  console.log("yelowwwwwwww")
+  saved.value = true;
+  const isRowValid =
+    selectedRow.value.event_date &&
+    selectedRow.value.app_user &&
+    selectedRow.value.policy &&
+    selectedRow.value.action &&
+    selectedRow.value.agent &&
+    selectedRow.value.status;
+    selectedRow.value.title &&
+    selectedRow.value.body;
 
-      if (isRowValid) {
-         try {
-            await updateRow(selectedRow.value.sid,{      
-               date: selectedRow.value.date,
-               user: selectedRow.value.user,
-               product: selectedRow.value.product,
-               type: selectedRow.value.type,
-               case_worker: selectedRow.value.case_worker,
-               status: selectedRow.value.status,
-               title: selectedRow.value.title,
-               body: selectedRow.value.body
-            });
-            const data = getFollowUp();
-            products.value = data;
-         } 
-         catch (error) {
-            console.error("Error in updating row:", error);
-         } 
-         finally {
-            spinner.value = false;
-            editDialog.value = false;
-            saved.value = false
-            selectedRow.value = null;
-         }
-      }
-      else {
-         spinner.value = false;
-      }
-   }
+  if (isRowValid) {
+    try {
+      delete selectedRow.value.event_date
+      await updateFollowUp(selectedRow.value.sid, {
+        event_date: selectedRow.value.event_date,
+        app_user: selectedRow.value.app_user,
+        policy: selectedRow.value.policy,
+        action: selectedRow.value.action,
+        agent : selectedRow.value.agent,
+        status: selectedRow.value.status,
+        sid: selectedRow.value.sid,
+        title: selectedRow.value.title,
+        body: selectedRow.value.body,
+        
+      });
+      fetchData();
+      console.log(selectedRow.value)
+    } catch (error) {
+      console.error("Error in updating row:", error);
+    } finally {
+      spinner.value = false;
+      editDialog.value = false;
+      saved.value = false;
+      selectedRow.value = null;
+    }
+  } else {
+    spinner.value = false;
+  }
+};
+
 
 const closeDialog = () => {
+    console.log("hhhhh")
     editDialog.value = false;
     saved.value = false;
    };
