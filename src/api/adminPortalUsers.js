@@ -1,7 +1,9 @@
 import axios from 'axios';
+import { useStore } from '../stores/store';
 
 const HOST = import.meta.env.VITE_LOCAL;
 const BEARER_TOKEN = import.meta.env.VITE_BEARERTOKEN;
+const store = useStore();
 
 export const fetchAdminPortalUsers = async () => {
    try{
@@ -9,7 +11,7 @@ export const fetchAdminPortalUsers = async () => {
          headers: {
            'Authorization': `Bearer ${BEARER_TOKEN}`,
            'Content-Type': 'application/json',
-           'app-id': 1
+           'app-id': store.user[0].app_fk
          }
       });
       if (response) {
@@ -33,7 +35,7 @@ export const createAdminPortalUser = async (payload) => {
          headers: {
            'Authorization': `Bearer ${BEARER_TOKEN}`,
            'Content-Type': 'application/json',
-           'app-id': 1
+           'app-id': store.user[0].app_fk
          },
          
       });
@@ -52,7 +54,7 @@ export const updateAdminPortalUser = async (sid, payload) => {
          headers: {
            'Authorization': `Bearer ${BEARER_TOKEN}`,
            'Content-Type': 'application/json',
-           'app-id': 1
+           'app-id': store.user[0].app_fk
          }
       });
       return "Successfully updated admin portal user";
@@ -69,7 +71,7 @@ export const deleteAdminPortalUser = async (sid) => {
          headers: {
             'Authorization': `Bearer ${BEARER_TOKEN}`,
             'Content-Type': 'application/json',
-            'app-id': 1
+            'app-id': store.user[0].app_fk
          }
       });
    } 
