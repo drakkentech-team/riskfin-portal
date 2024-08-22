@@ -93,6 +93,17 @@ const router = createRouter({
             },
          ]
       }, 
+      {
+         path: '/follow-up',
+         component: DashboardLayout,
+         children: [
+            {
+               path: '',
+               name: 'follow-up',
+               component: () => import('../pages/followUp.vue'),
+            },
+         ]
+      },
    ]
 });
 
