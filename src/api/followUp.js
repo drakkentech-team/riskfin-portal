@@ -21,9 +21,7 @@ export const getFollowUp = async () => {
 };
 
 export const updateFollowUp = async (sid, payload) => {
-   console.log("im here")
    try {
-      console.log("i tried")
       await axios.put(`${API_ENDPOINT}/follow_up`, payload, {
          headers: {
            'Authorization': `Bearer ${BEARER_TOKEN}`,

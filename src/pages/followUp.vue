@@ -223,7 +223,6 @@ const editRow = (data) => {
 
 
 const handleUpdateRow = async () => {
-  console.log("yelowwwwwwww")
   saved.value = true;
   const isRowValid =
     selectedRow.value.event_date &&
@@ -251,7 +250,6 @@ const handleUpdateRow = async () => {
         
       });
       fetchData();
-      console.log(selectedRow.value)
     } catch (error) {
       console.error("Error in updating row:", error);
     } finally {
@@ -267,7 +265,6 @@ const handleUpdateRow = async () => {
 
 
 const closeDialog = () => {
-    console.log("hhhhh")
     editDialog.value = false;
     saved.value = false;
    };
