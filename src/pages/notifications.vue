@@ -154,9 +154,24 @@
 
 
    const addPlaceholder = (placeholder, input) => {
-      input === "title" ? 
-      newNotification.value.title = newNotification.value.title + placeholder :
-      newNotification.value.message = newNotification.value.message + placeholder
+        if (input === "title") {
+            if (newNotification.value.title === "") {
+                newNotification.value.title = placeholder;
+            } else if (newNotification.value.title.endsWith(' ')) {
+                newNotification.value.title += placeholder;
+            } else {
+                newNotification.value.title += ' ' + placeholder;
+            }
+        }
+        else {
+            if (newNotification.value.message === "") {
+                newNotification.value.message = placeholder;
+            } else if (newNotification.value.message.endsWith(' ')) {
+                newNotification.value.message += placeholder;
+            } else {
+                newNotification.value.message += ' ' + placeholder;
+            }
+        }
    };
 
 
