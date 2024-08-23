@@ -28,6 +28,7 @@
    const selectNotifDialog = ref(false);
    const selectNotifTitle = ref(false);
    const filteredNotification = ref("All")
+   const filterProducts = ref([])
    const selectedDateOption = ref({ name: "Today"})
    const users = ref(null);
    const selectedUsers = ref([]);
@@ -35,6 +36,7 @@
    const activeTab = ref(0)
    const selectAllUsers  = ref(false)
    const selectAllProducts  = ref(false)
+   const arrearsDays = ref(0)
 
 
 
@@ -72,6 +74,22 @@
 
    watch(activeTab, (newValue, oldValue) => {
       console.log("Active tab changed to:", newValue);
+   });
+
+   watch(selectAllUsers, (newValue, oldValue) => {
+      console.log("Active tab changed to:", newValue);
+   });
+   watch(selectedUsers, (newValue, oldValue) => {
+      filterProducts.value = []
+      // Step 1: Extract policy_sid values from selectedUsers
+      const userSids = newValue.map(user => user.policy_sid);
+
+      // Step 2: Filter products based on userSids and avoid duplicates
+      filterProducts.value = products.value.filter(product => {
+         // Check if the product's sid is included in userSids
+         return userSids.includes(product.sid);
+      });
+
    });
 
    const countSelectedUsers = computed(() => {
@@ -261,19 +279,27 @@
 
 
    const handleSendNotification = async () => {
-      console.log(selectedProducts.value)
-      var payload
-      const formattedUserIds = selectedUsers.value.map(item => ({ "user_id": item.sid.toString() }));
-      // const formattedPolicyIds = selectedProducts.value.map(policy_sid => ({ "policy_id": policy_sid.toString() }));
-      const formattedPolicyIds = selectedProducts.value.map(item => ({ "policy_id": item.sid.toString() }));
-      console.log(formattedUserIds)
-      payload = {
-         title: newNotification.value.title,
-         message: newNotification.value.message,
-         policy_id: formattedPolicyIds,
-         user_id: formattedUserIds,
-         message_type: "message",
-         date_to_send: todayDate()
+      saved.value = true;
+
+   var payload;
+   const formattedUserIds = selectedUsers.value.map(item => ({ "user_id": item.sid.toString() }));
+   const formattedPolicyIds = selectedProducts.value.map(item => ({ "policy_id": item.sid.toString() }));
+   payload = {
+      title: newNotification.value.title,
+      message: newNotification.value.message,
+      policy_id: formattedPolicyIds,
+      user_id: formattedUserIds,
+      message_type: "message",
+      date_to_send: todayDate()
+   };
+
+      if (activeTab.value === 1){
+         payload.message_type = "scheduled_message";
+         payload.date_to_send = sendDate.value;
+      } 
+      else if (activeTab.value === 2){
+         payload.arrears_days = arrearsDays.value;
+         payload.message_type = "automated_message";
       }
       
       try {
@@ -283,27 +309,26 @@
             notifications.value = data;
          } 
          catch (error) {
-            console.error("Error in adding product:", error);
+            console.error("Error in sending notification:", error);
          } 
          finally {
             loading.value = false;
             newDialog.value = false;
             saved.value = false
          }
-   }
+};
+
 
    const handleSelectAllUsers = (event) => {
       selectAllUsers.value = event.checked;
       if (selectAllUsers.value) {
          selectedUsers.value = users.value
-         console.log(selectedUsers.value)
       } else {
          selectedUsers.value = []
       }
    }
 
    const handleSelectAllProducts = (event) => {
-      console.log("Hello")
       selectAllProducts.value = event.checked;
       if (selectAllProducts.value) {
          selectedProducts.value = products.value
@@ -437,7 +462,7 @@
                               @click="addUsersDialog=true"
                            />
                         </div>
-                        <div class="col-4 pb-4">
+                        <div class="col-4 pb-4" v-if="selectedUsers.length > 0 || selectAllUsers == true">
                            <Button 
                            severity="secondary"
                               label="Add Product" 
@@ -447,7 +472,7 @@
                         </div>
                      </div>
                      <div class="formgrid grid">
-                           <div class="col-4 pb-4" v-if="activeTab !== 0">
+                           <div class="col-4 pb-4" v-if="activeTab !== 0 & activeTab !== 2">
                               <label for="send-date" class="bold-label">Send Date</label>
                               <Calendar 
                                  v-model="sendDate"
@@ -457,13 +482,25 @@
                            </div>
                         </div>
                      <div class="formgrid grid">
+                        <div class="col-4 pb-4" v-if="activeTab !== 0 & activeTab !== 1">
+                           <label for="send-date" class="bold-label">Arrears Day</label>
+                           <InputText 
+                              id="title" 
+                              ref="titleInput" 
+                              v-model.trim="arrearsDays" 
+                              required="true" 
+                              autofocus :class="{'p-invalid': saved && !arrearsDays}" 
+                           />
+                        </div>
+                     </div>
+                     <div class="formgrid grid">
                         <div class="col-8 pb-3">
                            <label for="title" class="bold-label">Subject</label>
                            <InputText 
                               id="title" 
                               ref="titleInput" 
-                              v-model.trim="newNotification.title" 
-                              required="true" 
+                              v-model.trim="newNotification.title"
+                              required="true"  
                               autofocus :class="{'p-invalid': saved && !newNotification.title}" 
                            />
                            <small class="p-error" v-if="saved && !newNotification.title">Title is required.</small>
@@ -621,7 +658,7 @@
                      class="p-fluid"
                   >
                      <DataTable 
-                        :value="products"
+                        :value="filterProducts"
                         paginator :rows="5" 
                         :rowsPerPageOptions="[5, 10, 20, 50]"
                         tableStyle="min-width: 10rem"

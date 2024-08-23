@@ -1,11 +1,32 @@
 <script setup>
    import { ref, onMounted } from 'vue';
-   import { fetchAdminPortalUsers, createAdminPortalUser, updateAdminPortalUser } from '../api/adminPortalUsers';
+   import { fetchAdminPortalUsers, createAdminPortalUser, updateAdminPortalUser, deleteAdminPortalUser } from '../api/adminPortalUsers';
+   import { useConfirm } from "primevue/useconfirm";
+   import ConfirmDialog from 'primevue/confirmdialog';
+   import { useToast } from "primevue/usetoast";
+
+   const confirm = useConfirm();
+
 
    const users = ref(null);
    const user = ref(null);
    const editDialog = ref(false);
+   const newDialog = ref(false);
    const saved = ref(false);
+   const toast = useToast();
+
+   const findIndexById = (id) => {
+      return users.value.findIndex(user => user.id === id);
+   };
+
+   const newUser = ref({
+      name: '',
+      surname: '',
+      email: '',
+      password: '',
+      admin: false,
+      active: true
+   })
 
    onMounted(() => {
       fetchAdminPortalUsers().then((data) => {
@@ -23,7 +44,7 @@
 
       if (user.value.first_name.trim()) {
          if (user.value.sid) {
-            userData.value[findIndexById(user.value.id)] = user.value;
+            users.value[findIndexById(user.value.id)] = user.value;
             toast.add({severity:'success', summary: 'Successful', detail: 'User Updated', life: 3000});
          }
          editDialog.value = false;
@@ -33,8 +54,72 @@
 
    const closeDialog = () => {
       editDialog.value = false;
+      newDialog.value = false;
       saved.value = false;
    };
+
+
+   const confirmDeleteUser = (userData) => {
+      confirm.require({
+         message: 'Are you sure you want to delete this user?',
+         header: 'Confirmation',
+         icon: 'pi pi-exclamation-triangle',
+         accept: async () => {
+            try {
+               await deleteAdminPortalUser(userData.sid);
+               users.value = users.value.filter((user) => user.sid !== userData.sid);
+            }
+            catch (error) {
+               toast.add({
+                  severity: 'error',
+                  summary: 'Error',
+                  detail: error.message,
+               });
+            }
+         }
+      });
+   }
+
+
+   const addNewUser = async () => {
+      saved.value = true;
+
+      const isValid =
+         newUser.value.name.trim() &&
+         newUser.value.surname.trim() &&
+         newUser.value.email.trim() &&
+         newUser.value.password.trim();
+
+      if (isValid) {
+         try {
+            await createAdminPortalUser({
+               ...newUser.value,
+               admin: newUser.value.admin ? 1 : 0,
+               active: newUser.value.active ? 1 : 0
+            });
+         } catch (error) {
+            toast.add({
+               severity: 'error',
+               summary: 'Error',
+               detail: error.message
+            })
+         } finally {
+            users.value = await fetchAdminPortalUsers();
+            saved.value = false;
+            newDialog.value = false;
+            newUser.value = blankNewUser();
+         }
+      }
+   };
+
+   const blankNewUser = () => ({
+      name: '',
+      surname: '',
+      email: '',
+      password: '',
+      admin: false,
+      active: true
+   });
 
 </script>
 
@@ -42,7 +127,17 @@
 	<div class="p-grid">
 		<div class="p-col-12">
 			<Card>
-            <template #title> Admin Portal Users </template>
+            <template #title>
+               <div class="flex align-items-center justify-content-between">
+                  <span>Admin Portal Users</span>
+                  <Button
+                     label="New User"
+                     icon="pi pi-plus"
+                     severity="info"
+                     @click="newDialog=true"
+                  />
+               </div>
+            </template>
                <template #content>
                   <DataTable 
                      :value="users"
@@ -66,7 +161,7 @@
                      <Column :exportable="false" style="min-width:8rem">
                         <template #body="slotProps">
                            <Button icon="pi pi-pencil" outlined rounded class="mr-2" @click="editUser(slotProps.data)" />
-                           <Button :icon="slotProps.data.active === 1 ? 'pi pi-times' : 'pi pi-check'" outlined rounded :severity="slotProps.data.active === 1 ? danger : success" @click="confirmDeleteProduct(slotProps.data)" />
+                           <Button :icon="slotProps.data.active === 1 ? 'pi pi-times' : 'pi pi-check'" outlined rounded :severity="slotProps.data.active === 1 ? danger : success" @click="confirmDeleteUser(slotProps.data)" />
                         </template>
                      </Column>
                   </DataTable>
@@ -124,7 +219,78 @@
                         <Button label="Save" icon="pi pi-check" text @click="saveUser" />
                      </template>
                </Dialog>
-               </template>
+
+               <Dialog :dismissableMask="true" v-model:visible="newDialog" :style="{width: '670px'}" header="User Details" :modal="true" class="p-fluid">
+                  <div class="formgrid grid">
+                     <div class="field col-10">
+                        <label for="name" class="bold-label">Name</label>
+                        <InputText id="name" v-model.trim="newUser.name" required="true" autofocus :class="{'p-invalid': saved && !newUser.name}" />
+                        <small class="p-error" v-if="saved && !newUser.name">Name is required.</small>
+                     </div>
+                     <div class="field col-10">
+                        <label for="surname" class="bold-label">Surname</label>
+                        <InputText id="surname" v-model.trim="newUser.surname" required="true" autofocus :class="{'p-invalid': saved && !newUser.surname}" />
+                        <small class="p-error" v-if="saved && !newUser.surname">Surname is required.</small>
+                     </div>
+                     <div class="field col-10">
+                        <label for="email" class="bold-label">Email</label>
+                        <InputText id="email" type="email" v-model.trim="newUser.email" required="true" autofocus :class="{'p-invalid': saved && !newUser.email}" />
+                        <small class="p-error" v-if="saved && !newUser.email">Email is required.</small>
+                     </div>
+                     <div class="field col-10">
+                        <label for="password" class="bold-label">Password</label>
+                        <InputText id="password" type="password" v-model.trim="newUser.password" required="true" autofocus :class="{'p-invalid': saved && !newUser.password}" />
+                        <small class="p-error" v-if="saved && !newUser.password">Password is required.</small>
+                     </div>
+                     <div class="field col-10">
+                        <label for="admin" class="bold-label">Admin</label>
+                        <div>
+                           <ToggleButton v-model="newUser.admin" required onIcon="pi pi-check" offIcon="pi pi-times" invalid class="w-full sm:w-10rem" aria-label="Confirmation" />
+                        </div>
+                     </div>
+                  </div>
+                  <template #footer>
+                     <Button label="Cancel" icon="pi pi-times" text @click="closeDialog"/>
+                     <Button label="Save" icon="pi pi-check" text @click="addNewUser" />
+                  </template>
+               </Dialog>
+
+               <Dialog :dismissableMask="true" v-model:visible="newDialog" :style="{width: '670px'}" header="User Details" :modal="true" class="p-fluid">
+                  <div class="formgrid grid">
+                     <div class="field col-10">
+                        <label for="name" class="bold-label">Name</label>
+                        <InputText id="name" v-model.trim="newUser.name" required="true" autofocus :class="{'p-invalid': saved && !newUser.name}" />
+                        <small class="p-error" v-if="saved && !newUser.name">Name is required.</small>
+                     </div>
+                     <div class="field col-10">
+                        <label for="surname" class="bold-label">Surname</label>
+                        <InputText id="surname" v-model.trim="newUser.surname" required="true" autofocus :class="{'p-invalid': saved && !newUser.surname}" />
+                        <small class="p-error" v-if="saved && !newUser.surname">Surname is required.</small>
+                     </div>
+                     <div class="field col-10">
+                        <label for="email" class="bold-label">Email</label>
+                        <InputText id="email" type="email" v-model.trim="newUser.email" required="true" autofocus :class="{'p-invalid': saved && !newUser.email}" />
+                        <small class="p-error" v-if="saved && !newUser.email">Email is required.</small>
+                     </div>
+                     <div class="field col-10">
+                        <label for="password" class="bold-label">Password</label>
+                        <InputText id="password" type="password" v-model.trim="newUser.password" required="true" autofocus :class="{'p-invalid': saved && !newUser.password}" />
+                        <small class="p-error" v-if="saved && !newUser.password">Password is required.</small>
+                     </div>
+                     <div class="field col-10">
+                        <label for="admin" class="bold-label">Admin</label>
+                        <div>
+                           <ToggleButton v-model="newUser.admin" required onIcon="pi pi-check" offIcon="pi pi-times" invalid class="w-full sm:w-10rem" aria-label="Confirmation" />
+                        </div>
+                     </div>
+                  </div>
+                  <template #footer>
+                     <Button label="Cancel" icon="pi pi-times" text @click="closeDialog"/>
+                     <Button label="Save" icon="pi pi-check" text @click="addNewUser" />
+                  </template>
+               </Dialog>
+               <ConfirmDialog />
+               </template>              
          </Card>
 		</div>
 	</div>

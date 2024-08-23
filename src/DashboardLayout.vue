@@ -6,7 +6,7 @@
             <div :class="sidebarClass" @click="onSidebarClick" v-show="isSidebarVisible()">
                 <div class="layout-logo">
                     <router-link to="/notifications">
-                        <img alt="Logo" :src="logo" style="height:150px; width:200px"/><br>
+                        <img alt="Logo" :src="logo" style="height:150px; width:150px"/><br>
                         <span class="nav-text">{{user[0].organisation}}</span>
                     </router-link>
                 </div>
@@ -57,6 +57,7 @@ export default {
                {label: 'News', icon: 'pi pi-fw pi-book', to: 'news'},	
                {label: 'Payment Account', icon: 'pi pi-fw pi-wallet', to: 'payment-account'},
                {label: 'Logout', icon: 'pi pi-fw pi-power-off', to: 'login'}		
+               {label: 'Follow Up', icon: 'pi pi-fw pi-user', to: 'follow-up'},				
             ]
         }
     },
