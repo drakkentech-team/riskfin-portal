@@ -76,27 +76,27 @@
           <Dialog :dismissableMask="true" v-model:visible="editDialog" :style="{width: '450px'}" header="Edit Follow-up" :modal="true" class="p-fluid">
                      <div class="formgrid grid">
                         <div class="field col">
-                           <label for="event_date" class="bold-label">Date</label>
+                           <label for="event_date" class="bold-labels">Date</label>
                            <InputText id="name" v-model.trim="selectedRow.event_date" required="true" autofocus :class="{'p-invalid': saved && !selectedRow.event_date}" disabled/>
                            <small class="p-error" v-if="saved && !selectedRow.event_date">Date is required.</small>
                         </div>
                         <div class="field col-12">
-                           <label for="app_user" class="bold-label">User</label>
+                           <label for="app_user" class="bold-labels">User</label>
                            <InputText id="name" v-model.trim="selectedRow.app_user" required="true" autofocus :class="{'p-invalid': saved && !selectedRow.app_user}" disabled/>
                            <small class="p-error" v-if="saved && !selectedRow.app_user">User is required.</small>
                      </div>
                      <div class="field col-12">
-                           <label for="policy" class="bold-label">Policy</label>
+                           <label for="policy" class="bold-labels">Policy</label>
                            <InputText id="name" v-model.trim="selectedRow.policy" required="true" autofocus :class="{'p-invalid': saved && !selectedRow.policy}" disabled/>
                            <small class="p-error" v-if="saved && !selectedRow.policy">Product is required.</small>
                      </div>
                      <div class="field col-12">
-                           <label for="action" class="bold-label">Type</label>
+                           <label for="action" class="bold-labels">Type</label>
                            <InputText id="name" v-model.trim="selectedRow.action" required="true" autofocus :class="{'p-invalid': saved && !selectedRow.action}" disabled/>
                            <small class="p-error" v-if="saved && !selectedRow.action">Type is required.</small>
                      </div>
                      <div class="field col-12">
-                      <label for="agent" class="bold-label">Agent</label>
+                      <label for="agent" class="bold-labels">Agent</label>
                            <Dropdown 
                               v-model="selectedRow.agent"
                               :options="[
@@ -114,7 +114,7 @@
                            <small class="p-error" v-if="saved && !selectedRow.agent">Agent is required.</small>
                      </div>
                      <div class="field col-12">
-                           <label for="status" class="bold-label">Status</label>
+                           <label for="status" class="bold-labels">Status</label>
                            <Dropdown 
                               v-model="selectedRow.status"
                               :options="[
@@ -130,12 +130,12 @@
                            <small class="p-error" v-if="saved && !selectedRow.status">Status is required.</small>
                      </div>
                      <div class="field col-12">
-                           <label for="type" class="bold-label">Title</label>
+                           <label for="type" class="bold-labels">Title</label>
                            <InputText id="name" v-model.trim="selectedRow.title"  autofocus :class="{'p-invalid': saved && !selectedRow.title}"/>
                            <!-- <small class="p-error" v-if="saved && !selectedRow.type">Type is required.</small> -->
                      </div>
                      <div class="field col-12">
-                           <label for="type" class="bold-label">Body</label>
+                           <label for="type" class="bold-labels">Body</label>
                            <Textarea style="height: 200px;" id="body" v-model.trim="selectedRow.body"  autofocus :class="{'p-invalid': saved && !selectedRow.body}" />
                            <!-- <small class="p-error" v-if="saved && !selectedRow.type">Type is required.</small> -->
                      </div>

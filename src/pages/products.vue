@@ -1,6 +1,6 @@
 <script setup>
    import { ref, onMounted, watch, computed } from 'vue';
-   import { getProducts, updateProducts, addProduct, deleteCover } from '../api/products';
+   import { getProducts, updateProducts, addProduct, deleteCover, deleteProduct} from '../api/products';
    import { todayDate } from "../utilities/common"
    import { useConfirm } from "primevue/useconfirm";
    import { useToast } from 'primevue/usetoast';
