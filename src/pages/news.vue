@@ -142,6 +142,7 @@
    };
 
    const closeDialog = () => {
+      newDialog.value = false;
       const hasChanges = JSON.stringify(selectedNews.value) !== JSON.stringify(initialNewsState.value);
 
       if (hasChanges) {
