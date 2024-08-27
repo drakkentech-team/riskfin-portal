@@ -80,17 +80,19 @@
       console.log("Active tab changed to:", newValue);
    });
    watch(selectedUsers, (newValue, oldValue) => {
-      filterProducts.value = []
-      // Step 1: Extract policy_sid values from selectedUsers
-      const userSids = newValue.map(user => user.policy_sid);
+    filterProducts.value = [];
 
-      // Step 2: Filter products based on userSids and avoid duplicates
-      filterProducts.value = products.value.filter(product => {
-         // Check if the product's sid is included in userSids
-         return userSids.includes(product.sid);
-      });
+    //Extract policy_sid values from selectedUsers.active_policy
+    const userSids = newValue.flatMap(user => 
+        user.active_policy.map(policy => policy.policy_sid)
+    );
 
-   });
+    //Filter products based on userSids and avoid duplicates
+    filterProducts.value = products.value.filter(product => {
+        // Check if the product's sid is included in userSids
+        return userSids.includes(product.sid);
+    });
+});
 
    const countSelectedUsers = computed(() => {
       return selectedUsers.value.length;
