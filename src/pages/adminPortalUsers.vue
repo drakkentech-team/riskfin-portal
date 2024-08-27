@@ -39,12 +39,37 @@
       editDialog.value = true;
    };
 
-   const saveUser = () => {
+   const saveUser = async () => {
       saved.value = true;
 
       if (user.value.first_name.trim()) {
          if (user.value.sid) {
             users.value[findIndexById(user.value.id)] = user.value;
+            console.log(user.value);
+            const isValid =
+               user.value.first_name.trim() &&
+               user.value.last_name.trim() &&
+               user.value.email.trim()
+               // user.value.password.trim();
+               if (isValid) {
+                  try {
+                     await updateAdminPortalUser({...user.value.sid,
+                        ...user.value,
+                     });
+                  } catch (error) {
+                     toast.add({
+                        severity: 'error',
+                        summary: 'Error',
+                        detail: error.message
+                     })
+                  } finally {
+                     users.value = await fetchAdminPortalUsers();
+                     saved.value = false;
+                     editDialog.value = false;
+                     // newDialog.value = false;
+                     // newUser.value = blankNewUser();
+                  }
+               }
             toast.add({severity:'success', summary: 'Successful', detail: 'User Updated', life: 3000});
          }
          editDialog.value = false;
