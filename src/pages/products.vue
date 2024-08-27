@@ -176,6 +176,7 @@
    };
 
    const closeDialog = () => {
+      newDialog.value = false;
       editDialog.value = false;
       saved.value = false;
    };
