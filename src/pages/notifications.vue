@@ -90,9 +90,7 @@
     //Filter products based on userSids and avoid duplicates
     filterProducts.value = products.value.filter(product => {
         // Check if the product's sid is included in userSids
-      //   return userSids.includes(product.sid);
-      let items = userSids.includes(product.sid);
-      return items;
+        return userSids.includes(product.sid);
     });
 });
 
