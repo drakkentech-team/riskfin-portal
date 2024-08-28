@@ -28,6 +28,15 @@
       active: true
    })
 
+   const editCurrentUser = ref({
+      first_name: '',
+      last_name: '',
+      email: '',
+      admin: false,
+      // active: true,
+      sid: 0
+   })
+
    onMounted(() => {
       fetchAdminPortalUsers().then((data) => {
          users.value = data;
@@ -36,6 +45,15 @@
 
    const editUser = (data) => {
       user.value = {...data};
+      editCurrentUser.value.first_name = data.first_name;
+      editCurrentUser.value.last_name = data.last_name;
+      editCurrentUser.value.email = data.email;
+      editCurrentUser.value.sid = data.sid;
+      if (data.admin === 1) {
+         editCurrentUser.value.admin = true;
+      } else {
+         editCurrentUser.value.admin = false;
+      }
       editDialog.value = true;
    };
 
@@ -45,16 +63,35 @@
       if (user.value.first_name.trim()) {
          if (user.value.sid) {
             users.value[findIndexById(user.value.id)] = user.value;
-            console.log(user.value);
             const isValid =
                user.value.first_name.trim() &&
                user.value.last_name.trim() &&
                user.value.email.trim()
-               // user.value.password.trim();
                if (isValid) {
+                  const propertiesToCheck = ['first_name', 'last_name', 'email', 'admin'];
+                  // Loop to compare and delete properties
+                  propertiesToCheck.forEach(property => {
+                  const userValue = typeof user.value[property] === 'string' ? user.value[property].trim() : user.value[property];
+                  const editUserValue = typeof editCurrentUser.value[property] === 'string' ? editCurrentUser.value[property].trim() : editCurrentUser.value[property];
+
+                  if (userValue === editUserValue) {
+                  delete editCurrentUser.value[property];
+                  }
+               });
+                  if (user.value.admin === 1 && editCurrentUser.value.admin === true){
+                     delete editCurrentUser.value.admin;
+                  } else if (user.value.admin === 2 && editCurrentUser.value.admin === false){
+                     delete editCurrentUser.value.admin;
+                  }
+                  if (user.value.admin === 1 && editCurrentUser.value.admin === false){
+                     editCurrentUser.value.admin = 2;
+                  } else if (user.value.admin === 2 && editCurrentUser.value.admin === true){
+                     editCurrentUser.value.admin = 1;
+                  }
+
                   try {
-                     await updateAdminPortalUser({...user.value.sid,
-                        ...user.value,
+                     await updateAdminPortalUser({...editCurrentUser.value.sid,
+                        ...editCurrentUser.value,
                      });
                   } catch (error) {
                      toast.add({
@@ -230,21 +267,27 @@
                      <div class="formgrid grid">
                         <div class="field col">
                            <label for="name" class="bold-label">Name</label>
-                           <InputText id="name" v-model.trim="user.first_name" required="true" autofocus :class="{'p-invalid': saved && !user.first_name}" />
-                           <small class="p-error" v-if="saved && !user.first_name">Name is required.</small>
+                           <InputText id="name" v-model.trim="editCurrentUser.first_name" required="true" autofocus :class="{'p-invalid': saved && !editCurrentUser.first_name}" />
+                           <small class="p-error" v-if="saved && !editCurrentUser.first_name">Name is required.</small>
                         </div>
                         <div class="field col">
                            <label for="surname" class="bold-label">Surname</label>
-                           <InputText id="name" v-model.trim="user.last_name" required="true" autofocus :class="{'p-invalid': saved && !user.last_name}" />
-                           <small class="p-error" v-if="saved && !user.last_name">Surname is required.</small>
+                           <InputText id="name" v-model.trim="editCurrentUser.last_name" required="true" autofocus :class="{'p-invalid': saved && !editCurrentUser.last_name}" />
+                           <small class="p-error" v-if="saved && !editCurrentUser.last_name">Surname is required.</small>
                         </div>
                      </div>
                      <div class="field">
                         <label for="email" class="bold-label">Email</label>
-                        <InputText id="email" v-model.trim="user.email" required="true" autofocus :class="{'p-invalid': saved && !user.email}" />
-                        <small class="p-error" v-if="saved && !user.email">Email is required.</small>
+                        <InputText id="email" v-model.trim="editCurrentUser.email" required="true" autofocus :class="{'p-invalid': saved && !editCurrentUser.email}" />
+                        <small class="p-error" v-if="saved && !editCurrentUser.email">Email is required.</small>
                      </div>
-                     <div class="formgrid grid">
+                     <div class="field col-10">
+                        <label for="admin" class="bold-label">Admin</label>
+                        <div>
+                           <ToggleButton v-model="editCurrentUser.admin" required onIcon="pi pi-check" offIcon="pi pi-times" invalid class="w-full sm:w-10rem" aria-label="Confirmation" />
+                        </div>
+                     </div>
+                     <!-- <div class="formgrid grid">
                         <div class="field col">
                            <label for="id" class="bold-label">ID</label>
                            <InputText id="id" v-model.trim="user.id" required="true" autofocus :class="{'p-invalid': saved && !user.id}" />
@@ -273,7 +316,7 @@
                               </template>
                            </Column>
                         </DataTable>
-                     </div>
+                     </div> -->
                      <template #footer>
                         <Button label="Cancel" icon="pi pi-times" text @click="closeDialog"/>
                         <Button label="Save" icon="pi pi-check" text @click="saveUser" />
