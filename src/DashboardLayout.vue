@@ -56,6 +56,7 @@ export default {
                },
                {label: 'News', icon: 'pi pi-fw pi-book', to: 'news'},	
                {label: 'Payment Account', icon: 'pi pi-fw pi-wallet', to: 'payment-account'},
+               {label: 'Logout', icon: 'pi pi-fw pi-power-off', to: 'login'}		
                {label: 'Follow Up', icon: 'pi pi-fw pi-user', to: 'follow-up'},				
             ]
         }

@@ -1,8 +1,9 @@
 <template>
-	<div class="layout-profile">
-		<button class="p-link layout-profile-link" @click="onClick">
+	<!-- Side bar Gear -->
+	<!-- <div class="layout-profile">
+		<button class="p-link layout-profile-link" @click="onClick"> -->
 			<!-- <span class="username">Claire Williams</span> -->
-			<i class="pi pi-fw pi-cog"></i>
+			<!-- <i class="pi pi-fw pi-cog"></i>
 		</button>
         <transition name="layout-submenu-wrapper">
             <ul v-show="expanded">
@@ -12,7 +13,7 @@
             </ul>
         </transition>
 		
-	</div>
+	</div> -->
 </template>
 
 <script>
