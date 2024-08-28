@@ -82,7 +82,34 @@
       newDialog.value = false;
       saved.value = false;
    };
+   const handleClick = (data) => {
+    if (data.active === 0) {
+      confirmActivateUser(data);
+    } else {
+      confirmDeleteUser(data);
+    }
+  }
 
+   const confirmActivateUser = (userData) => {
+      confirm.require({
+         message: 'Are you sure you want to activate this user?',
+         header: 'Confirmation',
+         icon: 'pi pi-exclamation-triangle',
+         accept: async () => {
+            try {
+               let newData = { "sid": userData.sid, "active": 1 };
+               await updateAdminPortalUser(newData, { active: 1 });
+               users.value = await fetchAdminPortalUsers();
+            } catch (error) {
+               toast.add({
+                  severity: 'error',
+                  summary: 'Error',
+                  detail: error.message
+               });
+            }
+         }
+      });
+   };
 
    const confirmDeleteUser = (userData) => {
       confirm.require({
@@ -186,7 +213,15 @@
                      <Column :exportable="false" style="min-width:8rem">
                         <template #body="slotProps">
                            <Button icon="pi pi-pencil" outlined rounded class="mr-2" @click="editUser(slotProps.data)" />
-                           <Button :icon="slotProps.data.active === 1 ? 'pi pi-times' : 'pi pi-check'" outlined rounded :severity="slotProps.data.active === 1 ? danger : success" @click="confirmDeleteUser(slotProps.data)" />
+                           <!-- <Button :icon="slotProps.data.active === 1 ? 'pi pi-times' : 'pi pi-check'" outlined rounded :severity="slotProps.data.active === 1 ? danger : success" @click="confirmDeleteUser(slotProps.data)" /> -->
+                           <Button 
+                              :icon="slotProps.data.active === 1 ? 'pi pi-times' : 'pi pi-check'" 
+                              outlined 
+                              rounded 
+                              :severity="slotProps.data.active === 1 ? 'danger' : 'success'" 
+                              @click="handleClick(slotProps.data)" 
+                              />
+
                         </template>
                      </Column>
                   </DataTable>
