@@ -73,7 +73,6 @@
                   propertiesToCheck.forEach(property => {
                   const userValue = typeof user.value[property] === 'string' ? user.value[property].trim() : user.value[property];
                   const editUserValue = typeof editCurrentUser.value[property] === 'string' ? editCurrentUser.value[property].trim() : editCurrentUser.value[property];
-
                   if (userValue === editUserValue) {
                   delete editCurrentUser.value[property];
                   }
@@ -88,11 +87,14 @@
                   } else if (user.value.admin === 2 && editCurrentUser.value.admin === true){
                      editCurrentUser.value.admin = 1;
                   }
+                  const length = Object.keys(editCurrentUser.value).length;
 
                   try {
+                     if (length > 1) {
                      await updateAdminPortalUser({...editCurrentUser.value.sid,
                         ...editCurrentUser.value,
                      });
+                  }
                   } catch (error) {
                      toast.add({
                         severity: 'error',
