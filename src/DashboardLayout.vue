@@ -56,13 +56,14 @@ export default {
                },
                {label: 'News', icon: 'pi pi-fw pi-book', to: 'news'},	
                {label: 'Payment Account', icon: 'pi pi-fw pi-wallet', to: 'payment-account'},
-               {label: 'Logout', icon: 'pi pi-fw pi-power-off', to: 'login'},		
                {label: 'Follow Up', icon: 'pi pi-fw pi-user', to: 'follow-up'},				
+               {label: 'Logout', icon: 'pi pi-fw pi-power-off'},		
             ]
         }
     },
     watch: {
         $route() {
+            console.log("are we here on each click?")
             this.menuActive = false;
             this.$toast.removeAllGroups();
         }
@@ -102,7 +103,11 @@ export default {
             this.menuClick = true;
         },
         onMenuItemClick(event) {
-            if (event.item && !event.item.items) {
+            if (event.item.label === 'Logout') {
+                const user = useStore();
+                user.clearUser()
+                this.$router.push('/login');
+            } else if (event.item && !event.item.items) {
                 this.overlayMenuActive = false;
                 this.mobileMenuActive = false;
             }
