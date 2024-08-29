@@ -180,6 +180,15 @@
       editDialog.value = false;
       saved.value = false;
    };
+
+   const confirmActivateProduct = (data) => {      
+      confirm.require({
+         message: 'Are you sure you want to activate this product?',
+         header: 'Confirmation',
+         icon: 'pi pi-exclamation-triangle',
+      });
+   };
+
    const confirmDeleteProduct = (data) => {
       confirm.require({
          message: 'Are you sure you want to delete this product?',
@@ -242,7 +251,12 @@
                      <Column :exportable="false" style="min-width:8rem">
                         <template #body="slotProps">
                            <Button icon="pi pi-pencil" outlined rounded class="mr-2" @click="editUser(slotProps.data)" />
-                           <Button icon="pi pi-trash" outlined rounded severity="danger" @click="confirmDeleteProduct(slotProps.data)" />
+                           <Button v-if="selectedFilter === 'active'" icon="pi pi-trash" outlined rounded severity="danger" @click="confirmDeleteProduct(slotProps.data)" />
+                           <Button v-else
+                              :icon="slotProps.data.active === 0 ? 'pi pi-times' : 'pi pi-check'" outlined rounded 
+                              :severity="slotProps.data.active === 0 ? 'danger' : 'success'" 
+                              @click="confirmActivateProduct(slotProps.data)" 
+                              />
                         </template>
                      </Column>
                   </DataTable>
