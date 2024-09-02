@@ -181,11 +181,25 @@
       saved.value = false;
    };
 
-   const confirmActivateProduct = (data) => {      
+   const confirmActivateProduct = (data) => {  
       confirm.require({
          message: 'Are you sure you want to activate this product?',
          header: 'Confirmation',
          icon: 'pi pi-exclamation-triangle',
+         accept: async () => {
+            try {
+               await updateProducts(data.sid, 
+               { active: 0 });
+               products.value = products.value.filter((product) => product.sid !== data.sid);
+            }
+            catch (error) {
+               toast.add({
+                  severity: 'error',
+                  summary: 'Error',
+                  detail: error.message,
+               });
+            }
+         }
       });
    };
 
