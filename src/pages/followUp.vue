@@ -46,7 +46,7 @@
             :value="filteredData" 
             :paginator="true" 
             :rows="rowsPerPage" 
-            :rowsPerPageOptions="[5, 10, 20]"
+            :rowsPerPageOptions="[10, 20, 50]"
             tableStyle="min-width: 50rem"
             v-model:selection="selectedRow"
             selectionMode="single" 
@@ -165,7 +165,7 @@ const editDialog = ref(false);
 const saved = ref(false);
 const spinner = ref(false);
 const currentPage = ref(1);
-const rowsPerPage = ref(5);
+const rowsPerPage = ref(10);
 const data = ref([]);
 
 const fetchData = async () => {

@@ -232,8 +232,8 @@
                <template #content>
                   <DataTable 
                      :value="users"
-                     paginator :rows="5" 
-                     :rowsPerPageOptions="[5, 10, 20, 50]"
+                     paginator :rows="10" 
+                     :rowsPerPageOptions="[10, 20, 30, 50]"
                      tableStyle="min-width: 50rem"
                   >
                      <Column field="sid" header="ID"></Column>
