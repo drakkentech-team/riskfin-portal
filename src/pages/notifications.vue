@@ -411,8 +411,8 @@
                   sortField="date_sent"
                   :sortOrder="-1"
                   :value="notificationTableData"
-                  paginator :rows="5" 
-                  :rowsPerPageOptions="[5, 10, 20, 50]"
+                  paginator :rows="10" 
+                  :rowsPerPageOptions="[10, 20, 30, 50]"
                   tableStyle="min-width: 50rem"
                   v-model:selection="selectedNotification"
                   selectionMode="single"  
@@ -589,8 +589,8 @@
                   <div>
                      <DataTable 
                         :value="selectedNotification.user_details"
-                        paginator :rows="5" 
-                        :rowsPerPageOptions="[5, 10, 20, 50]"
+                        paginator :rows="10" 
+                        :rowsPerPageOptions="[10, 20, 30, 50]"
                         tableStyle="min-width: 50rem"
                      >
                         <Column 
@@ -646,8 +646,8 @@
                >
                   <DataTable 
                      :value="users"
-                     paginator :rows="5" 
-                     :rowsPerPageOptions="[5, 10, 20, 50]"
+                     paginator :rows="10" 
+                     :rowsPerPageOptions="[10, 20, 30, 50]"
                      tableStyle="min-width: 10rem"
                      v-model:selection="selectedUsers" :selectAll="selectAllUsers" @select-all-change="handleSelectAllUsers"
                   >
@@ -676,8 +676,8 @@
                   >
                      <DataTable 
                         :value="filterProducts"
-                        paginator :rows="5" 
-                        :rowsPerPageOptions="[5, 10, 20, 50]"
+                        paginator :rows="10" 
+                        :rowsPerPageOptions="[10, 20, 30, 50]"
                         tableStyle="min-width: 10rem"
                         v-model:selection="selectedProducts" :selectAll="selectAllProducts" @select-all-change="handleSelectAllProducts"
                      >
@@ -700,12 +700,12 @@
                      class="p-fluid"
                   >
                      <DataTable 
-                        paginator :rows="5" 
+                        paginator :rows="10" 
                         selectionMode="single"  
                         tableStyle="min-width: 10rem"
                         :value="notificationTemplates"
                         @rowSelect="onTemplateSelect"
-                        :rowsPerPageOptions="[5, 10, 20, 50]"
+                        :rowsPerPageOptions="[10, 20, 30, 50]"
                         v-model:selection="selectedNotification"
                      >
                         <Column field="title" header="Subject" />

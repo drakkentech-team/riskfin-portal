@@ -200,8 +200,8 @@
                <br>
                   <DataTable 
                      :value="news"
-                     paginator :rows="5" 
-                     :rowsPerPageOptions="[5, 10, 20, 50]"
+                     paginator :rows="10" 
+                     :rowsPerPageOptions="[10, 20, 30, 50]"
                      tableStyle="min-width: 50rem"
                   >
                      <Column field="sid" header="ID"></Column>
@@ -272,8 +272,8 @@
                <Dialog :dismissableMask="true" v-model:visible="addUsersDialog" :style="{width: '450px'}" header="Add Users" :modal="true" class="p-fluid">
                   <DataTable 
                      :value="users"
-                     paginator :rows="5" 
-                     :rowsPerPageOptions="[5, 10, 20, 50]"
+                     paginator :rows="10" 
+                     :rowsPerPageOptions="[10, 20, 30, 50]"
                      tableStyle="min-width: 10rem"
                   >
                      <Column field="user_sid" header="ID"></Column>
