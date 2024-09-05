@@ -1,7 +1,9 @@
 import axios from 'axios';
+import { useStore } from '../stores/store';
 
 const HOST = import.meta.env.VITE_LOCAL;
 const BEARER_TOKEN = import.meta.env.VITE_BEARERTOKEN;
+const store = useStore();
 
 export const applyFilters = async (payload) => {
    try {
@@ -9,7 +11,7 @@ export const applyFilters = async (payload) => {
          headers: {
            'Authorization': `Bearer ${BEARER_TOKEN}`,
            'Content-Type': 'application/json',
-           'app-id': 1
+           'app-id': store.user[0].app_fk
          }
       });
       return response.data;

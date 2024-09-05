@@ -1,8 +1,9 @@
 import axios from 'axios';
+import { useStore } from '../stores/store';
 
 const API_ENDPOINT = import.meta.env.VITE_LOCAL;
 const BEARER_TOKEN = import.meta.env.VITE_BEARERTOKEN;
-
+const store = useStore();
 
 export const createNews = async (payload) => {
    try {
@@ -10,7 +11,7 @@ export const createNews = async (payload) => {
          headers: {
            'Authorization': `Bearer ${BEARER_TOKEN}`,
            'Content-Type': 'application/json',
-           'app-id': 1
+           'app-id': store.user[0].app_fk
          }
       });
       return "Successfully created news";
@@ -28,7 +29,7 @@ export const getNews = async () => {
          headers: {
             'Authorization': `Bearer ${BEARER_TOKEN}`,
             'Content-Type': 'application/json',
-            'app-id': 1
+            'app-id': store.user[0].app_fk
          }
       })
       return response.data;
@@ -46,7 +47,7 @@ export const updateNews = async (sid, payload) => {
          headers: {
            'Authorization': `Bearer ${BEARER_TOKEN}`,
            'Content-Type': 'application/json',
-           'app-id': 1
+           'app-id': store.user[0].app_fk
          }
       });
       return "Successfully updated news";

@@ -16,6 +16,8 @@
    const editDialog = ref(false);
    const saved = ref(false);
    const spinner = ref(false);
+   const initialNewsState = ref(null);
+   const selectAllUsers  = ref(false)
 
    const countSelectedUsers = computed(() => {
       return selectedUsers.value.length;
@@ -37,6 +39,8 @@
       });
       getMobileUsers().then((data) => {
         users.value = data;
+        console.log('this is the data for the mobile user')
+        console.log(data)
       });
    });
 
@@ -47,7 +51,15 @@
 
 
    const handleCreateNews = async () => {
-      const formattedUserIds = selectedUsers.value.map(user_id => ({ "user_id": user_id.toString() }));
+      if (!newsForm.value.title || !newsForm.value.content) {
+         saved.value = true;
+         return;
+      }
+      if (selectedUsers.value.length === 0) {
+         toast.add({ severity: 'error', summary: 'Error', detail: 'Please select users', life: 3000 });
+         return;
+      }
+      const formattedUserIds = selectedUsers.value.map(user => ({ "user_id": user.sid.toString() }));
       try {
          await createNews({
             title: newsForm.value.title,
@@ -72,7 +84,7 @@
 
    const handleEditNews = (data) => {
       selectedNews.value = {...data};
-      console.log(selectedNews)
+      initialNewsState.value = { ...data };
       editDialog.value = true;
    };
 
@@ -103,6 +115,15 @@
       saved.value = true;
       spinner.value = true;  
       const sid = selectedNews.value.sid
+
+      const hasChanges = JSON.stringify(selectedNews.value) !== JSON.stringify(initialNewsState.value);
+
+      if (!hasChanges) {
+      spinner.value = false;
+      editDialog.value = false;
+      return;
+   }
+
       try {
          await updateNews(sid, {
             title: selectedNews.value.title,
@@ -124,9 +145,25 @@
    };
 
    const closeDialog = () => {
+      newDialog.value = false;
+      const hasChanges = JSON.stringify(selectedNews.value) !== JSON.stringify(initialNewsState.value);
+
+      if (hasChanges) {
+         toast.add({ severity: 'info', summary: 'Changes Discarded', detail: 'Your changes were discarded', life: 3000 });
+      }
+      
       editDialog.value = false;
       saved.value = false;
    };
+
+   const handleSelectAllUsers = (event) => {
+      selectAllUsers.value = event.checked;
+      if (selectAllUsers.value) {
+         selectedUsers.value = users.value
+      } else {
+         selectedUsers.value = []
+      }
+   }
 
 
 
@@ -175,8 +212,8 @@
                <br>
                   <DataTable 
                      :value="news"
-                     paginator :rows="5" 
-                     :rowsPerPageOptions="[5, 10, 20, 50]"
+                     paginator :rows="10" 
+                     :rowsPerPageOptions="[10, 20, 30, 50]"
                      tableStyle="min-width: 50rem"
                   >
                      <Column field="sid" header="ID"></Column>
@@ -244,11 +281,11 @@
                      </template>
                </Dialog>
 
-               <Dialog :dismissableMask="true" v-model:visible="addUsersDialog" :style="{width: '450px'}" header="Add Users" :modal="true" class="p-fluid">
+               <!-- <Dialog :dismissableMask="true" v-model:visible="addUsersDialog" :style="{width: '450px'}" header="Add Users" :modal="true" class="p-fluid">
                   <DataTable 
                      :value="users"
-                     paginator :rows="5" 
-                     :rowsPerPageOptions="[5, 10, 20, 50]"
+                     paginator :rows="10" 
+                     :rowsPerPageOptions="[10, 20, 30, 50]"
                      tableStyle="min-width: 10rem"
                   >
                      <Column field="user_sid" header="ID"></Column>
@@ -261,7 +298,7 @@
                         <template #body="slotProps">
                            <Checkbox 
                               v-model="selectedUsers" 
-                              :value="slotProps.data.user_sid" 
+                              :value="slotProps.data.sid" 
                               @change="handleUserCheck(slotProps.data.user_sid)" 
                            />
                         </template>
@@ -272,7 +309,37 @@
                         <Button label="Cancel" icon="pi pi-times" text @click="addUsersDialog=false"/>
                         <Button label="Save" icon="pi pi-check" text @click="addUsersDialog=false" />
                      </template>
-               </Dialog>
+               </Dialog> -->
+
+               <Dialog 
+                  :dismissableMask="true" 
+                  v-model:visible="addUsersDialog" 
+                  :style="{width: '450px'}" 
+                  header="Add Users" 
+                  :modal="true" 
+                  class="p-fluid"
+               >
+                  <DataTable 
+                     :value="users"
+                     paginator :rows="5" 
+                     :rowsPerPageOptions="[5, 10, 20, 50]"
+                     tableStyle="min-width: 10rem"
+                     v-model:selection="selectedUsers" :selectAll="selectAllUsers" @select-all-change="handleSelectAllUsers"
+                  >
+                     <Column field="Name" header="Name" style="min-width:10rem">
+                        <template #body="slotProps">
+                           {{ slotProps.data.first_name }} {{ slotProps.data.last_name }}
+                        </template>
+                     </Column>
+                     <Column selectionMode="multiple" headerStyle="width: 3rem"></Column>
+                     
+                  </DataTable>
+                  <template #footer>
+                        <Button label="Cancel" icon="pi pi-times" text @click="addUsersDialog=false"/>
+                        <Button label="Save" icon="pi pi-check" text @click="addUsersDialog=false" />
+                     </template>
+                  </Dialog>
+
                <Toast />
                </template>
                

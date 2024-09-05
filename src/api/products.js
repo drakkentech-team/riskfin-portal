@@ -1,7 +1,9 @@
 import axios from 'axios';
+import { useStore } from '../stores/store';
 
 const API_ENDPOINT = import.meta.env.VITE_LOCAL;
 const BEARER_TOKEN = import.meta.env.VITE_BEARERTOKEN;
+const store = useStore();
 
 export const getProducts = async () => {
    try {
@@ -9,7 +11,7 @@ export const getProducts = async () => {
          headers: {
             'Authorization': `Bearer ${BEARER_TOKEN}`,
             'Content-Type': 'application/json',
-            'app-id': 1
+            'app-id': store.user[0].app_fk
          }
       });
       return response.data;
@@ -27,7 +29,7 @@ export const addProduct = async (payload) => {
          headers: {
            'Authorization': `Bearer ${BEARER_TOKEN}`,
            'Content-Type': 'application/json',
-           'app-id': 1
+           'app-id': store.user[0].app_fk
          }
       });
       return `Successfully updated product with SID ${sid}`;
@@ -45,7 +47,7 @@ export const updateProducts = async (sid, payload) => {
          headers: {
            'Authorization': `Bearer ${BEARER_TOKEN}`,
            'Content-Type': 'application/json',
-           'app-id': 1
+           'app-id': store.user[0].app_fk
          }
       });
       return `Successfully updated product with SID ${sid}`;
@@ -63,7 +65,7 @@ export const deleteCover = async (sid) => {
          headers: {
            'Authorization': `Bearer ${BEARER_TOKEN}`,
            'Content-Type': 'application/json',
-           'app-id': 1
+           'app-id': store.user[0].app_fk
          }
       });
       return `Successfully deleted cover with SID ${sid}`;
@@ -72,4 +74,14 @@ export const deleteCover = async (sid) => {
       console.error(`Error while deleting cover with SID ${sid}:`, error);
       throw error;
    }
+};
+
+export const deleteProduct = async (sid) => {
+   await axios.delete(`${API_ENDPOINT}/policy_details?sid_policy_detail=${sid}`, {
+      headers: {
+         'Authorization': `Bearer ${BEARER_TOKEN}`,
+         'Content-Type': 'application/json',
+         'app-id': store.user[0].app_fk
+      }
+   });
 };

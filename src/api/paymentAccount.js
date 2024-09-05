@@ -1,7 +1,9 @@
 import axios from 'axios';
+import { useStore } from '../stores/store';
 
 const HOST = import.meta.env.VITE_LOCAL;
 const BEARER_TOKEN = import.meta.env.VITE_BEARERTOKEN;
+const store = useStore();
 
 export const fetchPaymentAccount = async () => {
    try{
@@ -9,7 +11,7 @@ export const fetchPaymentAccount = async () => {
          headers: {
            'Authorization': `Bearer ${BEARER_TOKEN}`,
            'Content-Type': 'application/json',
-           'app-id': 2
+           'app-id': store.user[0].app_fk
          }
       });
       if (response.data[0]) {
@@ -33,7 +35,7 @@ export const createPaymentAccount = async (payload) => {
          headers: {
            'Authorization': `Bearer ${BEARER_TOKEN}`,
            'Content-Type': 'application/json',
-           'app-id': 2
+           'app-id': store.user[0].app_fk
          },
          
       });
@@ -52,7 +54,7 @@ export const updatePaymentAccount = async (payload) => {
          headers: {
            'Authorization': `Bearer ${BEARER_TOKEN}`,
            'Content-Type': 'application/json',
-           'app-id': 2
+           'app-id': store.user[0].app_fk
          }
       });
       return "Successfully updated payment account";

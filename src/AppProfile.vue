@@ -1,21 +1,23 @@
 <template>
-	<div class="layout-profile">
-		<button class="p-link layout-profile-link" @click="onClick">
+	<!-- Side bar Gear -->
+	<!-- <div class="layout-profile">
+		<button class="p-link layout-profile-link" @click="onClick"> -->
 			<!-- <span class="username">Claire Williams</span> -->
-			<i class="pi pi-fw pi-cog"></i>
+			<!-- <i class="pi pi-fw pi-cog"></i>
 		</button>
         <transition name="layout-submenu-wrapper">
             <ul v-show="expanded">
                 <li><button class="p-link"><i class="pi pi-fw pi-user"></i><span>Account</span></button></li>
                 <li><button class="p-link"><i class="pi pi-fw pi-inbox"></i><span>Notifications</span><span class="menuitem-badge">2</span></button></li>
-                <li><button class="p-link"><i class="pi pi-fw pi-power-off"></i><span>Logout</span></button></li>
+                <li><button @click="logout" class="p-link"><i class="pi pi-fw pi-power-off"></i><span>Logout</span></button></li>
             </ul>
         </transition>
 		
-	</div>
+	</div> -->
 </template>
 
 <script>
+import { useStore } from '../src/stores/store';
 	export default {
 		data() {
 			return {
@@ -26,6 +28,10 @@
 			onClick(event){
 				this.expanded = !this.expanded;
 				event.preventDefault();
+			},logout() {
+				const user = useStore();
+				user.clearUser()
+				this.$router.push('/login');
 			}
 		}
 	}
