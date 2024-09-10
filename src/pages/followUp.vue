@@ -5,12 +5,6 @@
         <template #title>
           <div style="display: flex; align-items: center; justify-content: space-between;">
             <span>Follow-up</span>
-            <Button
-              icon="pi pi-pencil" 
-              outlined rounded class="mr-2"
-              :disabled="selectedRow === null"  
-              @click="editRow(selectedRow)"
-            />
           </div>
         </template>
         <template #content>
@@ -52,8 +46,7 @@
             selectionMode="single" 
             :totalRecords="totalRecords" 
             @page="onPageChange"
-            @rowSelect="onRowSelect"
-            v-on:dblclick="selectedRow"
+            @rowSelect="editRow"
           >
             <Column field="event_date" header="Date" sortable />
             <Column field="app_user" header="User" sortable />
@@ -61,17 +54,6 @@
             <Column field="action" header="Type" sortable />
             <Column field="agent" header="Agent" sortable />
             <Column field="status" header="Status" sortable />
-
-            <template #body="slotProps">
-              <tr @dblclick="selectRow(slotProps.index)" :class="{'selected-row': selectedRow.value === slotProps.index}">
-                <td>{{ slotProps.data.event_date}}</td>
-                <td>{{ slotProps.data.app_user }}</td>
-                <td>{{ slotProps.data.policy }}</td>
-                <td>{{ slotProps.data.action }}</td>
-                <td>{{ slotProps.data.agent }}</td>
-                <td>{{ slotProps.data.status }}</td>
-              </tr>
-            </template>
           </DataTable>
           <Dialog :dismissableMask="true" v-model:visible="editDialog" :style="{width: '450px'}" header="Edit Follow-up" :modal="true" class="p-fluid">
                      <div class="formgrid grid">
@@ -158,9 +140,6 @@ import { getFollowUp, updateFollowUp } from '../api/followUp';
 
 const messageType = ref("All");
 const selectedRow = ref(null);
-const selectRowDialog = ref(false);
-const selectRowTitle = ref(false);
-const newDialog = ref(false);
 const editDialog = ref(false);
 const saved = ref(false);
 const spinner = ref(false);
@@ -190,12 +169,6 @@ const filteredData = computed(() => {
   }
 });
 
-const paginatedData = computed(() => {
-    const start = (currentPage.value - 1) * rowsPerPage.value;
-    const end = start + rowsPerPage.value;
-    return filteredData.value.slice(start, end);
-});
-
 const totalRecords = computed(() => filteredData.value.length);
 
 const onPageChange = (event)  => {
@@ -203,24 +176,10 @@ const onPageChange = (event)  => {
     rowsPerPage.value = event.rows;
 }
 
-const selectRow = (index) => {
-  if (!selectedRow.value === index) {
-      selectedRow.value = null;
-  } else {
-      selectedRow.value = index; 
-  }
-}
-
-const onRowSelect = () => {
-      selectRowDialog.value = true
-      selectRowTitle.value = "Title: " + selectedRow.value.title
-   }
-
-const editRow = (data) => {
-    selectedRow.value = {...data};
+const editRow = (event) => {
+    selectedRow.value = {...event.data};
     editDialog.value = true;
 }
-
 
 const handleUpdateRow = async () => {
   saved.value = true;
@@ -262,7 +221,6 @@ const handleUpdateRow = async () => {
     spinner.value = false;
   }
 };
-
 
 const closeDialog = () => {
     editDialog.value = false;
